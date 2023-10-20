@@ -7,6 +7,8 @@ Roadmap
 
 find edges on scantron and crop to consistent photo for opencv to go off of. 
 normalize the size of the scantron to be consistently the same
+use contours. 
+
 
 flip the orientation to be exact on each side before running the model. 
 
