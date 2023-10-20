@@ -7,7 +7,7 @@ import imutils
 # define the answer key
 ANSWER_KEY = {0: 1, 1: 4, 2: 0, 3: 3, 4: 1}
 
-image = cv2.imread("test_examples/answer_sheet.png")
+image = cv2.imread("real_examples/IMG_4163.jpg")
 
 if image is None:
     print("Image not loaded or does not exist.")
@@ -23,8 +23,6 @@ else:
     # cv2.imshow("Loaded Image", edged)
     # cv2.waitKey(0)  # Wait until a key is pressed
     # cv2.destroyAllWindows()  # Close all OpenCV windows
-
-
 
 # find contours in the edge map, then initialize
 # the contour that corresponds to the document
@@ -128,3 +126,4 @@ cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 0, 255), 2)
 cv2.imshow("Original", image)
 cv2.imshow("Exam", paper)
 cv2.waitKey(0)
+cv2.destroyAllWindows()
