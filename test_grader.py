@@ -7,7 +7,7 @@ import imutils
 # define the answer key
 ANSWER_KEY = {0: 1, 1: 4, 2: 0, 3: 3, 4: 1}
 
-image = cv2.imread("real_examples/IMG_4163.jpg")
+image = cv2.imread("test_examples/answer_sheet.png")
 
 if image is None:
     print("Image not loaded or does not exist.")
@@ -20,7 +20,7 @@ else:
     # Display the image in a window
 	#   pretty cool, above strips the paper from background surface and makes
 	#	it a single image. Comment out code below to see. 
-    # cv2.imshow("Loaded Image", edged)
+    cv2.imshow("edged", edged)
     # cv2.waitKey(0)  # Wait until a key is pressed
     # cv2.destroyAllWindows()  # Close all OpenCV windows
 
@@ -117,6 +117,9 @@ for (q, i) in enumerate(np.arange(0, len(questionCnts), 5)):
 		correct += 1
 	# draw the outline of the correct answer on the test
 	cv2.drawContours(paper, [cnts[k]], -1, color, 3)
+
+
+cv2.imshow("paper", paper)
 
 # grab the test taker
 score = (correct / 5.0) * 100
