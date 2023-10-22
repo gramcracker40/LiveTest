@@ -1,3 +1,5 @@
 numpy
 imutils
 opencv-python
+rich
+pytesseract

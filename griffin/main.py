@@ -3,6 +3,12 @@ import numpy as np
 
 
 def sort_vertices(vert):
+    """
+    Sort the given vertices of a quadrilateral based on their spatial positions.
+
+    :param vert: List of vertices.
+    :return: Sorted vertices in the order of [top-left, top-right, bottom-right, bottom-left].
+    """
     vert = [v[0] for v in vert]
     top = sorted(vert, key=lambda x: x[1])[:2]
     bottom = sorted(vert, key=lambda x: x[1])[2:]
@@ -12,6 +18,13 @@ def sort_vertices(vert):
 
 
 def four_point_transform(image, pts):
+    """
+    Perform a four point perspective transform on the given image.
+
+    :param image: Input image to be transformed.
+    :param pts: List of vertices defining the quadrilateral to be transformed.
+    :return: Transformed image.
+    """
     rect = sort_vertices(pts)
     (tl, tr, br, bl) = rect
 
@@ -27,11 +40,20 @@ def four_point_transform(image, pts):
         dtype="float32",
     )
 
+    print((maxWidth, maxHeight))
+
     M = cv2.getPerspectiveTransform(rect, dst)
     return cv2.warpPerspective(image, M, (maxWidth, maxHeight))
 
 
 def find_and_rotate(image_path):
+    """
+    Detect a quadrilateral (like a paper sheet) in the image, then perform a perspective
+    transform to make it upright and orthogonal.
+
+    :param image_path: Path to the input image.
+    :return: Transformed image if a quadrilateral is detected, else None.
+    """
     # Read in the image and preprocess it
     image = cv2.imread(image_path)
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -58,12 +80,80 @@ def find_and_rotate(image_path):
     return None
 
 
-if __name__ == "__main__":
-    # Usage
-    result = find_and_rotate("IMG_4165.jpg")
-    if result is not None:
-        cv2.imshow("Result", result)
+class ScantronProcessor:
+    def __init__(self, image_path):
+        self.image_path = image_path
+        self.image = cv2.imread(self.image_path)
+        self.processed_image = None
+
+    def resize_image(self, width, height):
+        self.image = cv2.resize(self.image, (width, height))
+
+    def rotate_to_orthogonal(self):
+        # Convert to grayscale
+        gray = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
+        # Use Hough transform to detect lines
+        edges = cv2.Canny(gray, 50, 150, apertureSize=3)
+        lines = cv2.HoughLines(edges, 1, np.pi / 180, 200)
+
+        if lines is not None:
+            # Get the angle of the first line
+            for rho, theta in lines[0]:
+                # Convert the angle to degrees
+                angle = (theta * 180) / np.pi - 90
+                print(angle)
+                # Rotate the image
+                M = cv2.getRotationMatrix2D(
+                    (self.image.shape[1] / 2, self.image.shape[0] / 2),
+                    180 + angle + 90,
+                    1,
+                )
+                self.image = cv2.warpAffine(
+                    self.image, M, (self.image.shape[1], self.image.shape[0])
+                )
+        print(f"x: {self.image.shape[1]}, y:{self.image.shape[0]}")
+        cv2.imshow("Detected Rectangles", self.image)
+        cv2.waitKey(0)
+
+    def crop_image(self, left_pct, right_pct):
+        h, w, _ = self.image.shape
+        left_bound = int(left_pct * w)
+        right_bound = int(right_pct * w)
+        self.image = self.image[:, left_bound:right_bound]
+
+    def detect_filled_rectangles(self):
+        gray = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
+        _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+        contours, _ = cv2.findContours(
+            thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
+        )
+
+        filled_rectangles = []
+
+        for contour in contours:
+            x, y, w, h = cv2.boundingRect(contour)
+            aspect_ratio = float(w) / h
+
+            if 100 < cv2.contourArea(contour) < 3000 and 1.5 < aspect_ratio < 5:
+                filled_rectangles.append((x, y, w, h))
+
+        filled_rectangles.sort(key=lambda r: r[1])
+        return filled_rectangles
+
+    def process(self):
+        self.resize_image(1700, 4400)
+        self.rotate_to_orthogonal()
+        self.crop_image(0.15, 0.42)
+        cv2.imshow("Cropped Image", self.image)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
-    else:
-        print("Could not find or transform the paper sheet.")
+
+        return self.detect_filled_rectangles()
+
+
+if __name__ == "__main__":
+    # Example usage:
+    # processor = ScantronProcessor("resized.jpg")
+    processor = ScantronProcessor("IMG_4165.jpg")
+    filled_rectangles = processor.process()
+    print(filled_rectangles)
