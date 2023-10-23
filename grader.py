@@ -51,7 +51,7 @@ def process_image(image_path:str, threshold1, threshold2):
     edged_resized = cv2.resize(edged, (desired_width, desired_height))
 
     cnts, hierarchy = cv2.findContours(edged,  
-        cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE) 
+        cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 
     # we can assume that the scantron itself will be the contour with the largest area. 
     cnts = sorted(cnts, key=cv2.contourArea, reverse=True)

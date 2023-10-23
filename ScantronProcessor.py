@@ -3,7 +3,6 @@ import numpy as np
 from imutils.perspective import four_point_transform
 
 
-
 def sort_vertices(vert):
     """
     Sort the given vertices of a quadrilateral based on their spatial positions.
@@ -47,11 +46,13 @@ def four_point_transform(image, pts):
     M = cv2.getPerspectiveTransform(rect, dst)
     return cv2.warpPerspective(image, M, (maxWidth, maxHeight))
 
+
 def show_image(title, matlike, w=600, h=700):
     temp = cv2.resize(matlike, (w, h))
     cv2.imshow(title, temp)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
+
 
 def find_and_rotate(image_path):
     """
@@ -88,45 +89,21 @@ def find_and_rotate(image_path):
 
 
 class ScantronProcessor:
-    def __init__(self, image_path):
+    '''
+    given an image of a scantron, handle all processing involved to get
+        the scantron graded. 
+    '''
+
+    def __init__(self, image_path:str, key:dict):
         self.image_path = image_path
         self.image = cv2.imread(self.image_path)
         self.processed_image = None
+        self.key = key
 
     def resize_image(self, width, height):
-        self.image = cv2.resize(self.image, (width, height))
+        self.image = cv2.resize(self.image, (width, height)) 
 
-    def rotate_to_orthogonal(self):
-        # Convert to grayscale
-        gray = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
-        # Use Hough transform to detect lines
-        edges = cv2.Canny(gray, 50, 150, apertureSize=3)
-        lines = cv2.HoughLines(edges, 1, np.pi / 180, 200)
-
-        if lines is not None:
-            # Get the angle of the first line
-            for rho, theta in lines[0]:
-                # Convert the angle to degrees
-                angle = (theta * 180) / np.pi - 90
-                print(angle)
-                # Rotate the image
-                M = cv2.getRotationMatrix2D(
-                    (self.image.shape[1] / 2, self.image.shape[0] / 2),
-                    180 + angle + 90,
-                    1,
-                )
-                self.image = cv2.warpAffine(
-                    self.image, M, (self.image.shape[1], self.image.shape[0])
-                )
-
-    def crop_image(self, left_pct, right_pct):
-        h, w, _ = self.image.shape
-        left_bound = int(left_pct * w)
-        right_bound = int(right_pct * w)
-        self.image = self.image[:, left_bound:right_bound]
-        
-
-    def detect_filled_rectangles(self):
+    def detect_answers(self):
         '''
         takes resized image and finds the shaded in rectangles
         '''
@@ -137,17 +114,16 @@ class ScantronProcessor:
         left_bound = int(0.15 * w)
         right_bound = int(0.58 * w)
 
-        # Crop the image to the ROI
+        # Crop the image to the answers
         roi = gray[:, left_bound:right_bound]
-
+        show_image("roi", roi)
         # Threshold the cropped image
         _, thresh = cv2.threshold(roi, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
 
-        # Detect contours
+        # Detect contours in cropped section
         contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
         filled_rectangles = []
-
         for contour in contours:
             # Get the bounding rectangle of the contour
             x, y, w, h = cv2.boundingRect(contour)
@@ -156,9 +132,7 @@ class ScantronProcessor:
             aspect_ratio = float(w) / h
 
             # Filtering conditions:
-            # - Consider contours with certain area to avoid noise
-            # - Ensure the contour resembles a horizontal rectangle
-            if 100 < cv2.contourArea(contour) < 3000 and 1.5 < aspect_ratio < 5:
+            if 500 < cv2.contourArea(contour) < 5000 and 1.0 < aspect_ratio < 7:
                 filled_rectangles.append(
                     (x + left_bound, y, w, h)
                 )  # Adjust x-coordinate considering the cropped image
@@ -166,30 +140,96 @@ class ScantronProcessor:
         # Sort by vertical position
         filled_rectangles.sort(key=lambda r: r[1])
 
+        # draw the rectangles onto the shaded answers. 
         for x, y, w, h in filled_rectangles:
             cv2.rectangle(self.image, (x, y), (x + w, y + h), (0, 255, 0), 2)
             print(x, y)
 
         return filled_rectangles
+    
+    def grade_answers(self, answers:tuple) -> float:
+        '''
+        input: answers, from detect_answers
+        returns: Grade of scantron
+        '''
+        pass
+
 
     def process(self):
-         # 1700/4400 defaults resize
+        # 1700/4400 defaults resize
         
         self.image = find_and_rotate(self.image_path)
         show_image("rotated image", self.image)
         
         self.resize_image(1700, 4400)
-        show_image("resized image", self.image)
 
-        # self.crop_image(0.15, 0.58)
-        # show_image("cropped image", self.image)
+        # sorted 1-50 for all answered questions
+        answered = self.detect_answers()
 
-        self.detect_filled_rectangles()
+        graded = self.grade_answers(answered)
+
+        min_x = 100000
+        max_x = 0
+        for count, rec in enumerate(answered):
+            print(f"{count}: X: {rec[0]}, Y: {rec[1]}")
+            if rec[0] < min_x:
+                min_x = rec[0]
+            if rec[0] > max_x:
+                max_x = rec[0]
+
+        print(f"Min: {min_x}, Max: {max_x}")
         show_image("rectangles detected image", self.image) 
+        print(len(answered))
 
 
 if __name__ == "__main__":
-    # Example usage:
-    # processor = ScantronProcessor("resized.jpg") # resized created here
-    processor = ScantronProcessor("real_examples/IMG_4164.jpg")
+    key = {
+        1: 'C',
+        2: 'E',
+        3: 'C',
+        4: 'E',
+        5: 'C',
+        6: 'C',
+        7: 'D',
+        8: 'C',
+        9: 'D',
+        10: 'C',
+        11: 'D',
+        12: 'B',
+        13: 'C',
+        14: 'A',
+        15: 'C',
+        16: 'B',
+        17: 'C',
+        18: 'A',
+        19: 'B',
+        20: 'C',
+        21: 'A',
+        22: 'A',
+        23: 'C',
+        24: 'D',
+        25: 'C',
+        26: 'B',
+        27: 'B',
+        28: 'C',
+        29: 'E',
+        30: 'A',
+        31: 'C',
+        32: 'B',
+        33: 'D',
+        34: 'D',
+        35: 'E',
+        36: 'C',
+        37: 'C',
+        38: 'C',
+        39: 'C',
+        40: 'B',
+        41: 'C',
+        42: 'B',
+        43: 'D',
+        44: 'B', 
+        45: 'D'
+    }
+
+    processor = ScantronProcessor("real_examples/IMG_4165.jpg", key)
     processor.process()
