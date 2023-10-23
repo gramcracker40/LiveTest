@@ -1,5 +1,7 @@
 import cv2
 import numpy as np
+from imutils.perspective import four_point_transform
+
 
 
 def sort_vertices(vert):
@@ -125,52 +127,69 @@ class ScantronProcessor:
         
 
     def detect_filled_rectangles(self):
+        '''
+        takes resized image and finds the shaded in rectangles
+        '''
         gray = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
-        _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
-        contours, _ = cv2.findContours(
-            thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
-        )
 
-        _, w = gray.shape
+        # Determine the ROI boundaries
+        h, w = gray.shape
         left_bound = int(0.15 * w)
+        right_bound = int(0.58 * w)
+
+        # Crop the image to the ROI
+        roi = gray[:, left_bound:right_bound]
+
+        # Threshold the cropped image
+        _, thresh = cv2.threshold(roi, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+
+        # Detect contours
+        contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
         filled_rectangles = []
 
         for contour in contours:
+            # Get the bounding rectangle of the contour
             x, y, w, h = cv2.boundingRect(contour)
+
+            # Aspect ratio to determine if the contour is horizontal rectangle
             aspect_ratio = float(w) / h
 
+            # Filtering conditions:
+            # - Consider contours with certain area to avoid noise
+            # - Ensure the contour resembles a horizontal rectangle
             if 100 < cv2.contourArea(contour) < 3000 and 1.5 < aspect_ratio < 5:
-                filled_rectangles.append((x + left_bound, y, w, h))
+                filled_rectangles.append(
+                    (x + left_bound, y, w, h)
+                )  # Adjust x-coordinate considering the cropped image
 
-
+        # Sort by vertical position
         filled_rectangles.sort(key=lambda r: r[1])
 
         for x, y, w, h in filled_rectangles:
             cv2.rectangle(self.image, (x, y), (x + w, y + h), (0, 255, 0), 2)
-       
+            print(x, y)
+
+        return filled_rectangles
 
     def process(self):
-        self.resize_image(1700, 4400) # 1700/4400 defaults resize
+         # 1700/4400 defaults resize
+        
+        self.image = find_and_rotate(self.image_path)
+        show_image("rotated image", self.image)
+        
+        self.resize_image(1700, 4400)
         show_image("resized image", self.image)
 
-        self.rotate_to_orthogonal()
-        show_image("rotated image", self.image)
-
-        self.crop_image(0.15, 0.58)
-        show_image("cropped image", self.image)
+        # self.crop_image(0.15, 0.58)
+        # show_image("cropped image", self.image)
 
         self.detect_filled_rectangles()
         show_image("rectangles detected image", self.image) 
-
-        
-
-        
-
 
 
 if __name__ == "__main__":
     # Example usage:
     # processor = ScantronProcessor("resized.jpg") # resized created here
-    processor = ScantronProcessor("IMG_4165.jpg")
+    processor = ScantronProcessor("real_examples/IMG_4164.jpg")
     processor.process()
