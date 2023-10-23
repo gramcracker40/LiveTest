@@ -12,7 +12,7 @@ examples = [
 
 # only 4164 works in the current code.
 # need to figure out the differences...
-def process_image(image_path:str): 
+def process_image(image_path:str, threshold1, threshold2): 
     '''
     Description: Preprocesses the image to the point of the answers 
         being fully cropped from the scantron
@@ -34,21 +34,21 @@ def process_image(image_path:str):
         print("Image not loaded or does not exist.")
         return 0
 
-    gamma = 0.99
+    # gamma = 0.01
 
-    # Apply gamma correction to the image - helps with lights/shading
-    adjusted_image = np.power(image / 255.0, gamma).astype('float32') * 255.0
-    # Continue with image processing
+    # # Apply gamma correction to the image - helps with lights/shading
+    # adjusted_image = np.power(image / 255.0, gamma).astype('float32') * 255.0
+    # # Continue with image processing
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY) 
-    blurred = cv2.GaussianBlur(gray, (5, 5), 0)
-    blurred = cv2.convertScaleAbs(blurred)
-    edged = cv2.Canny(blurred, 75, 200)
 
+    blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+    # cv2.imshow(f"{image_path} blurred", blurred) 
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
+    blurred = cv2.convertScaleAbs(blurred)
+    edged = cv2.Canny(blurred, threshold1, threshold2)
 
     edged_resized = cv2.resize(edged, (desired_width, desired_height))
-    cv2.imshow(f"{image_path} edged", edged_resized) 
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
 
     cnts, hierarchy = cv2.findContours(edged,  
         cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE) 
@@ -56,20 +56,33 @@ def process_image(image_path:str):
     # we can assume that the scantron itself will be the contour with the largest area. 
     cnts = sorted(cnts, key=cv2.contourArea, reverse=True)
     print(f"{image_path} --> Area of largest contour: {cv2.contourArea(cnts[0])}")
+    return cv2.contourArea(cnts[0])
 
-    # If a largest contour with the maximum area is found, you can proceed
-    if cnts is not None:
-        # You can now work with the largest area contour
-        # For example, you can draw it on the original image
-        cv2.drawContours(image, cnts, 0, (0, 255, 0), 2)
+    # # If a largest contour with the maximum area is found, you can proceed
+    #     # You can now work with the largest area contour
+    #     # For example, you can draw it on the original image
+    # print(len(cnts))
+    # print(cnts[0])
+    # cv2.drawContours(image, cnts, -1, (0, 255, 0), 2)
         
-    # Display or save the original image with the largest area contour highlighted
-    resized_image = cv2.resize(image, (desired_width, desired_height))
-    cv2.imshow(f'{image_path} largest_contour_marked', resized_image) 
-    cv2.waitKey(0) 
-    cv2.destroyAllWindows() 
+    # # Display or save the original image with the largest area contour highlighted
+    # resized_image = cv2.resize(image, (desired_width, desired_height))
+    # cv2.imshow(f'{image_path} largest_contour_marked', resized_image) 
+    # cv2.waitKey(0) 
+    # cv2.destroyAllWindows() 
 
+
+threshold1 = 0
+threshold2 = 50 
 
     
-for example in examples:
-    process_image(example)
+for iter in range(300):
+    print(f"\n\nthreshold1 = {threshold1} , threshold2 = {threshold2}")
+    for example in examples:
+
+        largest = process_image(example, threshold1, threshold2)
+
+        print(f"{example} --> Area of largest contour: {largest}")
+
+    threshold1 += 1
+    threshold2 += 1
