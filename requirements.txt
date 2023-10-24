@@ -3,3 +3,6 @@ imutils
 opencv-python
 rich
 pytesseract
+seaborn
+matplotlib
+pandas
