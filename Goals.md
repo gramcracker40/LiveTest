@@ -1,4 +1,4 @@
-To obtain an accurate statistical depiction of a scantron in CSV format
+To obtain an accurate statistical depiction of a scantron in CSV format - Done
 
 
   Roadmap
@@ -7,9 +7,9 @@ To obtain an accurate statistical depiction of a scantron in CSV format
 
 find edges on scantron and crop to consistent photo for opencv to go off of. 
 normalize the size of the scantron to be consistently the same
-use contours. 
+use contours. - Done
 
-flip the orientation to be exact on each side before running the model. 
+flip the orientation to be exact on each side before running the model. - Done
 
 ### Resources:
 

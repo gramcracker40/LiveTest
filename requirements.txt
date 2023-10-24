@@ -6,3 +6,4 @@ pytesseract
 seaborn
 matplotlib
 pandas
+sqlalchemy

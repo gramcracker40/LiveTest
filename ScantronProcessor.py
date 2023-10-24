@@ -134,6 +134,8 @@ class ScantronProcessor:
         '''
         takes resized image and finds the shaded in rectangle.
         starts by gray scaling image and then cropping the image to the answers section
+        Takes an adaptive threshold to allow for semi rectangular human made marks can 
+        be detected. It then finds the contours and runs the 
         
         also finds not answered.
         '''
@@ -247,8 +249,10 @@ class ScantronProcessor:
             else: # record the incorrect answer and their choice. 
                 results[question_number] = (False, answer)
 
+            
             iter += 1
             question_number += 1
+            
 
         cv2.putText(self.image, f"{self.calculate_grade(results)*100}%",
                     (10, 270), cv2.FONT_HERSHEY_SIMPLEX, 8, (0, 0, 255), 8)
