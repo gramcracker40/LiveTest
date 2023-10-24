@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 from imutils.perspective import four_point_transform
-
+import json
 
 def sort_vertices(vert):
     """
@@ -91,7 +91,8 @@ def find_and_rotate(image_path):
 class ScantronProcessor:
     '''
     given an image of a scantron, handle all processing involved to get
-        the scantron graded. 
+        the scantron graded. From plain user taken picture, all the way to 
+        the graded outcome of the scantron. 
     '''
 
     def __init__(self, image_path:str, key:dict):
@@ -103,9 +104,37 @@ class ScantronProcessor:
     def resize_image(self, width, height):
         self.image = cv2.resize(self.image, (width, height)) 
 
+    def save_image(self, save_name):
+        cv2.imwrite(f"{self.image_path[:-4]}-{save_name}.jpg", self.image)
+
+    def rotate_to_orthogonal(self):
+        # Convert to grayscale
+        gray = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
+        # Use Hough transform to detect lines
+        edges = cv2.Canny(gray, 50, 150, apertureSize=3)
+        lines = cv2.HoughLines(edges, 1, np.pi / 180, 200)
+
+        if lines is not None:
+            # Get the angle of the first line
+            for rho, theta in lines[0]:
+                # Convert the angle to degrees
+                angle = (theta * 180) / np.pi - 90
+                print(angle)
+                # Rotate the image
+                M = cv2.getRotationMatrix2D(
+                    (self.image.shape[1] / 2, self.image.shape[0] / 2),
+                    180 + angle + 90,
+                    1,
+                )
+                self.image = cv2.warpAffine(
+                    self.image, M, (self.image.shape[1], self.image.shape[0])
+                )
+
     def detect_answers(self):
         '''
-        takes resized image and finds the shaded in rectangles
+        takes resized image and finds the shaded in rectangle.
+
+        starts by gray scaling image and then cropping the image to the answers section
         '''
         gray = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
 
@@ -119,7 +148,7 @@ class ScantronProcessor:
         show_image("roi", roi)
         # Threshold the cropped image
         _, thresh = cv2.threshold(roi, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
-
+        show_image("thresh", thresh)
         # Detect contours in cropped section
         contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
@@ -147,12 +176,53 @@ class ScantronProcessor:
 
         return filled_rectangles
     
-    def grade_answers(self, answers:tuple) -> float:
+    def grade_answers(self, answers:tuple) -> dict:
         '''
-        input: answers, from detect_answers
-        returns: Grade of scantron
+        input: answers, from detect_answers (detected shaded rectangles)
+        returns: results -> {1: (True, B), 2: (False, E)}
         '''
-        pass
+        # Matches a question numbers answer to a specific 
+        #   x1, x2 pair. We take the points x and add the width to get middle point
+        #   see which pair it is mostly inside to determine their answer
+        #   for that specific questions 
+        
+        # ex : 1: (True, "A")
+        results = {}
+        answer_x_pairs = {
+            "A" : (262, 402),
+            "B" : (403, 557), 
+            "C" : (519, 690), 
+            "D" : (660, 825),
+            "E" : (804, 950)
+        }
+        # answers are rectangles from grade_answers
+        for count, (x, y, w, h) in enumerate(answers):
+            answered_middle = x + (w/2)
+            
+            # find what they answered
+            for val in answer_x_pairs:
+                if (answered_middle >= answer_x_pairs[val][0]
+                 and answered_middle <= answer_x_pairs[val][1]
+                ):
+                    answer = val
+                    break
+
+            # If the answer is the correct answer
+            if answer == self.key[count + 1]:
+                results[count + 1] = (True, answer)
+            else: # record the incorrect answer and their choice. 
+                results[count + 1] = (False, answer)
+
+        return results
+    
+    def calculate_grade(self, graded_results:dict) -> float:
+        '''
+        input: graded_results from grade_answers()
+        returns: the float point average of the graded scantron. 
+        ex: 66.7%
+        '''
+        return round(float(float(len([graded_results[x][0] for x in graded_results \
+                    if graded_results[x][0] == True]))/len(graded_results)), 2)
 
 
     def process(self):
@@ -165,21 +235,15 @@ class ScantronProcessor:
 
         # sorted 1-50 for all answered questions
         answered = self.detect_answers()
+        self.save_image("answers-located")
 
         graded = self.grade_answers(answered)
-
-        min_x = 100000
-        max_x = 0
-        for count, rec in enumerate(answered):
-            print(f"{count}: X: {rec[0]}, Y: {rec[1]}")
-            if rec[0] < min_x:
-                min_x = rec[0]
-            if rec[0] > max_x:
-                max_x = rec[0]
-
-        print(f"Min: {min_x}, Max: {max_x}")
         show_image("rectangles detected image", self.image) 
-        print(len(answered))
+
+        print(json.dumps(graded, indent=2))
+        
+        print(f"Grade percentage: {self.calculate_grade(graded)}")
+        print(f"Total answered: {len(answered)}")
 
 
 if __name__ == "__main__":

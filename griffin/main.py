@@ -94,6 +94,8 @@ class ScantronProcessor:
     def resize_image(self, width, height):
         self.image = cv2.resize(self.image, (width, height))
 
+
+
     def rotate_to_orthogonal(self):
         # Convert to grayscale
         gray = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
