@@ -90,7 +90,7 @@ def find_and_rotate(image_path):
 
 class ScantronProcessor:
     '''
-    given an image of a scantron, handle all processing involved to get
+    given an image of a form 882E scantron, handle all processing involved to get
         the scantron graded. From plain user taken picture, all the way to 
         the graded outcome of the scantron. 
     '''
@@ -133,8 +133,9 @@ class ScantronProcessor:
     def detect_answers(self):
         '''
         takes resized image and finds the shaded in rectangle.
-
         starts by gray scaling image and then cropping the image to the answers section
+        
+        also finds not answered.
         '''
         gray = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
 
@@ -145,10 +146,11 @@ class ScantronProcessor:
 
         # Crop the image to the answers
         roi = gray[:, left_bound:right_bound]
-        show_image("roi", roi)
-        # Threshold the cropped image
-        _, thresh = cv2.threshold(roi, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
-        show_image("thresh", thresh)
+
+        # Threshold the cropped image with adaptive thresholding, more leniance with handmade rectangles
+        thresh = cv2.adaptiveThreshold(roi, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV,
+                        5, 1)
+        #show_image("thresh", thresh) # shows the threshold version of the scantron
         # Detect contours in cropped section
         contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
@@ -161,21 +163,41 @@ class ScantronProcessor:
             aspect_ratio = float(w) / h
 
             # Filtering conditions:
-            if 500 < cv2.contourArea(contour) < 5000 and 1.0 < aspect_ratio < 7:
+            if 500 < cv2.contourArea(contour) < 5000 and 1.25 < aspect_ratio < 7:
                 filled_rectangles.append(
                     (x + left_bound, y, w, h)
                 )  # Adjust x-coordinate considering the cropped image
-
+            
         # Sort by vertical position
         filled_rectangles.sort(key=lambda r: r[1])
-
-        # draw the rectangles onto the shaded answers. 
-        for x, y, w, h in filled_rectangles:
+        # determine blanks/unmarked answers if any by measuring the
+        # average distance between found answers
+        last_y = 630 # relative starting point for 882E
+        distances = []
+        self.not_answered = []
+        # draw the rectangles onto the shaded answers. and find unanswered 
+        for count, (x, y, w, h) in enumerate(filled_rectangles):
             cv2.rectangle(self.image, (x, y), (x + w, y + h), (0, 255, 0), 2)
-            print(x, y)
+            
+            diff = y - last_y
+            last_y = y
 
+            if diff > 1.7 * np.mean(distances):
+                self.not_answered.append(count + 1)
+            else:
+                distances.append(diff)
+            
         return filled_rectangles
     
+    def calculate_grade(self, graded_results:dict) -> float:
+        '''
+        input: graded_results from grade_answers()
+        returns: the float point average of the graded scantron. 
+        ex: 66.7%
+        '''
+        return round(float(float(len([graded_results[x][0] for x in graded_results \
+                    if graded_results[x][0] == True]))/len(self.key)), 2)
+
     def grade_answers(self, answers:tuple) -> dict:
         '''
         input: answers, from detect_answers (detected shaded rectangles)
@@ -195,8 +217,20 @@ class ScantronProcessor:
             "D" : (660, 825),
             "E" : (804, 950)
         }
-        # answers are rectangles from grade_answers
-        for count, (x, y, w, h) in enumerate(answers):
+        
+        # loop through all of the keys answers, 
+
+        iter = 0
+        question_number = 1
+        while iter < len(answers):
+            x, y, w, h = answers[iter]
+            
+            # this question was left blank
+            if question_number in self.not_answered:
+                results[question_number] = (False, "N/A")
+                question_number += 1
+                continue
+           
             answered_middle = x + (w/2)
             
             # find what they answered
@@ -208,34 +242,40 @@ class ScantronProcessor:
                     break
 
             # If the answer is the correct answer
-            if answer == self.key[count + 1]:
-                results[count + 1] = (True, answer)
+            if answer == self.key[question_number]:
+                results[question_number] = (True, answer)
             else: # record the incorrect answer and their choice. 
-                results[count + 1] = (False, answer)
+                results[question_number] = (False, answer)
+
+            iter += 1
+            question_number += 1
+
+        cv2.putText(self.image, f"{self.calculate_grade(results)*100}%",
+                    (10, 270), cv2.FONT_HERSHEY_SIMPLEX, 8, (0, 0, 255), 8)
 
         return results
-    
-    def calculate_grade(self, graded_results:dict) -> float:
-        '''
-        input: graded_results from grade_answers()
-        returns: the float point average of the graded scantron. 
-        ex: 66.7%
-        '''
-        return round(float(float(len([graded_results[x][0] for x in graded_results \
-                    if graded_results[x][0] == True]))/len(graded_results)), 2)
 
 
     def process(self):
         # 1700/4400 defaults resize
         
         self.image = find_and_rotate(self.image_path)
-        show_image("rotated image", self.image)
+        #show_image("rotated image", self.image)
         
         self.resize_image(1700, 4400)
 
         # sorted 1-50 for all answered questions
         answered = self.detect_answers()
         self.save_image("answers-located")
+
+        # if the number of answered questions is greater
+        # they probably circled some shit at the beginning they
+        # weren't supposed to. clear the amount over from the front of answered
+        if len(answered) > len(key):
+            temp = len(answered) - len(key)
+            answered = answered[temp:]
+
+        print(f"ANSWERED: {len(answered)}")
 
         graded = self.grade_answers(answered)
         show_image("rectangles detected image", self.image) 
@@ -295,5 +335,5 @@ if __name__ == "__main__":
         45: 'D'
     }
 
-    processor = ScantronProcessor("real_examples/IMG_4165.jpg", key)
+    processor = ScantronProcessor("real_examples/IMG_4163.jpg", key)
     processor.process()
