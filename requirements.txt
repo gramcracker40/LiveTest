@@ -7,3 +7,5 @@ seaborn
 matplotlib
 pandas
 sqlalchemy
+faker
+easyapi

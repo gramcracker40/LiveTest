@@ -232,7 +232,7 @@ class ScantronProcessor:
                 results[question_number] = (False, "N/A")
                 question_number += 1
                 continue
-           
+            
             answered_middle = x + (w/2)
             
             # find what they answered

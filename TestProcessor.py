@@ -21,10 +21,10 @@ class TestProcessor:
         try:
             if os.path.exists(scantrons_dir) and os.path.isdir(scantrons_dir):
                 # List all files in the directory
-                file_paths = []
+                self.file_paths = []
                 for root, directories, files in os.walk(scantrons_dir):
                     for filename in files:
-                        file_paths.append(os.path.join(root, filename))
+                        self.file_paths.append(os.path.join(root, filename))
             else:
                 raise FileNotFoundError("The given scantrons_dir could not be located as a directory")
 
@@ -32,3 +32,6 @@ class TestProcessor:
         
         except FileNotFoundError as err:
             print(err)
+
+
+test = TestProcessor("FakeTest1", "real_examples/IMG_4162.jpg", 1)
