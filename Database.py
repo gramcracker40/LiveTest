@@ -32,10 +32,12 @@ session.commit()
 
 # add students to course
 # create course with teacher_id
+# change the teacher_id of a course?
 # create students
 # create teachers
 # delete students, teachers, courses
 # update students, teachers, courses
+# 
 
 # example
 new_student = Student(name="garreyy")
