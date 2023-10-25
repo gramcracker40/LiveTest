@@ -261,6 +261,12 @@ class ScantronProcessor:
 
 
     def process(self):
+        '''
+        returns: (graded, grade_points)
+
+        graded: dictionary returned from self.grade_answers
+        grade_points: the scantron's score
+        '''
         # 1700/4400 defaults resize
         
         self.image = find_and_rotate(self.image_path)
@@ -282,12 +288,14 @@ class ScantronProcessor:
         print(f"ANSWERED: {len(answered)}")
 
         graded = self.grade_answers(answered)
-        show_image("rectangles detected image", self.image) 
-
-        print(json.dumps(graded, indent=2))
+        return (graded, self.calculate_grade(graded))
         
-        print(f"Grade percentage: {self.calculate_grade(graded)}")
-        print(f"Total answered: {len(answered)}")
+        # show_image("rectangles detected image", self.image) 
+
+        # print(json.dumps(graded, indent=2))
+        
+        # print(f"Grade percentage: {self.calculate_grade(graded)}")
+        # print(f"Total answered: {len(answered)}")
 
 
 if __name__ == "__main__":
@@ -340,4 +348,4 @@ if __name__ == "__main__":
     }
 
     processor = ScantronProcessor("real_examples/IMG_4163.jpg", key)
-    processor.process()
+    graded_results, grade = processor.process()

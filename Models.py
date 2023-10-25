@@ -50,8 +50,8 @@ class Course(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
-    course_id = Column(String, nullable=False)
-
+    course_number = Column(String, nullable=False)
+    
     teacher_id = Column(Integer, ForeignKey('teachers.id'))
     teacher = relationship('Teacher', back_populates='courses')
     tests = relationship('Test', back_populates='course')

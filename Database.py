@@ -11,12 +11,9 @@ Base.metadata.create_all(engine)
 Session = sessionmaker(bind=engine)
 session = Session()
 
-# example 
-new_scantron = Scantron()
-
-
-
-
+# example using filters. A lot more precise ways of filtering the data using the session object
+# searching_student_id = 4
+# new_scantron = session.query(Scantron).filter(Scantron.student_id == searching_student_id)
 
 # example
 # new_student = Student(name="garreyy")
