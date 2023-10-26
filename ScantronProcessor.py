@@ -187,7 +187,7 @@ class ScantronProcessor:
             diff = y - last_y
             last_y = y
 
-            print(f"{question_num + 1}: diff: {diff}, mean: {np.mean(distances)}")
+            # print(f"{question_num + 1}: diff: {diff}, mean: {np.mean(distances)}")
             if diff > 1.6 * np.mean(distances):
                 self.not_answered.append(question_num + 1)
                 continue
@@ -251,7 +251,6 @@ class ScantronProcessor:
         if num_questions < len(detected_answers):
             answers = answers[len(answers) - num_questions + 1:]
 
-        print(f"Not answered: {self.not_answered}")
         # build the key --> {1: 'A', 2: 'C', 3: 'E'}
         iter = 0 
         for question_num in range(num_questions):
@@ -292,11 +291,11 @@ class ScantronProcessor:
         answered = self.detect_answers(len(self.key))
         
         real_answers = self.find_scantrons_answers(answered, len(self.key))
-        print(json.dumps(real_answers, indent=2))
+        #print(json.dumps(real_answers, indent=2))
 
         
         graded = self.grade_answers(real_answers)
-        print(json.dumps(graded, indent=2))
+        #print(json.dumps(graded, indent=2))
         
         self.save_image("answers-located-graded")
 
@@ -359,6 +358,6 @@ if __name__ == "__main__":
         45: 'D'
     }
 
-    processor = ScantronProcessor("real_examples/IMG_4163.jpg", key)
-    graded_results, grade = processor.process()
-    print(f"graded_results: {json.dumps(graded_results, indent=2)}\n average grade: {grade}")
+    # processor = ScantronProcessor("real_examples/IMG_4163.jpg", key)
+    # graded_results, grade = processor.process()
+    # print(f"graded_results: {json.dumps(graded_results, indent=2)}\n average grade: {grade}")

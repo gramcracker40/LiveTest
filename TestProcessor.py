@@ -40,49 +40,23 @@ class TestProcessor:
     def generate_key(self, key_path:str, num_questions:int) -> {int:str}:
         '''
         given an image of a scantron key fully filled out, return the dictionary of answers
-            can be use to generate a key out of an existing already filled out scantron. 
+        
+        can be used to generate a key out of an existing already filled out scantron. 
         
         key_path -> absolute or relative path to the test's answer key image
                     the key simply needs to circle the correct answers and only
                     the correct answers. 
-        num_questions -> ensures the key is properly generated. If they circle unnecessary bubble
-                            in the beginning. This variable helps to decipher which is which. 
+        num_questions -> ensures the key is properly generated.  
         '''
-        key_results = {}
 
         key = ScantronProcessor(key_path, {x: None for x in range(num_questions)})
         key.image = find_and_rotate(key.image_path)        
         key.resize_image(1700, 4400)
-        answers = key.detect_answers()
-
-        print(f"#Answers: {len(answers)}")
-        if num_questions < len(answers):
-            answers = answers[len(answers) - num_questions + 1:]
-
-        print(f"#Answers: {len(answers)}")
-        answer_x_pairs = {
-            "A" : (262, 402),
-            "B" : (403, 557), 
-            "C" : (519, 690), 
-            "D" : (660, 825),
-            "E" : (804, 950)
-        }
-
-        # build the key --> {1: 'A', 2: 'C', 3: 'E'}
-        for count, (x,y,w,h) in enumerate(answers):
-            # determine middle point of answer
-            answered_middle = x + (w/2)
-            
-            # find what they answered from answer_x_pairs
-            for val in answer_x_pairs:
-                if (answered_middle >= answer_x_pairs[val][0]
-                 and answered_middle <= answer_x_pairs[val][1]
-                ):
-                    key_results[count + 1] = val
-                    break
-        
-        print(f"Key Results: {json.dumps(key_results, indent=2)}")
-        return key_results
+        answers = key.detect_answers(num_questions)
+        final_key = key.find_scantrons_answers(answers, num_questions)
+        print("Final KEY:\n")
+        print(json.dumps(final_key))
+        return final_key
 
     def process(self) -> (list, float):
         '''
@@ -108,13 +82,15 @@ class TestProcessor:
                 # grade the individual scantron
                 temp = ScantronProcessor(path, self.key)
                 graded_results, grade = temp.process()
+                print(f"{path} grade: {grade}")
                 test_average += grade
                 self.test_results.append(graded_results)
             else:
                 return (None, "extension type must be 'png' or 'jpg' to be processed")
             
-            
-        return (self.test_results, test_average)
+        print(f"test average {test_average/3}")
+        print(f"test average len {test_average/len(self.file_paths)}") 
+        return (self.test_results, round(test_average/len(self.file_paths), 2))
             
 
 test = TestProcessor("FakeTest1", "real_examples/IMG_4162.jpg", 1, 45)
