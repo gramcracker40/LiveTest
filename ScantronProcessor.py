@@ -223,8 +223,9 @@ class ScantronProcessor:
         # loop through all of the keys answers, 
 
         iter = 0
-        question_number = 1
-        while iter < len(answers):
+        question_number = 1 # seperate iterator in case of blank answers
+        print(f"not answered: {self.not_answered}")
+        while iter < len(answers) or question_number < len(self.key):
             x, y, w, h = answers[iter]
             
             # this question was left blank
@@ -233,9 +234,10 @@ class ScantronProcessor:
                 question_number += 1
                 continue
             
+            # grab the middle x value of their choice
             answered_middle = x + (w/2)
             
-            # find what they answered
+            # find what they answered from answer_x_pairs
             for val in answer_x_pairs:
                 if (answered_middle >= answer_x_pairs[val][0]
                  and answered_middle <= answer_x_pairs[val][1]
@@ -249,7 +251,6 @@ class ScantronProcessor:
             else: # record the incorrect answer and their choice. 
                 results[question_number] = (False, answer)
 
-            
             iter += 1
             question_number += 1
             
@@ -258,7 +259,6 @@ class ScantronProcessor:
                     (10, 270), cv2.FONT_HERSHEY_SIMPLEX, 8, (0, 0, 255), 8)
 
         return results
-
 
     def process(self):
         '''
@@ -281,8 +281,8 @@ class ScantronProcessor:
         # if the number of answered questions is greater
         # they probably circled some shit at the beginning they
         # weren't supposed to. clear the amount over from the front of answered
-        if len(answered) > len(key):
-            temp = len(answered) - len(key)
+        if len(answered) > len(self.key):
+            temp = len(answered) - len(self.key)
             answered = answered[temp:]
 
         print(f"ANSWERED: {len(answered)}")
@@ -347,5 +347,6 @@ if __name__ == "__main__":
         45: 'D'
     }
 
-    processor = ScantronProcessor("real_examples/IMG_4163.jpg", key)
+    processor = ScantronProcessor("real_examples/IMG_4165.jpg", key)
     graded_results, grade = processor.process()
+    print(f"graded_results: {json.dumps(graded_results, indent=2)}\n average grade: {grade}")
