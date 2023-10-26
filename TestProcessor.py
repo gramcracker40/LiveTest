@@ -41,6 +41,12 @@ class TestProcessor:
         '''
         given an image of a scantron key fully filled out, return the dictionary of answers
             can be use to generate a key out of an existing already filled out scantron. 
+        
+        key_path -> absolute or relative path to the test's answer key image
+                    the key simply needs to circle the correct answers and only
+                    the correct answers. 
+        num_questions -> ensures the key is properly generated. If they circle unnecessary bubble
+                            in the beginning. This variable helps to decipher which is which. 
         '''
         key_results = {}
 
@@ -81,6 +87,14 @@ class TestProcessor:
     def process(self) -> (list, float):
         '''
         process the test object. 
+        open up every scantron image in the passed through scantrons_dir
+        Build a temporary ScantronProcessor and grade the scantron in its entirety. 
+
+        We can do something later so that the name of the scantrons image is 
+        the M-number of the student so that they don't get improperly stored
+        and we can tie the scantron object to a user.
+
+        This function will process each of the scantrons using the passed key image. 
         '''
         self.test_results = []
         test_average = 0
