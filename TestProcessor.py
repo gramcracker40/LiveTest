@@ -42,6 +42,8 @@ class TestProcessor:
         given an image of a scantron key fully filled out, return the dictionary of answers
         
         can be used to generate a key out of an existing already filled out scantron. 
+
+        in an answer key, simply shade all of the answers you would like very neatly. 
         
         key_path -> absolute or relative path to the test's answer key image
                     the key simply needs to circle the correct answers and only
@@ -98,3 +100,6 @@ test = TestProcessor("FakeTest1", "real_examples/IMG_4162.jpg", 1, 45)
 results, test_avg = test.process()
 
 print(f"{json.dumps(results, indent=2)}\ntest_average: {test_avg}")
+
+# key = TestProcessor.generate_key("real_examples/IMG_4162.jpg", 45)
+# print(json.dumps(key, indent=2))

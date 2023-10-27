@@ -150,8 +150,7 @@ class ScantronProcessor:
         roi = gray[:, left_bound:right_bound]
 
         # Threshold the cropped image with adaptive thresholding, more leniance with handmade rectangles
-        thresh = cv2.adaptiveThreshold(roi, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV,
-                        5, 1)
+        _, thresh = cv2.threshold(roi, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
         #show_image("thresh", thresh) # shows the threshold version of the scantron
         # Detect contours in cropped section
         contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -164,8 +163,8 @@ class ScantronProcessor:
             # Aspect ratio to determine if the contour is horizontal rectangle
             aspect_ratio = float(w) / h
 
-            # Filtering conditions:
-            if 500 < cv2.contourArea(contour) < 5000 and 1.5 < aspect_ratio < 7:
+            # Filtering conditions: Aspect ratio allow shadings to be interpreted as rectangles. 
+            if 650 < cv2.contourArea(contour) < 5000 and 1.1 < aspect_ratio < 7:
                 filled_rectangles.append(
                     (x + left_bound, y, w, h)
                 )  # Adjust x-coordinate considering the cropped image
@@ -177,18 +176,16 @@ class ScantronProcessor:
             if len(filled_rectangles) > num_questions else filled_rectangles
 
         # determine blanks/unmarked answers if any by measuring the
-        # average distance between found answers
+        # average y distance between found answers
         last_y = filled_rectangles[0][1] - 60 # relative starting point for 882E
-        distances = [66]
+        distances = [66] # prevent null division in mean
         self.not_answered = []
         # draw the rectangles onto the shaded answers. and find unanswered 
         iter = 0
         for question_num in range(num_questions):
             x, y, w, h = filled_rectangles[iter]
-            cv2.rectangle(self.image, (x, y), (x + w, y + h), (0, 255, 0), 2)
             
             diff = y - last_y
-            
             print(f"{question_num}: y:{y}, last_y:{last_y}, diff: {diff}, mean: {np.mean(distances)}")
             last_y = y
             if diff >= 1.9 * np.mean(distances):
@@ -196,8 +193,13 @@ class ScantronProcessor:
                 continue
             else:
                 distances.append(diff)
+
+            cv2.rectangle(self.image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+            #self.save_image("answers-located")
             
             iter += 1
+
+        self.save_image("answers-located")
         
         return filled_rectangles
     
@@ -225,7 +227,7 @@ class ScantronProcessor:
 
         # If the answer is the correct answer
         for answer_num in answers:
-            if answers[answer_num] == self.key[answer_num + 1]:
+            if answers[answer_num] == self.key[answer_num]:
                 results[answer_num] = (True, answers[answer_num])
             else: # record the incorrect answer and their choice. 
                 results[answer_num] = (False, answers[answer_num])
@@ -251,8 +253,8 @@ class ScantronProcessor:
         }
         # determine if they had extra markings to begin. 
         answers = detected_answers
-        if num_questions < len(detected_answers):
-            answers = answers[len(answers) - num_questions + 1:]
+        if num_questions < len(answers):
+            answers = answers[len(answers) - num_questions:]
 
         # build the key --> {1: 'A', 2: 'C', 3: 'E'}
         iter = 0 
@@ -293,7 +295,7 @@ class ScantronProcessor:
 
         # sorted 1-50 for all answered questions
         answered = self.detect_answers(len(self.key))
-        
+        self.save_image("answers-located")
         real_answers = self.find_scantrons_answers(answered, len(self.key))
         #print(json.dumps(real_answers, indent=2))
         
@@ -361,6 +363,6 @@ if __name__ == "__main__":
         45: 'D'
     }
 
-    processor = ScantronProcessor("real_examples/IMG_4163.jpg", key)
+    processor = ScantronProcessor("real_examples/IMG_4162.jpg", key)
     graded_results, grade = processor.process()
     print(f"graded_results: {json.dumps(graded_results, indent=2)}\n average grade: {grade}")
