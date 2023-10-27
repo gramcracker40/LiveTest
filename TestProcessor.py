@@ -12,6 +12,16 @@ class TestProcessor:
         '''
         Initialize a TestProcessor object that facilitates the idea
             of a test within the Scantron-Hacker. 
+        
+        You must take a picture of the answer key and specify its path in 'key_path'
+
+        Then have all of the pictures of scantrons in a single directory ie "user/test1"
+            specify this folder with scantrons_dir. 
+        
+        You must also manually input the number of questions so ScantronProcessor can confirm
+            its readings. 
+
+        Later on the course_id will come into play when building the application
 
         Params:
             scantrons_dir: path to the directory holding all of the test's scantrons. 
@@ -21,14 +31,14 @@ class TestProcessor:
         try:
             self.key = TestProcessor.generate_key(key_path, num_questions)
             self.course_id = course_id
+
+            # load all of the file paths in the scantrons_dir
             if os.path.exists(scantrons_dir) and os.path.isdir(scantrons_dir):
-                # List all files in the directory
                 self.file_paths = []
                 for root, directories, files in os.walk(scantrons_dir):
                     for filename in files:
                         self.file_paths.append(os.path.join(root, filename))
                 
-                print(self.file_paths)
             else:
                 raise FileNotFoundError("The given scantrons_dir could not be located as a directory")  
         
@@ -39,26 +49,22 @@ class TestProcessor:
     @classmethod
     def generate_key(self, key_path:str, num_questions:int) -> {int:str}:
         '''
-        given an image of a scantron key fully filled out, return the dictionary of answers
+        given an image of a scantron key fully filled out, return the answers
+          used to generate an answer key out of an existing already filled out scantron.
         
-        can be used to generate a key out of an existing already filled out scantron. 
-
-        in an answer key, simply shade all of the answers you would like very neatly. 
-        
-        key_path -> absolute or relative path to the test's answer key image
+        key_path -> absolute path to the test's answer key image
                     the key simply needs to circle the correct answers and only
                     the correct answers. 
         num_questions -> ensures the key is properly generated.  
+        returns: answer key --> {1: 'A', 2: 'B', 3: 'E'} 
         '''
 
         key = ScantronProcessor(key_path, {x: None for x in range(num_questions)})
         key.image = find_and_rotate(key.image_path)        
         key.resize_image(1700, 4400)
         answers = key.detect_answers(num_questions)
-        print(f"#Answers -> {len(answers)}")
         final_key = key.find_scantrons_answers(answers, num_questions)
-        print("Final KEY:\n")
-        print(json.dumps(final_key))
+        
         return final_key
 
     def process(self) -> (list, float):
@@ -72,6 +78,11 @@ class TestProcessor:
         and we can tie the scantron object to a user.
 
         This function will process each of the scantrons using the passed key image. 
+
+        returns: (test_results, test_average)
+        test_results: list of the individual scantrons results that were processed for the test
+        test_average: grade point average of the entire test. 
+
         '''
         self.test_results = []
         test_average = 0
@@ -85,21 +96,18 @@ class TestProcessor:
                 # grade the individual scantron
                 temp = ScantronProcessor(path, self.key)
                 graded_results, grade = temp.process()
-                print(f"{path} grade: {grade}")
+                # record the results and grade of the scantron. 
                 test_average += grade
                 self.test_results.append(graded_results)
             else:
                 return (None, "extension type must be 'png' or 'jpg' to be processed")
             
-        print(f"test average {test_average/3}")
-        print(f"test average len {test_average/len(self.file_paths)}") 
+
         return (self.test_results, round(test_average/len(self.file_paths), 2))
             
 
-test = TestProcessor("FakeTest1", "real_examples/IMG_4162.jpg", 1, 45)
-results, test_avg = test.process()
-
-print(f"{json.dumps(results, indent=2)}\ntest_average: {test_avg}")
+# test = TestProcessor("FakeTest1", "real_examples/IMG_4162.jpg", 1, 45)
+# results, test_avg = test.process()
 
 # key = TestProcessor.generate_key("real_examples/IMG_4162.jpg", 45)
 # print(json.dumps(key, indent=2))

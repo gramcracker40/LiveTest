@@ -1,3 +1,7 @@
+'''
+Handles all processing to do with the Scantron form 882E
+'''
+
 import cv2
 import numpy as np
 from imutils.perspective import four_point_transform
@@ -195,11 +199,8 @@ class ScantronProcessor:
                 distances.append(diff)
 
             cv2.rectangle(self.image, (x, y), (x + w, y + h), (0, 255, 0), 2)
-            #self.save_image("answers-located")
             
             iter += 1
-
-        self.save_image("answers-located")
         
         return filled_rectangles
     
@@ -276,93 +277,83 @@ class ScantronProcessor:
                     break
             
             iter += 1
-        print(f"Scantron results: {json.dumps(scantron_results, indent=2)}")
+
         return scantron_results
 
     def process(self):
         '''
         returns: (graded, grade_points)
 
-        graded: dictionary returned from self.grade_answers
+        graded: dictionary returned from self.grade_answers {1: (True, 'E'), 2: (False, 'C')}
         grade_points: the scantron's score
         '''
-        # 1700/4400 defaults resize
-        
+        # preprocessing of image - isolates the scantron - stretches the image vertically
         self.image = find_and_rotate(self.image_path)
-        #show_image("rotated image", self.image)
-        
-        self.resize_image(1700, 4400) # stretches the image vertically
+        self.resize_image(1700, 4400) 
 
-        # sorted 1-50 for all answered questions
+        # finding the shaded contours in scantron, recording answers based off contour position.
         answered = self.detect_answers(len(self.key))
-        self.save_image("answers-located")
         real_answers = self.find_scantrons_answers(answered, len(self.key))
-        #print(json.dumps(real_answers, indent=2))
         
+        # grading the real_answers against the passed through key
         graded = self.grade_answers(real_answers)
-        #print(json.dumps(graded, indent=2))
         
+        # saving a copy of the scantrons processed form
         self.save_image("answers-located-graded")
 
         return (graded, self.calculate_grade(graded))
-        
-        # show_image("rectangles detected image", self.image) 
-
-        # print(json.dumps(graded, indent=2))
-        
-        # print(f"Grade percentage: {self.calculate_grade(graded)}")
-        # print(f"Total answered: {len(answered)}")
 
 
-if __name__ == "__main__":
-    key = {
-        1: 'C',
-        2: 'E',
-        3: 'C',
-        4: 'E',
-        5: 'C',
-        6: 'C',
-        7: 'D',
-        8: 'C',
-        9: 'D',
-        10: 'C',
-        11: 'D',
-        12: 'B',
-        13: 'C',
-        14: 'A',
-        15: 'C',
-        16: 'B',
-        17: 'C',
-        18: 'A',
-        19: 'B',
-        20: 'C',
-        21: 'A',
-        22: 'A',
-        23: 'C',
-        24: 'D',
-        25: 'C',
-        26: 'B',
-        27: 'B',
-        28: 'C',
-        29: 'E',
-        30: 'A',
-        31: 'C',
-        32: 'B',
-        33: 'D',
-        34: 'D',
-        35: 'E',
-        36: 'C',
-        37: 'C',
-        38: 'C',
-        39: 'C',
-        40: 'B',
-        41: 'C',
-        42: 'B',
-        43: 'D',
-        44: 'B', 
-        45: 'D'
-    }
 
-    processor = ScantronProcessor("real_examples/IMG_4162.jpg", key)
-    graded_results, grade = processor.process()
-    print(f"graded_results: {json.dumps(graded_results, indent=2)}\n average grade: {grade}")
+# if __name__ == "__main__":
+#     key = {
+#         1: 'C',
+#         2: 'E',
+#         3: 'C',
+#         4: 'E',
+#         5: 'C',
+#         6: 'C',
+#         7: 'D',
+#         8: 'C',
+#         9: 'D',
+#         10: 'C',
+#         11: 'D',
+#         12: 'B',
+#         13: 'C',
+#         14: 'A',
+#         15: 'C',
+#         16: 'B',
+#         17: 'C',
+#         18: 'A',
+#         19: 'B',
+#         20: 'C',
+#         21: 'A',
+#         22: 'A',
+#         23: 'C',
+#         24: 'D',
+#         25: 'C',
+#         26: 'B',
+#         27: 'B',
+#         28: 'C',
+#         29: 'E',
+#         30: 'A',
+#         31: 'C',
+#         32: 'B',
+#         33: 'D',
+#         34: 'D',
+#         35: 'E',
+#         36: 'C',
+#         37: 'C',
+#         38: 'C',
+#         39: 'C',
+#         40: 'B',
+#         41: 'C',
+#         42: 'B',
+#         43: 'D',
+#         44: 'B', 
+#         45: 'D'
+#     }
+
+#     processor = ScantronProcessor("real_examples/IMG_4162.jpg", key)
+#     graded_results, grade = processor.process()
+#     print(f"graded_results: {json.dumps(graded_results, indent=2)}\n average grade: {grade}")
