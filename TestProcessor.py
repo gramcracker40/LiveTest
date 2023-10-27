@@ -53,6 +53,7 @@ class TestProcessor:
         key.image = find_and_rotate(key.image_path)        
         key.resize_image(1700, 4400)
         answers = key.detect_answers(num_questions)
+        print(f"#Answers -> {len(answers)}")
         final_key = key.find_scantrons_answers(answers, num_questions)
         print("Final KEY:\n")
         print(json.dumps(final_key))

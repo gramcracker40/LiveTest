@@ -165,17 +165,20 @@ class ScantronProcessor:
             aspect_ratio = float(w) / h
 
             # Filtering conditions:
-            if 500 < cv2.contourArea(contour) < 5000 and 1.25 < aspect_ratio < 7:
+            if 500 < cv2.contourArea(contour) < 5000 and 1.5 < aspect_ratio < 7:
                 filled_rectangles.append(
                     (x + left_bound, y, w, h)
                 )  # Adjust x-coordinate considering the cropped image
-            
+
         # Sort by vertical position
         filled_rectangles.sort(key=lambda r: r[1])
+        # remove any extra markings in beginning
+        filled_rectangles = filled_rectangles[len(filled_rectangles) - num_questions:]\
+            if len(filled_rectangles) > num_questions else filled_rectangles
 
         # determine blanks/unmarked answers if any by measuring the
         # average distance between found answers
-        last_y = 650 # relative starting point for 882E
+        last_y = filled_rectangles[0][1] - 60 # relative starting point for 882E
         distances = [66]
         self.not_answered = []
         # draw the rectangles onto the shaded answers. and find unanswered 
@@ -185,17 +188,17 @@ class ScantronProcessor:
             cv2.rectangle(self.image, (x, y), (x + w, y + h), (0, 255, 0), 2)
             
             diff = y - last_y
+            
+            print(f"{question_num}: y:{y}, last_y:{last_y}, diff: {diff}, mean: {np.mean(distances)}")
             last_y = y
-
-            # print(f"{question_num + 1}: diff: {diff}, mean: {np.mean(distances)}")
-            if diff > 1.6 * np.mean(distances):
+            if diff >= 1.9 * np.mean(distances):
                 self.not_answered.append(question_num + 1)
                 continue
             else:
                 distances.append(diff)
             
             iter += 1
-            
+        
         return filled_rectangles
     
     def calculate_grade(self, graded_results:dict) -> float:
@@ -222,7 +225,7 @@ class ScantronProcessor:
 
         # If the answer is the correct answer
         for answer_num in answers:
-            if answers[answer_num] == self.key[answer_num]:
+            if answers[answer_num] == self.key[answer_num + 1]:
                 results[answer_num] = (True, answers[answer_num])
             else: # record the incorrect answer and their choice. 
                 results[answer_num] = (False, answers[answer_num])
@@ -271,6 +274,7 @@ class ScantronProcessor:
                     break
             
             iter += 1
+        print(f"Scantron results: {json.dumps(scantron_results, indent=2)}")
         return scantron_results
 
     def process(self):
@@ -292,7 +296,6 @@ class ScantronProcessor:
         
         real_answers = self.find_scantrons_answers(answered, len(self.key))
         #print(json.dumps(real_answers, indent=2))
-
         
         graded = self.grade_answers(real_answers)
         #print(json.dumps(graded, indent=2))
@@ -358,6 +361,6 @@ if __name__ == "__main__":
         45: 'D'
     }
 
-    # processor = ScantronProcessor("real_examples/IMG_4163.jpg", key)
-    # graded_results, grade = processor.process()
-    # print(f"graded_results: {json.dumps(graded_results, indent=2)}\n average grade: {grade}")
+    processor = ScantronProcessor("real_examples/IMG_4163.jpg", key)
+    graded_results, grade = processor.process()
+    print(f"graded_results: {json.dumps(graded_results, indent=2)}\n average grade: {grade}")
