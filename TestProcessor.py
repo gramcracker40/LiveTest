@@ -8,7 +8,7 @@ class TestProcessor:
     process a test and all of the submitted scantrons.
     '''
 
-    def __init__(self, scantrons_dir:str, key_path:dict, course_id:int, num_questions:int):
+    def __init__(self, scantrons_dir:str, key_path:dict, num_questions:int, course_id:int=0):
         '''
         Initialize a TestProcessor object that facilitates the idea
             of a test within the Scantron-Hacker. 
@@ -31,6 +31,7 @@ class TestProcessor:
         try:
             self.key = TestProcessor.generate_key(key_path, num_questions)
             self.course_id = course_id
+            self.scantrons_dir = scantrons_dir
 
             # load all of the file paths in the scantrons_dir
             if os.path.exists(scantrons_dir) and os.path.isdir(scantrons_dir):
@@ -64,7 +65,8 @@ class TestProcessor:
         key.resize_image(1700, 4400)
         answers = key.detect_answers(num_questions)
         final_key = key.find_scantrons_answers(answers, num_questions)
-        
+        final_key = {int(x): final_key[x] for x in final_key}
+
         return final_key
 
     def process(self) -> (list, float):
@@ -86,7 +88,13 @@ class TestProcessor:
         '''
         self.test_results = []
         test_average = 0
-
+        
+        try:
+            os.mkdir(f"{self.scantrons_dir}/graded")
+        except FileExistsError:
+            os.remove(f"{self.scantrons_dir}/graded")
+            os.mkdir(f"{self.scantrons_dir}/graded")
+        
         # loop through the file paths in the scantrons_dir
         for path in self.file_paths:
             ext = os.path.splitext(path)[-1]
@@ -95,7 +103,10 @@ class TestProcessor:
             if ext in ['.jpg', '.png']:
                 # grade the individual scantron
                 temp = ScantronProcessor(path, self.key)
-                graded_results, grade = temp.process()
+                graded_results, grade = temp.process(
+                    saved_location=f"{self.scantrons_dir}/graded/{path}", 
+                    save_graded=True
+                )
                 # record the results and grade of the scantron. 
                 test_average += grade
                 self.test_results.append(graded_results)
@@ -104,10 +115,10 @@ class TestProcessor:
             
 
         return (self.test_results, round(test_average/len(self.file_paths), 2))
-            
 
-# test = TestProcessor("FakeTest1", "real_examples/IMG_4162.jpg", 1, 45)
-# results, test_avg = test.process()
+test = TestProcessor("FakeTest1", "real_examples/IMG_4162.jpg", 1, 45)
+results, test_avg = test.process()
+print(f"results: {results}\ntest average: {test_avg}")
 
 # key = TestProcessor.generate_key("real_examples/IMG_4162.jpg", 45)
-# print(json.dumps(key, indent=2))
+# print(key)
