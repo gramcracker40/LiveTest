@@ -123,7 +123,7 @@ class ScantronProcessor:
             for rho, theta in lines[0]:
                 # Convert the angle to degrees
                 angle = (theta * 180) / np.pi - 90
-                print(angle)
+
                 # Rotate the image
                 M = cv2.getRotationMatrix2D(
                     (self.image.shape[1] / 2, self.image.shape[0] / 2),
@@ -190,7 +190,7 @@ class ScantronProcessor:
             x, y, w, h = filled_rectangles[iter]
             
             diff = y - last_y
-            print(f"{question_num}: y:{y}, last_y:{last_y}, diff: {diff}, mean: {np.mean(distances)}")
+            # print(f"{question_num}: y:{y}, last_y:{last_y}, diff: {diff}, mean: {np.mean(distances)}")
             last_y = y
             if diff >= 1.9 * np.mean(distances):
                 self.not_answered.append(question_num + 1)
@@ -280,7 +280,7 @@ class ScantronProcessor:
 
         return scantron_results
 
-    def process(self):
+    def process(self, saved_location:str="saved", save_graded:bool=False):
         '''
         returns: (graded, grade_points)
 
@@ -299,61 +299,61 @@ class ScantronProcessor:
         graded = self.grade_answers(real_answers)
         
         # saving a copy of the scantrons processed form
-        self.save_image("answers-located-graded")
+        self.save_image(saved_location) if save_graded else None
 
         return (graded, self.calculate_grade(graded))
 
 
 
-# if __name__ == "__main__":
-#     key = {
-#         1: 'C',
-#         2: 'E',
-#         3: 'C',
-#         4: 'E',
-#         5: 'C',
-#         6: 'C',
-#         7: 'D',
-#         8: 'C',
-#         9: 'D',
-#         10: 'C',
-#         11: 'D',
-#         12: 'B',
-#         13: 'C',
-#         14: 'A',
-#         15: 'C',
-#         16: 'B',
-#         17: 'C',
-#         18: 'A',
-#         19: 'B',
-#         20: 'C',
-#         21: 'A',
-#         22: 'A',
-#         23: 'C',
-#         24: 'D',
-#         25: 'C',
-#         26: 'B',
-#         27: 'B',
-#         28: 'C',
-#         29: 'E',
-#         30: 'A',
-#         31: 'C',
-#         32: 'B',
-#         33: 'D',
-#         34: 'D',
-#         35: 'E',
-#         36: 'C',
-#         37: 'C',
-#         38: 'C',
-#         39: 'C',
-#         40: 'B',
-#         41: 'C',
-#         42: 'B',
-#         43: 'D',
-#         44: 'B', 
-#         45: 'D'
-#     }
+if __name__ == "__main__":
+    key = {
+        1: 'C',
+        2: 'E',
+        3: 'C',
+        4: 'E',
+        5: 'C',
+        6: 'C',
+        7: 'D',
+        8: 'C',
+        9: 'D',
+        10: 'C',
+        11: 'D',
+        12: 'B',
+        13: 'C',
+        14: 'A',
+        15: 'C',
+        16: 'B',
+        17: 'C',
+        18: 'A',
+        19: 'B',
+        20: 'C',
+        21: 'A',
+        22: 'A',
+        23: 'C',
+        24: 'D',
+        25: 'C',
+        26: 'B',
+        27: 'B',
+        28: 'C',
+        29: 'E',
+        30: 'A',
+        31: 'C',
+        32: 'B',
+        33: 'D',
+        34: 'D',
+        35: 'E',
+        36: 'C',
+        37: 'C',
+        38: 'C',
+        39: 'C',
+        40: 'B',
+        41: 'C',
+        42: 'B',
+        43: 'D',
+        44: 'B', 
+        45: 'D'
+    }
 
-#     processor = ScantronProcessor("real_examples/IMG_4162.jpg", key)
-#     graded_results, grade = processor.process()
-#     print(f"graded_results: {json.dumps(graded_results, indent=2)}\n average grade: {grade}")
+    processor = ScantronProcessor("real_examples/IMG_4165.jpg", key)
+    graded_results, grade = processor.process(saved_location=f"Graded-Located", save_graded=True)
+    print(f"graded_results: {json.dumps(graded_results, indent=2)}\n grade: {grade*100}")

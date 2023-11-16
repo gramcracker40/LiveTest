@@ -1,55 +1,69 @@
-from fastapi import FastAPI, Depends, HTTPException
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session
-from Models import Teacher
-from Database import session
-
+from fastapi import FastAPI
 app = FastAPI()
 
-# Dependency to get the database session
-def get_db():
+from fastapi import FastAPI, HTTPException, Query
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from pydantic import BaseModel
+from Models import Scantron
+from Database import session
+
+class ScantronCreate(BaseModel):
+    scantron_photo: bytes
+    student_id: int
+    test_id: int
+    
+class Scantron(BaseModel):
+    num_questions: int
+    answers: str
+    grade: float
+    student_id: int
+    test_id: int
+
+
+@app.post("/scantrons/", response_model=Scantron)
+def create_scantron(scantron: ScantronCreate):
+    db_scantron = Scantron(**scantron.__dict__)
+    session.add(db_scantron)
+    session.commit()
+    
+    return db_scantron
+
+@app.get("/scantrons/{scantron_id}", response_model=Scantron)
+def read_scantron(scantron_id: int):
     db = session()
-    try:
-        yield db
-    finally:
+    db_scantron = db.query(Scantron).filter(Scantron.id == scantron_id).first()
+    db.close()
+    if db_scantron is None:
+        raise HTTPException(status_code=404, detail="Scantron not found")
+    return db_scantron
+
+@app.put("/scantrons/{scantron_id}", response_model=Scantron)
+def update_scantron(scantron_id: int, scantron: ScantronCreate):
+    db = session()
+    db_scantron = db.query(Scantron).filter(Scantron.id == scantron_id).first()
+    if db_scantron is None:
         db.close()
-
-# Define API routes for the Teacher resource
-@app.post("/teachers/")
-def create_teacher(teacher: Teacher, db: Session = Depends(get_db)):
-    db.add(teacher)
+        raise HTTPException(status_code=404, detail="Scantron not found")
+    for key, value in scantron.dict().items():
+        setattr(db_scantron, key, value)
     db.commit()
-    db.refresh(teacher)
-    return teacher
+    db.refresh(db_scantron)
+    db.close()
+    return db_scantron
 
-@app.get("/teachers/")
-def get_teachers(db: Session = Depends(get_db)):
-    teachers = db.query(Teacher).all()
-    return teachers
-
-@app.get("/teachers/{teacher_id}")
-def get_teacher(teacher_id: int, db: Session = Depends(get_db)):
-    teacher = db.query(Teacher).filter(Teacher.id == teacher_id).first()
-    if teacher is None:
-        raise HTTPException(status_code=404, detail="Teacher not found")
-    return teacher
-
-@app.put("/teachers/{teacher_id}")
-def update_teacher(teacher_id: int, updated_teacher: Teacher, db: Session = Depends(get_db)):
-    teacher = db.query(Teacher).filter(Teacher.id == teacher_id).first()
-    if teacher is None:
-        raise HTTPException(status_code=404, detail="Teacher not found")
-    for key, value in updated_teacher.dict().items():
-        setattr(teacher, key, value)
+@app.delete("/scantrons/{scantron_id}", response_model=Scantron)
+def delete_scantron(scantron_id: int):
+    db = session()
+    db_scantron = db.query(Scantron).filter(Scantron.id == scantron_id).first()
+    if db_scantron is None:
+        db.close()
+        raise HTTPException(status_code=404, detail="Scantron not found")
+    db.delete(db_scantron)
     db.commit()
-    db.refresh(teacher)
-    return teacher
+    db.close()
+    return db_scantron
 
-@app.delete("/teachers/{teacher_id}")
-def delete_teacher(teacher_id: int, db: Session = Depends(get_db)):
-    teacher = db.query(Teacher).filter(Teacher.id == teacher_id).first()
-    if teacher is None:
-        raise HTTPException(status_code=404, detail="Teacher not found")
-    db.delete(teacher)
-    db.commit()
-    return {"message": "Teacher deleted"}
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)

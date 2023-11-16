@@ -9,3 +9,4 @@ pandas
 sqlalchemy
 faker
 easyapi
+uvicorn
