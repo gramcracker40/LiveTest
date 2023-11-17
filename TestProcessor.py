@@ -41,7 +41,7 @@ class TestProcessor:
                         self.file_paths.append(os.path.join(root, filename))
                 
             else:
-                raise FileNotFoundError("The given scantrons_dir could not be located as a directory")  
+                raise FileNotFoundError("The given 'scantrons_dir' could not be located as a directory")  
         
         except FileNotFoundError as err:
             print(err)
