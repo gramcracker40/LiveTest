@@ -2,11 +2,12 @@ numpy
 imutils
 opencv-python
 rich
-pytesseract
 seaborn
 matplotlib
 pandas
 sqlalchemy
 faker
-easyapi
+fastapi
 uvicorn
+pydantic
+passlib

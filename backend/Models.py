@@ -36,6 +36,8 @@ class Teacher(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String)
     email = Column(String, unique=True)
+    password = Column(String)
+
     courses = relationship('Course', back_populates='teacher')
 
 
@@ -46,6 +48,7 @@ class Student(Base):
     M_number = Column(String, nullable=False, unique=True)
     name = Column(String, nullable=False)
     email = Column(String, unique=True) # differentiator for duplicates.
+    password = Column(String)
     
     # relationships
     scantrons = relationship('Scantron', back_populates='student')
