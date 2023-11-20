@@ -197,8 +197,6 @@ class ScantronProcessor:
                 continue
             else:
                 distances.append(diff)
-
-            cv2.rectangle(self.image, (x, y), (x + w, y + h), (0, 255, 0), 2)
             
             iter += 1
         
@@ -230,13 +228,24 @@ class ScantronProcessor:
         for answer_num in answers:
             if answers[answer_num] == self.key[answer_num]:
                 results[answer_num] = (True, answers[answer_num])
+                cv2.rectangle(self.image, (x, y), (x + w, y + h), (0, 255, 0), 2)
             else: # record the incorrect answer and their choice. 
                 results[answer_num] = (False, answers[answer_num])
+        
+        grade = self.calculate_grade(results)*100
 
+        
         # Put the grade on the final version of self.image
-        cv2.putText(self.image, f"{self.calculate_grade(results)*100}%",
-                    (10, 270), cv2.FONT_HERSHEY_SIMPLEX, 8, (0, 0, 255), 8)
-
+        if grade < 70:   # red
+            cv2.putText(self.image, f"{grade}%",
+            (10, 270), cv2.FONT_HERSHEY_SIMPLEX, 8, (0, 0, 255), 8)
+        elif grade < 85: # yellow
+            cv2.putText(self.image, f"{grade}%",
+            (10, 270), cv2.FONT_HERSHEY_SIMPLEX, 8, (255, 255, 0), 8)
+        else: # > 85     # green
+            cv2.putText(self.image, f"{grade}%",
+            (10, 270), cv2.FONT_HERSHEY_SIMPLEX, 8, (0, 255, 0), 8)
+        
         return results
     
     def find_scantrons_answers(self, detected_answers:dict, num_questions:int):
