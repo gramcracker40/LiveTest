@@ -1,12 +1,11 @@
 from sqlalchemy import create_engine, Column, Integer, String, Float
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from Models import Base
+from env import database_url
 # from Models import Student, Scantron, Teacher, Course, Test, 
 # from faker import Faker
 
-db_url = "sqlite:///scantron-hacker.db"  # SQLite database URL
-engine = create_engine(db_url)
+engine = create_engine(database_url)
 Base.metadata.create_all(engine)
 
 Session = sessionmaker(bind=engine)

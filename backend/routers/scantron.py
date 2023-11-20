@@ -3,7 +3,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from pydantic import BaseModel
 from Models import Scantron
-from Database import session
+from db import session
 
 
 router = APIRouter(
