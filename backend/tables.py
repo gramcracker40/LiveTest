@@ -2,8 +2,7 @@
 This file implements all of the database objects for the backend of the app
 using sqlalchemy. 
 
-A Model is simply one of the classes below inheriting from 'Base'. They are 
-tables in the database that are queryable. The API will implements routes for
+below are tables in the database that are queryable. The API will implements routes for
 manipulation of all of these objects in routers/.
 '''
 
