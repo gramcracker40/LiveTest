@@ -13,10 +13,11 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
-@router.post("/", dependencies=[Depends(jwt_token_verification)])
+@router.post("/") #, dependencies=[Depends(jwt_token_verification)])
 def create_course(course: CreateCourse, db: Session = Depends(get_db)):
     try:
-        temp = Course(name=course.name, course_number=course.course_number, semester_season=course.semester_season, year=course.year, teacher_id=course.teacher_id)
+        temp = Course(name=course.name, semester_season=course.semester_season, 
+                      year=course.year, teacher_id=course.teacher_id)
         db.add(temp)
         db.commit()
     except IntegrityError as e:
