@@ -10,7 +10,6 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
-
 @router.post("/", response_model=CreateScantron)
 def create_scantron(scantron: CreateScantron):
     db_scantron = Scantron(**scantron.__dict__)

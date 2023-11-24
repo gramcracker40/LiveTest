@@ -20,6 +20,7 @@ class UpdateStudent(UpdateTeacher):
     pass
 
 class GetTeacher(BaseModel):
+    id: int
     name: str
     email: str
 
