@@ -1,10 +1,8 @@
-from fastapi import FastAPI, HTTPException, Query, APIRouter, Depends
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from fastapi import HTTPException, APIRouter
 from pydantic import BaseModel
-from Models import Scantron
-from Database import session
-
+from tables import Scantron
+from db import session
+from models.scantron import CreateScantron, GetScantron, UpdateScantron
 
 router = APIRouter(
     prefix="/scantron",
@@ -12,28 +10,15 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
-class ScantronCreate(BaseModel):
-    scantron_photo: bytes
-    student_id: int
-    test_id: int
-    
-class Scantron(BaseModel):
-    num_questions: int
-    answers: str
-    grade: float
-    student_id: int
-    test_id: int
-
-
-@router.post("/scantrons/", response_model=Scantron)
-def create_scantron(scantron: ScantronCreate):
+@router.post("/", response_model=CreateScantron)
+def create_scantron(scantron: CreateScantron):
     db_scantron = Scantron(**scantron.__dict__)
     session.add(db_scantron)
     session.commit()
     
     return db_scantron
 
-@router.get("/scantrons/{scantron_id}", response_model=Scantron)
+@router.get("/{scantron_id}", response_model=GetScantron)
 def read_scantron(scantron_id: int):
     db = session()
     db_scantron = db.query(Scantron).filter(Scantron.id == scantron_id).first()
@@ -42,8 +27,8 @@ def read_scantron(scantron_id: int):
         raise HTTPException(status_code=404, detail="Scantron not found")
     return db_scantron
 
-@router.put("/scantrons/{scantron_id}", response_model=Scantron)
-def update_scantron(scantron_id: int, scantron: ScantronCreate):
+@router.put("/{scantron_id}", response_model=UpdateScantron)
+def update_scantron(scantron_id: int, scantron: CreateScantron):
     db = session()
     db_scantron = db.query(Scantron).filter(Scantron.id == scantron_id).first()
     if db_scantron is None:
@@ -56,7 +41,7 @@ def update_scantron(scantron_id: int, scantron: ScantronCreate):
     db.close()
     return db_scantron
 
-@router.delete("/scantrons/{scantron_id}", response_model=Scantron)
+@router.delete("/{scantron_id}", response_model=GetScantron)
 def delete_scantron(scantron_id: int):
     db = session()
     db_scantron = db.query(Scantron).filter(Scantron.id == scantron_id).first()

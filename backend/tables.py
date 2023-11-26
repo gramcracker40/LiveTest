@@ -1,3 +1,11 @@
+'''
+This file implements all of the database objects for the backend of the app
+using sqlalchemy. 
+
+below are tables in the database that are queryable. The API will implements routes for
+manipulation of all of these objects in routers/.
+'''
+
 from sqlalchemy import Column, LargeBinary, Table, Integer, \
         DateTime, String, Float, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
@@ -6,11 +14,7 @@ import uuid
 
 Base = declarative_base()
 
-students_courses_association = Table(
-    'students_courses_association', Base.metadata,
-    Column('student_id', Integer, ForeignKey('students.id')),
-    Column('course_id', Integer, ForeignKey('courses.id'))
-)
+# build all of the necessary SQL database tables
 
 class Scantron(Base):
     __tablename__ = 'scantron'
@@ -40,6 +44,12 @@ class Teacher(Base):
 
     courses = relationship('Course', back_populates='teacher')
 
+# many to many relationship
+students_courses_association = Table(
+    'students_courses_association', Base.metadata,
+    Column('student_id', Integer, ForeignKey('students.id')),
+    Column('course_id', Integer, ForeignKey('courses.id'))
+)
 
 class Student(Base):
     __tablename__ = 'students'
