@@ -35,11 +35,9 @@ class TestProcessor:
 
             # load all of the file paths in the scantrons_dir
             if os.path.exists(scantrons_dir) and os.path.isdir(scantrons_dir):
-                self.file_paths = []
-                for root, directories, files in os.walk(scantrons_dir):
-                    for filename in files:
-                        self.file_paths.append(os.path.join(root, filename))
-                
+                self.file_paths = [os.path.join(root, filename) 
+                    for root, directories, files in os.walk(scantrons_dir)
+                    for filename in files]
             else:
                 raise FileNotFoundError("The given 'scantrons_dir' could not be located as a directory")  
         
