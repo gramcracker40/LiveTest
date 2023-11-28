@@ -15,7 +15,7 @@ router = APIRouter(
     responses={404: {"description": "Test: Not found"}},
 )
 
-@router.post("/", dependencies=[Depends(jwt_token_verification)])
+@router.post("/") #, #dependencies=[Depends(jwt_token_verification)])
 def create_test(test: CreateTest, db: Session = Depends(get_db)):
     try:
         temp = Test(start_t=test.start_t, end_t=test.end_t, num_questions=test.num_questions, answer_key=test.answer_key, course_id=test.course_id)

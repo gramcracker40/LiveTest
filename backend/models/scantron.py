@@ -11,10 +11,6 @@ class UpdateScantron(BaseModel):
     student_id: int
     test_id: int
 
-class GetScantron(BaseModel):
+class GetScantron(UpdateScantron):
     id: int
     graded_image: str
-    answers: str
-    grade: float
-    student_id: int
-    test_id: int
