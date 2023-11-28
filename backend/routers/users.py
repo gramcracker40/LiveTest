@@ -19,10 +19,12 @@ router = APIRouter(
     prefix="/users",
     tags=["users"],
     responses={404: {"description": "Not found"}},
+    redirect_slashes=True
 )
 
 # TEACHERS
-@router.post("/teacher", dependencies=[Depends(jwt_token_verification)])
+@router.post("/teachers/", response_model=GetTeacher, 
+             dependencies=[Depends(jwt_token_verification)])
 def create_teacher(teacher: CreateTeacher):
     try:
         temp = Teacher(name=teacher.name, email=teacher.email)
@@ -40,7 +42,7 @@ def get_all_teachers():
     teachers = session.query(Teacher).all()
     return teachers
 
-@router.get("/teacher/{teacher_id}", response_model=GetTeacher)
+@router.get("/teachers/{teacher_id}", response_model=GetTeacher)
 def get_teacher_by_id(teacher_id: int):
     teacher = session.query(Teacher).filter(Teacher.id == teacher_id).first()
     if not teacher:
@@ -48,20 +50,30 @@ def get_teacher_by_id(teacher_id: int):
     
     return teacher
 
-@router.put("/teacher/{teacher_id}")
+@router.patch("/teachers/{teacher_id}")
 def update_teacher(teacher_id: int, update_data: UpdateTeacher):
     teacher = session.query(Teacher).filter(Teacher.id == teacher_id).first()
     if not teacher:
         raise HTTPException(status_code=404, detail="Teacher not found")
+    
+    try:
+        for key in update_data.model_dump():
+            value = getattr(update_data, key)
 
-    teacher.email = update_data.email
-    teacher.password = update_data.password
-    
-    session.commit()
-    
+            if key == "password" and value:
+                value = pbkdf2_sha256.hash(value)
+
+            if value:
+                setattr(teacher, key, value)
+
+        session.commit()
+    except IntegrityError:
+        session.rollback()
+        raise HTTPException(status_code=400, detail="Teacher with this email already exists")
+       
     return teacher
 
-@router.delete("/teacher/{teacher_id}")
+@router.delete("/teachers/{teacher_id}")
 def delete_teacher(teacher_id: int):
     teacher = session.query(Teacher).filter(Teacher.id == teacher_id).first()
     if not teacher:
@@ -73,22 +85,23 @@ def delete_teacher(teacher_id: int):
     return {"message": "Teacher deleted successfully"}
 
 # STUDENTS
-@router.post("/student")
+@router.post("/students/", response_model=GetStudent)
 def create_student(student: CreateStudent):
     try:
-        temp = Student(name=student.name, email=student.email, M_number=student.M_number)
-        temp.password = pbkdf2_sha256.hash(student.password)
-        session.add(temp)
+        new_student = Student(name=student.name, email=student.email, M_number=student.M_number)
+        new_student.password = pbkdf2_sha256.hash(student.password)
+        session.add(new_student)
         session.commit()
     except IntegrityError as e:
         session.rollback()
         err = str(e)
         
-        if "email" in err:
+        if "students.email" in err:
             raise HTTPException(status_code=400, detail="Student with this email already exists")
-        elif "M_number" in err:
+        elif "students.M_number" in err:
             raise HTTPException(status_code=400, detail="Student with this M_number already exists")
-
+    
+    student = session.query(Student).filter(Student.M_number == new_student.M_number).first()
     return student
 
 @router.get("/students/", response_model=List[GetStudent])
@@ -96,7 +109,7 @@ def get_all_students():
     students = session.query(Student).all()
     return students
 
-@router.get("/student/{student_id}", response_model=GetStudent)
+@router.get("/students/{student_id}", response_model=GetStudent)
 def get_student_by_id(student_id: int):
     student = session.query(Student).filter(Student.id == student_id).first()
     if not student:
@@ -104,21 +117,36 @@ def get_student_by_id(student_id: int):
     
     return student
 
-@router.put("/student/{student_id}")
+@router.patch("/students/{student_id}")
 def update_student(student_id: int, update_data: UpdateStudent):
     student = session.query(Student).filter(Student.id == student_id).first()
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")
     
-    student.email = update_data.email
-    student.password = update_data.password
-    
-    session.commit()
-    
+    try:
+        for key in update_data.model_dump():
+            value = getattr(update_data, key)
+
+            if key == "password" and value:
+                value = pbkdf2_sha256.hash(value)
+
+            if value:
+                setattr(student, key, value)
+
+        session.commit()
+    except IntegrityError as e:
+        session.rollback()
+        err = str(e)
+        
+        if "students.email" in err:
+            raise HTTPException(status_code=400, detail="Student with this email already exists")
+        elif "students.M_number" in err:
+            raise HTTPException(status_code=400, detail="Student with this M_number already exists")    
+
     return student
 
 
-@router.delete("/student/{student_id}")
+@router.delete("/students/{student_id}")
 def delete_student(student_id: int):
     student = session.query(Student).filter(Student.id == student_id).first()
     if not student:

@@ -5,14 +5,13 @@ from sqlalchemy.exc import IntegrityError
 from typing import List
 from models.test import CreateTest, UpdateTest, GetTest
 from tables import Test
-from db import session
-from jwt import jwt_token_verification
-from db import session, get_db
+from db import  get_db
 
 router = APIRouter(
     prefix="/test",
     tags=["test"],
     responses={404: {"description": "Test: Not found"}},
+    redirect_slashes=True
 )
 
 @router.post("/") #, #dependencies=[Depends(jwt_token_verification)])
@@ -32,7 +31,7 @@ def get_all_tests(db: Session = Depends(get_db)):
     tests = db.query(Test).all()
     return tests
 
-@router.get("/{test_id}", response_model=GetTest)
+@router.get("/{test_id}/", response_model=GetTest)
 def get_test_by_id(test_id: int, db: Session = Depends(get_db)):
     test = db.query(Test).filter(Test.id == test_id).first()
     if not test:
@@ -40,7 +39,7 @@ def get_test_by_id(test_id: int, db: Session = Depends(get_db)):
     
     return test
 
-@router.put("/{test_id}")
+@router.put("/{test_id}/")
 def update_test(test_id: int, update_data: UpdateTest, db: Session = Depends(get_db)):
     test = db.query(Test).filter(Test.id == test_id).first()
     
@@ -57,7 +56,7 @@ def update_test(test_id: int, update_data: UpdateTest, db: Session = Depends(get
     
     return test
 
-@router.delete("/{test_id}")
+@router.delete("/{test_id}/")
 def delete_test(test_id: int, db: Session = Depends(get_db)):
     test = db.query(Test).filter(Test.id == test_id).first()
     if not test:

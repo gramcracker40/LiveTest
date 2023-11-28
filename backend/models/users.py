@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from typing import Optional
 
 class CreateTeacher(BaseModel):
     name: str 
@@ -9,17 +10,20 @@ class CreateStudent(CreateTeacher):
     M_number: str
 
 class UpdateTeacher(BaseModel):
-    email: str
-    password: str
+    email: Optional[str] = None
+    password: Optional[str] = None
 
-class UpdateStudent(UpdateTeacher):
-    pass
+class UpdateStudent(BaseModel):
+    email: Optional[str] = None
+    password: Optional[str] = None
 
 class GetTeacher(BaseModel):
     id: int
     name: str
     email: str
 
-class GetStudent(GetTeacher):
-    pass
+class GetStudent(BaseModel):
+    id: int
+    name: str
+    email: str
     

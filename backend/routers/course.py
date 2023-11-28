@@ -11,6 +11,7 @@ router = APIRouter(
     prefix="/course",
     tags=["course"],
     responses={404: {"description": "Not found"}},
+    redirect_slashes=True
 )
 
 @router.post("/") #, dependencies=[Depends(jwt_token_verification)])

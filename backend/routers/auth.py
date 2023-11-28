@@ -8,13 +8,17 @@ from db import session
 from env import secret_key
 
 router = APIRouter(
-    prefix="/users",
-    tags=["users"],
+    prefix="/auth",
+    tags=["auth"],
     responses={404: {"description": "Not found"}},
+    redirect_slashes=True
 )
 
 @router.post("/login")
 async def login(login_info: Login):
+    '''
+    Login as a teacher or student with username/password
+    '''
     # search for the potential teacher or student in the database. 
     teacher = session.query(Teacher).filter(Teacher.email == login_info.email).first()
     student = session.query(Student).filter(Student.email == login_info.email).first()

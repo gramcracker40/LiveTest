@@ -22,14 +22,14 @@ app.add_middleware(
     allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"],
+    allow_headers=["*"]
 )
 
+app.include_router(auth_router)
 app.include_router(user_router)
 app.include_router(course_router)
 app.include_router(test_router)
 app.include_router(scantron_router)
-app.include_router(auth_router)
 
 if __name__ == "__main__":
     import uvicorn

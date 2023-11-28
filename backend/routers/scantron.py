@@ -8,6 +8,7 @@ router = APIRouter(
     prefix="/scantron",
     tags=["scantron"],
     responses={404: {"description": "Not found"}},
+    redirect_slashes=True
 )
 
 @router.post("/", response_model=CreateScantron)
