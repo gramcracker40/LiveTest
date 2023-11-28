@@ -4,6 +4,13 @@ using sqlalchemy.
 
 below are tables in the database that are queryable. The API will implements routes for
 manipulation of all of these objects in routers/.
+
+main tables for the backend are 
+#   Scantron
+#   Course
+#   Test
+#   Teacher 
+#   Student
 '''
 
 from sqlalchemy import Column, LargeBinary, Table, Integer, \
@@ -13,8 +20,6 @@ from sqlalchemy.orm import relationship
 import uuid
 
 Base = declarative_base()
-
-# build all of the necessary SQL database tables
 
 class Scantron(Base):
     __tablename__ = 'scantron'

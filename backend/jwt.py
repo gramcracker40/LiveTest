@@ -9,10 +9,10 @@ def jwt_token_verification(access_token: str = Header()):
     try:
         # decode and verify the JWT using the application's secret key.
         # if it is successfully decoded, we allow the route to run.
-        valid = jwt.decode(access_token, secret_key, algorithms=["HS256"])
+        return jwt.decode(access_token, secret_key, algorithms=["HS256"])
 
     except ExpiredSignatureError:
-        raise HTTPException(status_code=401, detail="The JWT submitted is expired. Please login again")
+        raise HTTPException(status_code=409, detail="The JWT submitted is expired. Please login again")
 
     except JWTError as e:
         raise HTTPException(status_code=401, detail="The JWT submitted is invalid")

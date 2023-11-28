@@ -1,13 +1,11 @@
 '''
-Main configuration file for the backend application 
+Main configuration file for the fastapi backend application 
 '''
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers.scantron import router as scantron_router
-from routers.users import router as user_router
-from routers.test import router as test_router
-from routers.course import router as course_router
+from routers import user_router, course_router,\
+        test_router, scantron_router, auth_router
 
 app = FastAPI(
     title="LiveTest",
@@ -31,6 +29,7 @@ app.include_router(user_router)
 app.include_router(course_router)
 app.include_router(test_router)
 app.include_router(scantron_router)
+app.include_router(auth_router)
 
 if __name__ == "__main__":
     import uvicorn
