@@ -23,19 +23,19 @@ router = APIRouter(
 )
 
 # TEACHERS
-@router.post("/teachers/", response_model=GetTeacher, 
-             dependencies=[Depends(jwt_token_verification)])
+@router.post("/teachers/", response_model=GetTeacher)#, 
+             #dependencies=[Depends(jwt_token_verification)])
 def create_teacher(teacher: CreateTeacher):
     try:
-        temp = Teacher(name=teacher.name, email=teacher.email)
-        temp.password = pbkdf2_sha256.hash(teacher.password)
-        session.add(temp)
+        new_teacher = Teacher(name=teacher.name, email=teacher.email)
+        new_teacher.password = pbkdf2_sha256.hash(teacher.password)
+        session.add(new_teacher)
         session.commit()
     except IntegrityError as e:
         session.rollback()
         raise HTTPException(status_code=400, detail="Teacher with this email already exists")
 
-    return teacher
+    return new_teacher
 
 @router.get("/teachers/", response_model=List[GetTeacher])
 def get_all_teachers():
