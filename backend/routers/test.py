@@ -17,7 +17,9 @@ router = APIRouter(
 @router.post("/") #, #dependencies=[Depends(jwt_token_verification)])
 def create_test(test: CreateTest, db: Session = Depends(get_db)):
     try:
-        temp = Test(start_t=test.start_t, end_t=test.end_t, num_questions=test.num_questions, answer_key=test.answer_key, course_id=test.course_id)
+        answer_key = 
+
+        temp = Test(name=test.name, start_t=test.start_t, end_t=test.end_t, num_questions=test.num_questions, answer_key=test.answer_key, course_id=test.course_id)
         db.add(temp)
         db.commit()
     except IntegrityError as e:

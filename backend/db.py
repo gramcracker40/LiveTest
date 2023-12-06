@@ -1,11 +1,13 @@
 '''
-Sets up the backends database session manager
+Sets up the backends database
+also creates the session maker that allows for 
+sessions to be initiated with the db and query it.
 '''
 
-from sqlalchemy import create_engine, Column, Integer, String, Float
-from sqlalchemy.orm import sessionmaker
-from tables import Base
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, declarative_base
 from env import database_url
+from tables import Base
 
 engine = create_engine(database_url)
 Base.metadata.create_all(engine)

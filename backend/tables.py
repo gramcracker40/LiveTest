@@ -95,12 +95,11 @@ class Scantron(Base):
 class Test(Base):
     __tablename__ = 'tests'
 
-    id = Column(Integer, primary_key=True, default=lambda: uuid.uuid4().int)
+    id = Column(Integer, primary_key=True, default=lambda: str(uuid.uuid4()))
     
     # should be a datetime object
     start_t = Column(DateTime)
     end_t = Column(DateTime)
-
     num_questions = Column(Integer)
     answer_key = Column(LargeBinary, nullable=False)
 

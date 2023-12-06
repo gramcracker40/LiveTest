@@ -13,3 +13,4 @@ pydantic
 passlib
 python-dotenv
 python-jose
+requests

@@ -6,6 +6,7 @@ from typing import List
 from pydantic import BaseModel
 
 class CreateTest(BaseModel):
+    name: str
     start_t: datetime
     end_t: datetime
     num_questions: int
