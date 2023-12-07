@@ -95,8 +95,8 @@ class Scantron(Base):
 class Test(Base):
     __tablename__ = 'tests'
 
-    id = Column(Integer, primary_key=True, default=lambda: str(uuid.uuid4()))
-    
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    name = Column(String, unique=True, nullable=False)
     # should be a datetime object
     start_t = Column(DateTime)
     end_t = Column(DateTime)

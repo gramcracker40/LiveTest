@@ -10,7 +10,7 @@ class CreateTest(BaseModel):
     start_t: datetime
     end_t: datetime
     num_questions: int
-    answer_key: bytes
+    answer_key: str
     course_id: int
 
 class UpdateTest(BaseModel):
@@ -20,11 +20,12 @@ class UpdateTest(BaseModel):
     answer_key: bytes
 
 class GetTest(BaseModel):
-    id: int
+    id: str
+    name: str
     start_t: datetime
     end_t: datetime
     num_questions: int
-    answer_key: bytes
+    answer_key: str
     course_id: int
 
 class ListTests(BaseModel):

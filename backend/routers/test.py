@@ -5,7 +5,8 @@ from sqlalchemy.exc import IntegrityError
 from typing import List
 from models.test import CreateTest, UpdateTest, GetTest
 from tables import Test
-from db import  get_db
+from db import  get_db, session
+import base64
 
 router = APIRouter(
     prefix="/test",
@@ -15,22 +16,31 @@ router = APIRouter(
 )
 
 @router.post("/") #, #dependencies=[Depends(jwt_token_verification)])
-def create_test(test: CreateTest, db: Session = Depends(get_db)):
+def create_test(test: CreateTest):
     try:
-        answer_key = 
+        answer_key = base64.b64decode(test.answer_key.encode("utf-8"))
 
-        temp = Test(name=test.name, start_t=test.start_t, end_t=test.end_t, num_questions=test.num_questions, answer_key=test.answer_key, course_id=test.course_id)
-        db.add(temp)
-        db.commit()
+        print(f"""{type(test.name)}{type(test.start_t)}{type(test.end_t)}
+{type(test.num_questions)}{type(answer_key)}{type(test.course_id)}""")
+
+        temp = Test(name=test.name, start_t=test.start_t, end_t=test.end_t, 
+                    num_questions=test.num_questions, answer_key=answer_key, course_id=test.course_id)
+        session.add(temp)
+        session.commit()
     except IntegrityError as e:
-        db.rollback()
+        print(f"Error createtest: {e}")
+        session.rollback()
         raise HTTPException(status_code=400, detail="Test with this ID already exists")
 
     return test
 
 @router.get("/", response_model=List[GetTest])
-def get_all_tests(db: Session = Depends(get_db)):
-    tests = db.query(Test).all()
+def get_all_tests():
+    tests = session.query(Test).all()
+
+    for test in tests:
+        test.answer_key = base64.b64encode(test.answer_key).decode("utf8")
+
     return tests
 
 @router.get("/{test_id}/", response_model=GetTest)
