@@ -7,6 +7,7 @@ from models.test import CreateTest, UpdateTest, GetTest
 from tables import Test
 from db import  get_db, session
 import base64
+from time import sleep
 
 router = APIRouter(
     prefix="/test",
@@ -37,11 +38,22 @@ def create_test(test: CreateTest):
 @router.get("/", response_model=List[GetTest])
 def get_all_tests():
     tests = session.query(Test).all()
+    print(f"Tests: {tests}")
+    # returnable = [test for test in tests]
+    try:
+        print(f"answer_key: {type(tests[0].answer_key)}")
+        for test in tests:
+            test.answer_key = base64.b64encode(test.answer_key).decode("utf8")
+        print(f"answer_key: {type(tests[0].answer_key)}")
+ 
+        
+        sleep(8)
+        return tests
 
-    for test in tests:
-        test.answer_key = base64.b64encode(test.answer_key).decode("utf8")
-
-    return tests
+    except EncodingWarning:
+        raise HTTPException(500, detail="Binary decoding warning...")
+    finally:
+        session.rollback()
 
 @router.get("/{test_id}/", response_model=GetTest)
 def get_test_by_id(test_id: int, db: Session = Depends(get_db)):

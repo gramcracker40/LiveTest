@@ -17,10 +17,15 @@ class UpdateStudent(BaseModel):
     email: Optional[str] = None
     password: Optional[str] = None
 
+class TeacherCourses(BaseModel):
+    id: int
+    name: str
+
 class GetTeacher(BaseModel):
     id: int
     name: str
     email: str
+    courses: list[TeacherCourses]
 
 class GetStudent(BaseModel):
     id: int
