@@ -1,0 +1,10 @@
+Fix the API call for Registering the teacher. Getting an "Interal Server Error"
+
+Change the Create Course variables to be more specific about a course 
+and the information needed. 
+EX: There can be multiple classes with the same course number. 
+So either we have to use the course number and the section number or 
+we need to use the CRN number. If we are using the CRN number then 
+the data base needs to add that and take out the "Course" number
+
+Also an opinion is that the values for Course number and year should be strings
