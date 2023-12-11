@@ -1,6 +1,7 @@
 from typing import List
 from pydantic import BaseModel
 from models.users import GetStudent
+from typing import Optional
 
 
 class CreateCourse(BaseModel):
@@ -11,8 +12,12 @@ class CreateCourse(BaseModel):
     teacher_id: int
 
 
-class UpdateCourse(CreateCourse):
-    pass
+class UpdateCourse(BaseModel):
+    name: Optional[str]
+    semester_season: Optional[str]
+    course_number: Optional[int]
+    year: Optional[int]
+    teacher_id: Optional[int]
 
 
 class GetCourse(CreateCourse):

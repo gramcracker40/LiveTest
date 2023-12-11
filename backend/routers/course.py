@@ -49,7 +49,7 @@ def get_course_by_id(course_id: int):
     return course
 
 
-@router.put("/{course_id}")
+@router.patch("/{course_id}")
 def update_course(course_id: int, update_data: UpdateCourse):
     course = session.query(Course).filter(Course.id == course_id).first()
     if not course:
