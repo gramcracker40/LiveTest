@@ -30,7 +30,7 @@ router = APIRouter(
 
 
 # TEACHERS
-@router.post("/teachers/", response_model=GetTeacher)  # dependencies=[Depends(jwt_token_verification)])
+@router.post("/teachers/", response_model=GetTeacher)#dependencies=[Depends(jwt_token_verification)])
 def create_teacher(teacher: CreateTeacher):
     try:
         new_teacher = Teacher(name=teacher.name, email=teacher.email)

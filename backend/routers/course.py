@@ -15,29 +15,22 @@ router = APIRouter(
 )
 
 
-@router.post("/")  # , dependencies=[Depends(jwt_token_verification)])
+@router.post("/")  # , #dependencies=[Depends(jwt_token_verification)])
 def create_course(course: CreateCourse):
     try:
-        temp = Course(
-            name=course.name,
-            semester_season=course.semester_season,
-            year=course.year,
-            teacher_id=course.teacher_id,
-            course_number=course.course_number,
-        )
+        temp = Course(**course.model_dump())
         session.add(temp)
         session.commit()
     except IntegrityError as e:
         session.rollback()
-        raise HTTPException(status_code=400, detail=f"Integrity error - {e}")
+        raise HTTPException(status_code=400, detail=f"This course already exists")
 
     return course
 
 
 @router.get("/", response_model=List[GetCourse])
 def get_all_courses():
-    courses = session.query(Course).all()
-    return courses if courses else {}
+    return session.query(Course).all()
 
 
 @router.get("/{course_id}", response_model=GetCourse)
@@ -45,7 +38,6 @@ def get_course_by_id(course_id: int):
     course = session.query(Course).filter(Course.id == course_id).first()
     if not course:
         raise HTTPException(status_code=404, detail="Course not found")
-    print(f"COURSE: {course}")
     return course
 
 
@@ -55,11 +47,16 @@ def update_course(course_id: int, update_data: UpdateCourse):
     if not course:
         raise HTTPException(status_code=404, detail="Course not found")
 
-    for key in update_data:
-        setattr(course, key, update_data[key])
-
-    session.commit()
-
+    for key, value in update_data.model_dump().items():
+        if value != None:
+            setattr(course, key, value)
+    try:
+        session.commit()
+    except IntegrityError as err:
+        session.rollback()
+        if "UNIQUE" in str(err):
+            raise HTTPException(status_code=400, detail="A course with the same section, course number, name, season and year already exists.")
+    
     return course
 
 
