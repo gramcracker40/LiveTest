@@ -1,16 +1,16 @@
 from pydantic import BaseModel
 
-class CreateScantron(BaseModel):
-    scantron_photo: bytes
+class CreateSubmission(BaseModel):
+    submission_photo: str
     student_id: int
-    test_id: int
+    test_id: str
     
-class UpdateScantron(BaseModel):
+class UpdateSubmission(BaseModel):
     answers: str
     grade: float
     student_id: int
     test_id: int
 
-class GetScantron(UpdateScantron):
+class GetSubmission(UpdateSubmission):
     id: int
     graded_image: str

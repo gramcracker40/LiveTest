@@ -6,7 +6,7 @@ below are tables in the database that are queryable. The API will implements rou
 manipulation of all of these objects in routers/.
 
 main tables for the backend are 
-#   Scantron
+#   Submission
 #   Course
 #   Test
 #   Teacher 
@@ -53,7 +53,7 @@ class Student(Base):
     password = Column(String)
     
     # relationships
-    scantrons = relationship('Scantron', back_populates='student')
+    submissions = relationship('Submission', back_populates='student')
     courses = relationship('Course', secondary=Enrollment.__table__, back_populates='students')
 
 
@@ -74,22 +74,22 @@ class Course(Base):
     students = relationship('Student', secondary=Enrollment.__table__, back_populates='courses')
 
 
-class Scantron(Base):
-    __tablename__ = 'scantron'
+class Submission(Base):
+    __tablename__ = 'submission'
     id = Column(Integer, primary_key=True)
 
     graded_photo = Column(LargeBinary, nullable=False)
     num_questions = Column(Integer)
     answers = Column(String, nullable=False) # JSON string produced by 
-                             # grade_answers in ScantronProcessor
+                             # grade_answers in SubmissionProcessor
     grade = Column(Float, nullable=False)
     
-    # correlate the scantron to a student
+    # correlate the submission to a student
     student_id = Column(Integer, ForeignKey('students.id'), nullable=False)  # Foreign key reference
-    student = relationship('Student', back_populates='scantrons')
+    student = relationship('Student', back_populates='submissions')
 
-    test_id = Column(Integer, ForeignKey('tests.id'), nullable=False)
-    test = relationship('Test', back_populates='scantrons')
+    test_id = Column(String, ForeignKey('tests.id'), nullable=False)
+    test = relationship('Test', back_populates='submissions')
 
 
 class Test(Base):
@@ -104,7 +104,7 @@ class Test(Base):
     answer_key = Column(LargeBinary, nullable=False)
 
     # relationships
-    scantrons = relationship('Scantron', back_populates='test')
+    submissions = relationship('Submission', back_populates='test')
     course_id = Column(Integer, ForeignKey('courses.id'))
     course = relationship('Course', back_populates='tests')
     

@@ -5,7 +5,7 @@ from sqlalchemy.exc import IntegrityError
 from typing import List
 from models.test import CreateTest, UpdateTest, GetTest
 from tables import Test
-from db import  get_db, session
+from db import get_db, session
 import base64
 from time import sleep
 

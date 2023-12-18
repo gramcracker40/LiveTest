@@ -38,7 +38,6 @@ def get_course_by_id(course_id: int):
     course = session.query(Course).filter(Course.id == course_id).first()
     if not course:
         raise HTTPException(status_code=404, detail="Course not found")
-    print(f"COURSE: {course}")
     return course
 
 @router.put("/{course_id}")

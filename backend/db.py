@@ -1,11 +1,11 @@
 '''
 Sets up the backends database
-also creates the session maker that allows for 
+also initializes the 'session maker' that allows for 
 sessions to be initiated with the db and query it.
 '''
 
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy.orm import sessionmaker
 from env import database_url
 from tables import Base
 

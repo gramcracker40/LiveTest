@@ -5,7 +5,7 @@ Main configuration file for the fastapi backend application
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routers import user_router, course_router, test_router, \
-            scantron_router, auth_router, enrollment_router
+            submission_router, auth_router, enrollment_router
 
 def get_api() -> FastAPI:
     '''
@@ -36,7 +36,7 @@ def get_api() -> FastAPI:
     app.include_router(course_router)
     app.include_router(enrollment_router)
     app.include_router(test_router)
-    app.include_router(scantron_router)
+    app.include_router(submission_router)
 
     return app
 
