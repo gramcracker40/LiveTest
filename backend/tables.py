@@ -1,9 +1,8 @@
 """
-This file implements all of the database objects for the backend of the app
-using sqlalchemy. 
+This file implements all of the database tables for the backend of the app
 
 below are tables in the database that are queryable. The API will implements routes for
-manipulation of all of these objects in routers/.
+CRUD manipulation of all of these objects in routers/.
 
 main tables for the backend are 
 #   Submission
@@ -22,6 +21,7 @@ from sqlalchemy import (
     Float,
     ForeignKey,
     UniqueConstraint,
+    CheckConstraint
 )
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
@@ -101,32 +101,42 @@ class Submission(Base):
     id = Column(Integer, primary_key=True)
 
     graded_photo = Column(LargeBinary, nullable=False)
+    file_extension = Column(String, nullable=False)
     num_questions = Column(Integer)
     answers = Column(String, nullable=False) # JSON string produced by 
                              # grade_answers in SubmissionProcessor
     grade = Column(Float, nullable=False)
     
     # correlate the submission to a student
-    student_id = Column(Integer, ForeignKey('students.id'), nullable=False)  # Foreign key reference
+    student_id = Column(Integer, ForeignKey('students.id'), nullable=False)
     student = relationship('Student', back_populates='submissions')
 
     test_id = Column(String, ForeignKey('tests.id'), nullable=False)
     test = relationship('Test', back_populates='submissions')
 
+    __table_args__ = (
+        CheckConstraint(
+            file_extension.in_(["jpg", "png"]),
+            name='valid_file_extension'
+        ),
+    )
 
 class Test(Base):
     __tablename__ = "tests"
 
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    name = Column(String, unique=True, nullable=False)
-    # should be a datetime object
+    name = Column(String, nullable=False)
     start_t = Column(DateTime)
     end_t = Column(DateTime)
     num_questions = Column(Integer)
     answer_key = Column(LargeBinary, nullable=False)
+    file_extension = Column(String, nullable=False)
 
     # relationships
     submissions = relationship('Submission', back_populates='test')
     course_id = Column(Integer, ForeignKey('courses.id'))
     course = relationship('Course', back_populates='tests')
     
+    __table_args__ = (
+        UniqueConstraint("course_id", "name"),
+    )

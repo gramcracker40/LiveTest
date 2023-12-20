@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from typing import List
-from models.test import CreateTest, UpdateTest, GetTest
+from models.test import CreateTest, UpdateTest, GetTest, CreateTestConfirmation
 from tables import Test
 from db import get_db, session
 import base64
@@ -17,7 +17,9 @@ router = APIRouter(
 )
 
 
-@router.post("/")  # , #dependencies=[Depends(jwt_token_verification)])
+@router.post(
+    "/", response_model=CreateTestConfirmation
+)  # , #dependencies=[Depends(jwt_token_verification)])
 def create_test(test: CreateTest):
     try:
         answer_key = base64.b64decode(test.answer_key.encode("utf-8"))
@@ -34,20 +36,27 @@ def create_test(test: CreateTest):
             num_questions=test.num_questions,
             answer_key=answer_key,
             course_id=test.course_id,
+            file_extension=test.file_extension
         )
         session.add(temp)
         session.commit()
     except IntegrityError as e:
-        print(f"Error createtest: {e}")
+        print(f"Error create-test: {e}")
         session.rollback()
-        raise HTTPException(status_code=400, detail="Test with this ID already exists")
+        raise HTTPException(status_code=400, detail="This test already exists")
 
-    return test
+    new_test = session.query(Test).filter(
+        Test.name == test.name, Test.course_id == test.course_id
+    ).first()
+
+    return {"id": new_test.id, "name": new_test.name}
 
 
 @router.get("/", response_model=List[GetTest])
 def get_all_tests():
     tests = session.query(Test).all()
+    if len(tests) == 0:
+        return []
     print(f"Tests: {tests}")
     # returnable = [test for test in tests]
     try:
@@ -93,12 +102,12 @@ def update_test(test_id: int, update_data: UpdateTest, db: Session = Depends(get
 
 
 @router.delete("/{test_id}/")
-def delete_test(test_id: int, db: Session = Depends(get_db)):
-    test = db.query(Test).filter(Test.id == test_id).first()
+def delete_test(test_id: int):
+    test = session.query(Test).get(test_id)
     if not test:
         raise HTTPException(status_code=404, detail="Test not found")
 
-    db.delete(test)
-    db.commit()
+    session.delete(test)
+    session.commit()
 
     return {"message": "Test deleted successfully"}

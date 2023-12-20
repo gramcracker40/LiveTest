@@ -3,7 +3,8 @@ implements the models required for the 'test' router
 """
 from datetime import datetime
 from typing import List
-from pydantic import BaseModel
+from pydantic import BaseModel, StringConstraints
+from typing_extensions import Annotated
 
 
 class CreateTest(BaseModel):
@@ -12,6 +13,7 @@ class CreateTest(BaseModel):
     end_t: datetime
     num_questions: int
     answer_key: str
+    file_extension: Annotated[str, StringConstraints(pattern=r'^(jpg|png)$')]
     course_id: int
 
 
@@ -30,6 +32,10 @@ class GetTest(BaseModel):
     num_questions: int
     answer_key: str
     course_id: int
+
+class CreateTestConfirmation(BaseModel):
+    id: str
+    name: str
 
 
 class ListTests(BaseModel):
