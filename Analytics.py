@@ -1,5 +1,5 @@
-from ScantronProcessor import *
-from TestProcessor import *
+from backend.ScantronProcessor import *
+from backend.TestProcessor import *
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
