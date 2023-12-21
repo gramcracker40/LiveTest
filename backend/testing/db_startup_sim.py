@@ -1,23 +1,14 @@
 """
+populates the database with students, teachers, courses and enrollments
+set the amounts below. It will handle the rest.
+
 run this only with a blank database and the API running
-because this runs off assumption that the identifiers of the
+because this runs off the assumption that the identifiers of the
 objects created in db will be in ascending order from 1-100
-
-populates the database with students, teachers, courses
-determine the amounts below. It will handle the rest.
- 
-It will then assign teachers to each subject. 
-It then adds these teachers to the courses that have 
-the subjects they were assigned. Each subject will have 
-an equal number of courses. 
-
 """
 import json
 import requests
-import os
-from datetime import datetime
 from random import randint
-from math import ceil
 
 # API variables
 URL = "http://localhost:8000"
@@ -111,8 +102,3 @@ for s_id, student in enumerate(students):
         )
         courses.append(course_id)
         print(f"Added student {s_id + 1} to course {course_id}")
-
-# print(
-#     f"""Students: {students}\n\nTeachers: {teachers}
-# \n\nCourses: {courses}"""
-# )
