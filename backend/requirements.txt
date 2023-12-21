@@ -1,0 +1,11 @@
+numpy==1.26.2
+imutils==0.5.4
+opencv-python-headless==4.8.1.78
+sqlalchemy==2.0.23
+fastapi==0.104.1
+uvicorn==0.24.0.post1
+pydantic==2.5.2
+passlib==1.7.4
+python-dotenv==1.0.0
+python-jose==3.3.0
+requests==2.31.0

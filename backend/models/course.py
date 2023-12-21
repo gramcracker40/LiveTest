@@ -28,5 +28,10 @@ class GetCourse(CreateCourse):
     students: List[GetStudent]
 
 
+class GetCourseMinimum(BaseModel):
+    id: int
+    name: str
+
+
 class ListCourses(BaseModel):
     courses: List[GetCourse]
