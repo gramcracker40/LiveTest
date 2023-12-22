@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  api:
+    build: ./backend
+    command: python API.py
+    ports:
+      - 8000:8000
+    env_file:
+      - ./backend/.env
+
+  db:
+    image: postgres:13-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    env_file:
+      - .env
+  
+volumes:
+  postgres_data:
