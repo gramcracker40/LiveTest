@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
 
 
 class CreateTeacher(BaseModel):
@@ -31,7 +31,7 @@ class GetTeacher(BaseModel):
     id: int
     name: str
     email: str
-    courses: list[TeacherCourses]
+    courses: List[TeacherCourses]
 
 
 class GetStudent(BaseModel):
