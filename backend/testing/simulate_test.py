@@ -1,5 +1,7 @@
 '''
 handles setting up the simulation for 'tests' and 'submissions'
+creates a test that is tied to a course (course_id must exist)
+It then submits three different answer keys to this test. 
 
 '''
 

@@ -8,7 +8,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from env import database_url
 from tables import Base
-print(f"database_url: {database_url}")
+
 engine = create_engine(database_url)
 Base.metadata.create_all(engine)
 

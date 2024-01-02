@@ -9,8 +9,7 @@ from routers import user_router, course_router, test_router, \
 
 def get_api() -> FastAPI:
     '''
-    # Builds the backend of test scanning app
-
+    Builds the backend of test scanning app
     factory pattern
     '''
     app = FastAPI(

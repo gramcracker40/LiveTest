@@ -3,7 +3,7 @@ populates the database with students, teachers, courses and enrollments
 set the amounts below. It will handle the rest.
 
 run this only with a blank database and the API running
-because this runs off the assumption that the identifiers of the
+because db_startup_sim.py runs off the assumption that the identifiers of the
 objects created in db will be in ascending order from 1-100
 """
 import json

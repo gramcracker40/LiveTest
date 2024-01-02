@@ -1,7 +1,6 @@
 '''
 Handles all processing to do with the Scantron form 882E
 '''
-
 import cv2
 import numpy as np
 from imutils.perspective import four_point_transform
@@ -363,6 +362,10 @@ if __name__ == "__main__":
         45: 'D'
     }
 
-    processor = ScantronProcessor("real_examples/IMG_4165.jpg", key)
+    processor = ScantronProcessor("../TestData/BatchOne/KEY1/IMG_8751", key)
+    flipped = processor.rotate_to_orthogonal()
+    flipped.save_image("")
+
+
     graded_results, grade = processor.process(saved_location=f"Graded-Located", save_graded=True)
     print(f"graded_results: {json.dumps(graded_results, indent=2)}\n grade: {grade*100}")

@@ -1,5 +1,5 @@
 import os, json
-from ScantronProcessor import ScantronProcessor, find_and_rotate
+from backend.core.ScantronProcessor import ScantronProcessor, find_and_rotate
 
 class TestProcessor:
     '''

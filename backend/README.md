@@ -7,9 +7,15 @@
   go to 'http://127.0.0.1:8000/docs'
   for more info on the various routes that the API implements. Such as the required parameters for the route, what the routes does, etc. There will also be info about JWT key passing. Acquire your access token through the 'login' route.
 
+## core/ 
+  core functionality of the application, includes the modules that perform
+  the grading of answer sheets, creation of statistics, 
 
 ## models/
   pydantic models that handle data verification through the fastapi routers
 
 ## routers/
   fastapi routers that implement the various HTTP
+
+## tables/ 
+  SQLAlchemy models defined for database creation and interaction. 
