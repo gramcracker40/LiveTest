@@ -10,3 +10,7 @@ python-dotenv==1.0.0
 python-jose==3.3.0
 requests==2.31.0
 psycopg2-binary
+numpy==1.26.2
+seaborn==0.13.0
+matplotlib==3.8.2
+pandas==2.1.3
