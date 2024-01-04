@@ -1,6 +1,6 @@
-FROM node:18-buster-slim
-WORKDIR /usr/src/app
-COPY /app .
-RUN npm install
+FROM node:18-alpine
 EXPOSE 8001
+WORKDIR /app
+COPY ./app .
+RUN npm install
 CMD ["npm", "run", "dev"]

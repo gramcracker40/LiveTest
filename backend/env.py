@@ -29,14 +29,11 @@ def build_db_string(env_file) -> str:
     database_url = re.sub(r'\{([^}]+)\}', replace_placeholder, env_vars['DATABASE_URL'])
     return database_url
 
+
+# loading instance configuration below, build DATABASE_URL dynamically
 load_dotenv()
-db_string = build_db_string(".env")
-os.environ["DATABASE_URL"] = db_string
+os.environ["DATABASE_URL"] = build_db_string(".env")
 
 secret_key = os.getenv("SECRET_KEY")
 database_url = os.getenv("DATABASE_URL")
-
-print(f"DATABASE_URL: {database_url}")
-
-test = build_db_string(".env")
 

@@ -9,7 +9,7 @@
   for more info on the various routes that the API implements. Such as the required parameters for the route, what the route does, etc. The API aims to be RESTful. 
 
 ## API.py
-  builds the fastapi application using a factory pattern
+  builds the fastapi application using a factory pattern.
 
 ## core/ 
   core functionality of the application, includes the modules that perform
@@ -26,6 +26,9 @@
 
 ## tables.py 
   SQLAlchemy models defined for database creation and interaction. 
+
+## jwt.py
+  implements the security features of the app. 
 
 ## env.py
   grabs the instance details from the .env file and builds the db connection string
