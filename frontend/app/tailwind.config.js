@@ -5,7 +5,11 @@ export default {
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        LogoBg: 'rgb(214, 240, 247)'
+      }
+    },
   },
   plugins: [
     require('@tailwindcss/forms')

@@ -9,7 +9,6 @@ services:
       - ./backend/.env
   api:
     build: ./backend
-    command: python API.py
     ports:
       - 8000:8000
     env_file:
@@ -18,7 +17,6 @@ services:
       - db
   ui:
     build: ./frontend
-    command: npm run dev
     ports:
       - 8001:8001
     depends_on:

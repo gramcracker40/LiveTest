@@ -69,21 +69,18 @@ export default function LoginPage() {
     return <CoursePage/>
   } else {
     return (
-        <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
+        <div className="bg-LogoBg flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
           <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-            <h1 className="text-5xl text-center mb-4 text-gray-500">
-              <span className="text-green-600">
-                Green
-              </span>
-              Watch
+            <h1 className=" text-8xl text-center mb-4 text-cyan-500">
+              LiveTest
             </h1>
             <img
-              className="mx-auto h-20 w-auto"
+              className="mx-auto h-52 w-auto"
               src={logo}
-              alt="Greenwatch"
+              alt="LiveTestLogo"
             />
-            <h2 className="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-gray-700">
-              Sign in to your account
+            <h2 className="mt-10 text-center text-xl font-bold leading-9 tracking-tight text-gray-700">
+              Sign in to your student/teacher account
             </h2>
           </div>
 
@@ -94,7 +91,7 @@ export default function LoginPage() {
                   htmlFor="email"
                   className="block text-sm font-medium leading-6 text-gray-900"
                 >
-                  Username
+                  Email
                 </label>
                 <div className="mt-2">
                   <input
@@ -117,7 +114,7 @@ export default function LoginPage() {
                   </label>
                   <div className="text-sm" onClick={passwordForgottenHandler}>
                     <p
-                      className="font-semibold text-green-600 hover:text-green-500"
+                      className="font-semibold text-cyan-500 hover:text-cyan-300"
                     >
                       Forgot password?
                     </p>
@@ -142,7 +139,7 @@ export default function LoginPage() {
               <div>
                 <button
                   type="submit"
-                  className="flex w-full justify-center rounded-md bg-green-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-green-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-800"
+                  className="flex w-full justify-center rounded-md bg-cyan-500 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:text-cyan-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:text-cyan-700"
                 >
                   Sign in
                 </button>
