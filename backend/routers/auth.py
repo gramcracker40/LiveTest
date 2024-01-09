@@ -44,6 +44,7 @@ async def login(login_info: Login):
     # return the outcome of the authentication check
     if authenticated:
         login_details = {
+            "email": found_user.email,
             "name": found_user.name,
             "id": found_user.id,
             "type": user_type,

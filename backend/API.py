@@ -15,7 +15,7 @@ def get_api() -> FastAPI:
     app = FastAPI(
         title="LiveTest",
         description="backend for test scanning app",
-        version="0.0.1",
+        version="1.1",
         contact={
             "name": "Garrett Mathers",
             "url": "https://github.com/gramcracker40",
