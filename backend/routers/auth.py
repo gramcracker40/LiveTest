@@ -52,6 +52,13 @@ async def login(login_info: Login):
         access_token = jwt.encode(login_details, secret_key, algorithm="HS256")
         message = f"Successfully logged in {found_user.name}"
 
-        return {"message": message, "access_token": access_token}
+        return {
+            "message": message, 
+            "access_token": access_token,
+            "email": found_user.email,
+            "name": found_user.name,
+            "id": found_user.id,
+            "type": user_type,
+        }
     else:
         return HTTPException(404, detail="User login info not valid")

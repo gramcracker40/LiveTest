@@ -38,3 +38,9 @@ class GetStudent(BaseModel):
     id: int
     name: str
     email: str
+    courses: List[TeacherCourses]
+
+
+class GetStudentMinimum(BaseModel):
+    id: int
+    name: str

@@ -30,26 +30,24 @@ def create_course(course: CreateCourse):
 def get_all_courses():
     return session.query(Course).all()
 
-@router.get("/student/{student_id}", response_model=List[GetCourseMinimum])
+@router.get("/student/{student_id}", response_model=List[GetCourse])
 def get_all_courses_for_student(student_id: int):
     student = session.query(Student).get(student_id)
 
     if not student:
         raise HTTPException(404, detail=f"student_id: {student_id} not found")
 
-    return [{"id": course.id, "name": course.name} 
-                for course in student.courses]
+    return student.courses
 
 
-@router.get("/teacher/{teacher_id}", response_model=List[GetCourseMinimum])
+@router.get("/teacher/{teacher_id}", response_model=List[GetCourse])
 def get_all_courses_for_teacher(teacher_id: int):
     teacher = session.query(Teacher).get(teacher_id)
 
     if not teacher:
         raise HTTPException(404, detail=f"teacher_id: {teacher_id} not found")
 
-    return [{"id": course.id, "name": course.name} 
-                for course in teacher.courses]
+    return teacher.courses
 
 
 @router.get("/{course_id}", response_model=GetCourse)

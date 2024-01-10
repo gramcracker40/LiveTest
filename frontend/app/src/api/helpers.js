@@ -1,10 +1,8 @@
 export const defHeaders = { 'Content-Type': 'application/json' };
-export const loginURL = "http://127.0.0.1:5000/login";
-export const instanceURL = "http://127.0.0.1";
+export const loginURL = "http://127.0.0.1:8000/auth/login";
+export const instanceURL = "http://127.0.0.1:8000";
 
-export async function EasyRequest(url = "127.0.0.1:5000",
-    headers = { 'Content-Type': 'application/json' }, method = "GET", body = false) {
-
+export async function EasyRequest(url, headers, method, body=null) {
     try {
         let options = '';
         if (body) {
@@ -27,16 +25,17 @@ export async function EasyRequest(url = "127.0.0.1:5000",
 
     } catch (error) {
         console.log(`An ERROR: --> ${error}`);
+        return { data: error, status: 500 };
     }
 
 }
 
 
-// const url = "http://127.0.0.1:5000/login";
-// const headers = { 'Content-Type': 'application/json' };
-// const method = "POST";
-// const body = { "username": "test", "password": "testtest" };
+const url = "http://127.0.0.1:8000/auth/login/";
+const headers = { 'Content-Type': 'application/json' };
+const method = "POST";
+const body = { "email": "test", "password": "testtest" };
 
-// test = EasyRequest(url, headers, method, body).then(val => console.log(val));
+const test = await EasyRequest(url, headers, method, body).then(val => console.log(val));
 
-// console.log(test)
+console.log(test)

@@ -9,7 +9,6 @@ objects created in db will be in ascending order from 1-100
 import json
 import requests
 from random import randint
-from time import sleep
 
 # API constants
 URL = "http://localhost:8000"
@@ -19,13 +18,13 @@ TEACHER_URL = f"{URL}/users/teachers/"
 HEADERS = {"Content-Type": "application/json", "Accept": "text/plain"}
 
 # constants for fake data creation
-SEMESTER = "Fall"
+SEMESTER = "Spring"
 SCHOOL_DOMAIN = "my.msutexas.edu"
-NUM_STUDENTS = 1000
-NUM_TEACHERS = 100
-NUM_COURSES = 200
-COURSES_PER_STUDENT = 5
-subjects = ["MATH", "CMPS", "ENGL", "HIST", "CH"]
+NUM_STUDENTS = 2000
+NUM_TEACHERS = 400
+NUM_COURSES = 600
+COURSES_PER_STUDENT = 7
+subjects = ["MATH", "CMPS", "ENGL", "HIST", "CH", "SHOP", "TECH"]
 NUM_SUBJECTS = len(subjects)
 
 # setup the fake resources used to populate the db

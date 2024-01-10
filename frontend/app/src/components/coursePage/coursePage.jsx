@@ -1,59 +1,45 @@
-// CoursePage.jsx
-import React from 'react';
+import React, { useEffect, useState, useContext } from 'react';
+import { EasyRequest, defHeaders, instanceURL } from "../../api/helpers.js";
+import { AuthContext } from '../../context/auth.jsx';
 
-const CoursePage = ({ userRole }) => {
-  // Placeholder data (replace with real data)
-  const courses = [
-    { id: 1, title: 'Introduction to Mathematics' },
-    { id: 2, title: 'History of Science' },
-    { id: 3, title: 'Programming 101' },
-  ];
+const CoursePage = () => {
+  const [courses, setCourses] = useState([]);
+  const { authDetails, setAuthDetails } = useContext(AuthContext);
 
+  useEffect(() => {
+    console.log(`Auth details --> ${authDetails}`)
+    // Fetch courses if not in cache
+    const courseURL = authDetails.type === 'teacher'
+      ? instanceURL + `/course/teacher/${authDetails.id}`
+      : instanceURL + `/course/student/${authDetails.id}`;
+    console.log(`courseURL::: ${courseURL}`)
+    const fetchCourses = async () => {
+      try {
+        let req = await EasyRequest(courseURL, defHeaders, "GET");
+        console.log(`req.data --> ${JSON.stringify(req.data)}`)
+        if (req.status === 200) {
+          setCourses(req.data);
+        }
+        // Handle other status codes appropriately
+      } catch (error) {
+        console.error('Error fetching courses', error);
+      }
+    };
+    fetchCourses();
+  }, [authDetails]);
+
+  console.log(`Courses::: ${courses}`);
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-6">
-      <h1 className="text-4xl font-bold mb-6">My Courses</h1>
-      
-      {userRole === 'student' ? (
-        <StudentCourses courses={courses} />
-      ) : (
-        <TeacherCourses courses={courses} />
-      )}
-    </div>
-  );
-};
-
-// StudentCourses component
-const StudentCourses = ({ courses }) => {
-  return (
-    <div>
-      <h2 className="text-2xl font-semibold mb-4">Enrolled Courses</h2>
-      {courses.length > 0 ? (
-        <ul className="list-disc list-inside">
-          {courses.map((course) => (
-            <li key={course.id} className="mb-2">{course.title}</li>
-          ))}
-        </ul>
-      ) : (
-        <p>No courses enrolled yet.</p>
-      )}
-    </div>
-  );
-};
-
-// TeacherCourses component
-const TeacherCourses = ({ courses }) => {
-  return (
-    <div>
-      <h2 className="text-2xl font-semibold mb-4">Teaching Courses</h2>
-      {courses.length > 0 ? (
-        <ul className="list-disc list-inside">
-          {courses.map((course) => (
-            <li key={course.id} className="mb-2">{course.title}</li>
-          ))}
-        </ul>
-      ) : (
-        <p>No courses being taught yet.</p>
-      )}
+    <div className="course-page-container">
+      <h1 className="text-2xl font-bold">Your Courses</h1>
+      <div className="courses-list">
+        {courses && courses.map(course => (
+          <div key={course.id} className="course-item">
+            <h2>{course.name}</h2>
+            {/* Additional course details */}
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
