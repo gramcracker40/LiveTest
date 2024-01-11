@@ -21,7 +21,7 @@ from sqlalchemy import (
     Float,
     ForeignKey,
     UniqueConstraint,
-    CheckConstraint
+    CheckConstraint,
 )
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
@@ -64,8 +64,10 @@ class Student(Base):
     password = Column(String)
 
     # relationships
-    submissions = relationship('Submission', back_populates='student')
-    courses = relationship('Course', secondary=Enrollment.__table__, back_populates='students')
+    submissions = relationship("Submission", back_populates="student")
+    courses = relationship(
+        "Course", secondary=Enrollment.__table__, back_populates="students"
+    )
 
 
 class Course(Base):
@@ -97,29 +99,29 @@ class Course(Base):
 
 
 class Submission(Base):
-    __tablename__ = 'submission'
+    __tablename__ = "submission"
     id = Column(Integer, primary_key=True)
 
     graded_photo = Column(LargeBinary, nullable=False)
     file_extension = Column(String, nullable=False)
     num_questions = Column(Integer)
-    answers = Column(String, nullable=False) # JSON string produced by 
-                             # grade_answers in SubmissionProcessor
+    answers = Column(String, nullable=False)  # JSON string produced by
+    # grade_answers in SubmissionProcessor
     grade = Column(Float, nullable=False)
-    
-    # correlate the submission to a student
-    student_id = Column(Integer, ForeignKey('students.id'), nullable=False)
-    student = relationship('Student', back_populates='submissions')
 
-    test_id = Column(String, ForeignKey('tests.id'), nullable=False)
-    test = relationship('Test', back_populates='submissions')
+    # correlate the submission to a student
+    student_id = Column(Integer, ForeignKey("students.id"), nullable=False)
+    student = relationship("Student", back_populates="submissions")
+
+    test_id = Column(String, ForeignKey("tests.id"), nullable=False)
+    test = relationship("Test", back_populates="submissions")
 
     __table_args__ = (
         CheckConstraint(
-            file_extension.in_(["jpg", "png"]),
-            name='valid_file_extension'
+            file_extension.in_(["jpg", "png"]), name="valid_file_extension"
         ),
     )
+
 
 class Test(Base):
     __tablename__ = "tests"
@@ -133,10 +135,8 @@ class Test(Base):
     file_extension = Column(String, nullable=False)
 
     # relationships
-    submissions = relationship('Submission', back_populates='test')
-    course_id = Column(Integer, ForeignKey('courses.id'))
-    course = relationship('Course', back_populates='tests')
-    
-    __table_args__ = (
-        UniqueConstraint("course_id", "name"),
-    )
+    submissions = relationship("Submission", back_populates="test")
+    course_id = Column(Integer, ForeignKey("courses.id"))
+    course = relationship("Course", back_populates="tests")
+
+    __table_args__ = (UniqueConstraint("course_id", "name"),)

@@ -1,0 +1,13 @@
+FROM python:3.10-slim as base
+
+# Create a non-root user and build/run the app
+RUN useradd --create-home appuser
+WORKDIR /app
+RUN chown appuser /app
+USER appuser
+COPY --chown=appuser requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
+COPY --chown=appuser . .
+EXPOSE 8000
+
+CMD ["python3", "API.py"]
