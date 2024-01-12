@@ -366,6 +366,5 @@ if __name__ == "__main__":
     flipped = processor.rotate_to_orthogonal()
     flipped.save_image("")
 
-
     graded_results, grade = processor.process(saved_location=f"Graded-Located", save_graded=True)
     print(f"graded_results: {json.dumps(graded_results, indent=2)}\n grade: {grade*100}")
