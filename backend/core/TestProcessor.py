@@ -1,5 +1,5 @@
 import os, json
-from backend.core.ScantronProcessor import ScantronProcessor, find_and_rotate
+from ScantronProcessor import ScantronProcessor, find_and_rotate
 
 class TestProcessor:
     '''
@@ -114,9 +114,11 @@ class TestProcessor:
 
         return (self.test_results, round(test_average/len(self.file_paths), 2))
 
-test = TestProcessor("../TestData/BatchOne/KEY1", "../TestData/BatchOne/KEY1.png", 30)
-results, test_avg = test.process()
-print(f"results: {results}\ntest average: {test_avg}")
+
+if __name__ == "__main__":
+    test = TestProcessor("../TestData/BatchOne/KEY1", "../TestData/BatchOne/KEY1.png", 30)
+    results, test_avg = test.process()
+    print(f"results: {results}\ntest average: {test_avg}")
 
 # key = TestProcessor.generate_key("real_examples/IMG_4162.jpg", 45)
 # print(key)
