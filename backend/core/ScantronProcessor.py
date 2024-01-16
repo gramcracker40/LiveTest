@@ -52,10 +52,10 @@ def four_point_transform(image, pts):
 
 
 def show_image(title: str, matlike: cv2.Mat_TYPE_MASK, w=600, h=700):
-    '''
+    """
     given a title and Matlike image, display it given configured width and height
-    '''
-    
+    """
+
     temp = cv2.resize(matlike, (w, h))
     cv2.imshow(title, temp)
     cv2.waitKey(0)
@@ -104,8 +104,11 @@ class ScantronProcessor:
     """
 
     def __init__(self, image_path: str, key: dict):
+        self.image = cv2.imread(image_path)
+        if self.image is None:
+            raise ValueError(f"Failed to load image from {image_path}")
         self.image_path = image_path
-        self.image = cv2.imread(self.image_path)
+        
         self.processed_image = None
         self.key = key
 
@@ -249,7 +252,7 @@ class ScantronProcessor:
         for answer_num in answers:
             if answers[answer_num] == self.key[answer_num]:
                 results[answer_num] = (True, answers[answer_num])
-                cv2.rectangle(self.image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+                #cv2.rectangle(self.image, (x, y), (x + w, y + h), (0, 255, 0), 2)
             else:  # record the incorrect answer and their choice.
                 results[answer_num] = (False, answers[answer_num])
 
@@ -406,7 +409,6 @@ if __name__ == "__main__":
 
     processor = ScantronProcessor("../../TestData/BatchOne/KEY1/IMG_8751", key)
     flipped = processor.rotate_to_orthogonal()
-
 
     graded_results, grade = processor.process(
         saved_location=f"Graded-Located", save_graded=True

@@ -39,6 +39,7 @@ const CoursePage = () => {
             {/* Additional course details */}
           </div>
         ))}
+        {!courses && <LoadingScreen></LoadingScreen>}
       </div>
     </div>
   );
