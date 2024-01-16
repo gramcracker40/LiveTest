@@ -1,4 +1,7 @@
+frontend/
 
+
+backend/
 
 
 # Production commands
