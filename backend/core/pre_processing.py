@@ -3,9 +3,9 @@ from TestProcessor import TestProcessor
 import json
 
 if __name__ == "__main__":
-    key_path = "../../test_data/BatchOne/KEY1.png"
-    test1_path = "/home/bench/answer_key_app/test_data/BatchOne/KEY1/IMG_8750.png"
-    test2_path = "/home/bench/answer_key_app/test_data/BatchOne/KEY1/IMG_8752.png"
+    key_path = "../../test_data/BatchOne/KEY1/IMG_8750.png"
+    test1_path = "../../test_data/BatchOne/KEY1/IMG_8750.png"
+    test2_path = "../../test_data/BatchOne/KEY1/IMG_8751.png"
     num_questions = 31
 
     key = TestProcessor.generate_key(key_path, num_questions)
@@ -15,12 +15,15 @@ if __name__ == "__main__":
     test1 = ScantronProcessor(test1_path, key)
     test2 = ScantronProcessor(test2_path, key)
 
-    
-    test1_results, test1_grade = test1.process(
-        saved_location=f"Graded-Located", save_graded=True
-    )
-    test2_results, test2_grade = test2.process(
-        saved_location=f"Graded-Located", save_graded=True
-    )
+    test1_results, test1_grade = test1.process()
+    test2_results, test2_grade = test2.process()
 
     print(f"test1 grade: {test1_grade}\ntest2 grade: {test2_grade}")
+
+    print("Test 1 results")
+    print(test1_results)
+    print("\n\n")
+
+    print("Test 2 results")
+    print(test2_results)
+    print("\n\n")
