@@ -3,9 +3,9 @@ from TestProcessor import TestProcessor
 import json
 
 if __name__ == "__main__":
-    key_path = "../../test_data/BatchOne/KEY1/IMG_8750.png"
-    test1_path = "../../test_data/BatchOne/KEY1/IMG_8750.png"
-    test2_path = "../../test_data/BatchOne/KEY1/IMG_8751.png"
+    key_path = "../../test_data/BatchOne/KEY1.png"
+    test1_path = "../../test_data/BatchOne/KEY1/IMG_8760.png"
+    test2_path = "../../test_data/BatchOne/KEY1/IMG_8761.png"
     num_questions = 31
 
     key = TestProcessor.generate_key(key_path, num_questions)
