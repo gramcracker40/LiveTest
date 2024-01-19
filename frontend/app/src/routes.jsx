@@ -7,6 +7,7 @@ import Register from './components/register';
 import Login from './components/login';
 import About from './components/about'
 import CoursePage from './components/coursePage/coursePage'
+import SubmissionPage from './components/submissionPage/submissionPage';
 
 const AppRoutes = () => {
   return (
@@ -18,6 +19,7 @@ const AppRoutes = () => {
           <Route path="/login" element={<Login />} />
           <Route path="/about" element={<About />} />
           <Route path="/course" element={<CoursePage />} />
+          <Route path="/submission" element={<SubmissionPage />} />
         </Routes>
       </Router>
     </AuthProvider>
