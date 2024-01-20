@@ -8,7 +8,11 @@ export const CameraAccess = () => {
   const [hasPhoto, setHasPhoto] = useState(false);
   const [loadedOpenCV, setLoadedOpenCV] = useState(false); 
   const scanner = new jscanify();
+  const [capturedImage, setCapturedImage] = useState(null);
+  const [testId, setTestId] = useState('');
 
+
+  // load opencv, get access to video feed, begin highlighting documents. 
   useEffect(() => {
     loadOpenCv(() => {
       navigator.mediaDevices.getUserMedia({ video: { width: 1920, height: 1080 } })
@@ -23,7 +27,7 @@ export const CameraAccess = () => {
         });
     });
 
-    // Cleanup on component unmount
+    // Cleanup
     return () => {
       if (videoRef.current && videoRef.current.srcObject) {
         videoRef.current.srcObject.getTracks().forEach(track => track.stop());
@@ -50,7 +54,7 @@ export const CameraAccess = () => {
     let video = videoRef.current;
     let canvas = imageRef.current;
 
-    if (video.readyState === 4) {
+    if (video && video.readyState === 4) {
       const width = video.videoWidth;
       const height = video.videoHeight;
       canvas.width = width;
@@ -95,7 +99,8 @@ export const CameraAccess = () => {
         canvas.height = height;
         canvas.getContext('2d').drawImage(resultCanvas, 
           0, 0, resultCanvas.width, resultCanvas.height);
-  
+        
+        setCapturedImage(canvas.toDataURL());
         setHasPhoto(true);
       };
       isolatedDoc.src = tempCanvas.toDataURL(); // Set the source to the captured image
@@ -103,6 +108,10 @@ export const CameraAccess = () => {
       console.error("Video is not ready");
     }
   };
+
+  const handleSubmit = () => {
+    console.log("Submit the photo:", capturedImage); 
+  }
   
 
   const loadOpenCv = (onComplete) => {
@@ -127,14 +136,30 @@ export const CameraAccess = () => {
 
 
   return (
-    <div className="camera flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
-      <video 
-        ref={videoRef} 
-        className="w-full max-w-lg rounded-lg shadow-xl"
-      ></video>
+    <div className="camera flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4"> 
+      {/* Test ID */}
+      <div className="test-id-input mb-4 w-full max-w-sm">
+        <label htmlFor="test-id" className="block text-sm text-center font-medium text-gray-700">
+          Test ID
+        </label>
+        <input 
+          type="text" 
+          id="test-id" 
+          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+          value={testId}
+          onChange={(e) => setTestId(e.target.value)}
+        />
+      </div>
+
+      {/* Video feed with highlighted canvas overlay */}
+      <video ref={videoRef} 
+      style={{ display: 'none' }}>
+      </video>
+      <canvas ref={imageRef} 
+      className="w-full max-w-lg rounded-lg shadow-xl">
+      </canvas>
 
       <div className="flex space-x-4 my-4">
-        
         <button 
           onClick={takePhoto} 
           className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-700 transition duration-300"
@@ -143,11 +168,17 @@ export const CameraAccess = () => {
         </button>
       </div>
 
-      <canvas 
-        ref={imageRef} 
-        style={{ display: hasPhoto ? 'block' : 'none' }} 
-        className="w-full max-w-lg rounded-lg shadow-xl"
-      ></canvas>
+      {hasPhoto && (
+        <div className="photo-preview my-4">
+          <img src={capturedImage} alt="Captured" className="max-w-lg rounded-lg shadow-xl"/>
+          <button 
+            onClick={handleSubmit} 
+            className="px-4 py-2 mt-4 bg-blue-500 text-white rounded hover:bg-blue-700 transition duration-300"
+          >
+            Submit
+          </button>
+        </div>
+      )}
     </div>
   );
 };

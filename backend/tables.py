@@ -41,9 +41,6 @@ class Teacher(Base):
     courses = relationship("Course", back_populates="teacher")
 
 
-# many to many relationship
-
-
 class Enrollment(Base):
     __tablename__ = "enrollments"
 
