@@ -130,6 +130,7 @@ class Test(Base):
     num_questions = Column(Integer)
     answer_key = Column(LargeBinary, nullable=False)
     file_extension = Column(String, nullable=False)
+    answers = Column(String, nullable=False)
 
     # relationships
     submissions = relationship("Submission", back_populates="test")

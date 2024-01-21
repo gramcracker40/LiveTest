@@ -67,31 +67,33 @@ def find_and_rotate(image_path):
     Detect a quadrilateral (like a paper sheet) in the image, then perform a perspective
     transform to make it upright and orthogonal.
 
+    The answer sheet must be placed on a table with a 
+    solid and consistent background. 
+
     :param image_path: Path to the input image.
     :return: Transformed image if a quadrilateral is detected, else None.
     """
-    # Read in the image and preprocess it
+    # Read in the image, gray it out and run edge detection
     image = cv2.imread(image_path)
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    blurred = cv2.GaussianBlur(gray, (5, 5), 0)
-    edged = cv2.Canny(blurred, 50, 150)
+    gray = cv2.GaussianBlur(gray, (5, 5), 0)
+    edged = cv2.Canny(gray, 50, 150)
 
-    # Dilation helps in connecting the edges
+    # dilate the image before finding contours. (edges connected better)
     kernel = np.ones((5, 5), np.uint8)
     dilated = cv2.dilate(edged, kernel, iterations=2)
-    _, thresh = cv2.threshold(dilated, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
-    show_image("threshold", thresh)
+    show_image("dilated", dilated)
 
     # Find contours and keep the largest one
     contours, _ = cv2.findContours(
-        thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
+        dilated, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
     )
     largest = max(contours, key=cv2.contourArea)
     
     find_answer_sheet = sorted(contours, key=cv2.contourArea)
-    print(f"Biggest: {cv2.contourArea(find_answer_sheet[-1])}  Smallest: {cv2.contourArea(find_answer_sheet[0])}")
+    #print(f"Biggest: {cv2.contourArea(find_answer_sheet[-1])}  Smallest: {cv2.contourArea(find_answer_sheet[0])}")
     
-    print(f"num_countours_found: {len(contours)}")
+    #print(f"num_countours_found: {len(contours)}")
     # show the largest found contour
     contour_image = image.copy()
     cv2.drawContours(contour_image, [largest], -1, (0, 255, 0), 3)
@@ -192,6 +194,7 @@ class ScantronProcessor:
                 filled_rectangles.append(
                     (x + left_bound, y, w, h)
                 )  # Adjust x-coordinate considering the cropped image
+                cv2.rectangle(roi, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
         # Sort by vertical position
         filled_rectangles.sort(key=lambda r: r[1])
