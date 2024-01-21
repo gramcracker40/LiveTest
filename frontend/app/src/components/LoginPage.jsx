@@ -1,11 +1,11 @@
 import { useRef, useState, useCallback, useContext } from 'react';
 import { useNavigate } from "react-router-dom";
 import { EasyRequest, defHeaders, loginURL } from "../api/helpers.js";
-import CoursePage from "./coursePage/coursePage";
+import {CoursePage} from "./coursePage/coursePage.jsx";
 import logo from "../assets/LiveTestLogo.png"
-import { AuthContext } from '../context/auth';
+import { AuthContext } from '../context/auth.jsx';
 
-export default function LoginPage() {
+export const LoginPage = () => {
   const usernameRef = useRef('');
   const passwordRef = useRef('');
   let [loginAttempts, setLoginAttempts] = useState(0);

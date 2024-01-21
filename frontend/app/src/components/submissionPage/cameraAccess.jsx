@@ -181,5 +181,3 @@ export const CameraAccess = () => {
     </div>
   );
 };
-
-export default CameraAccess;
