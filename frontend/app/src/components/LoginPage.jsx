@@ -1,7 +1,7 @@
 import { useRef, useState, useCallback, useContext } from 'react';
 import { useNavigate } from "react-router-dom";
 import { EasyRequest, defHeaders, loginURL } from "../api/helpers.js";
-import {CoursePage} from "./coursePage/coursePage.jsx";
+import {CoursePage} from "./CoursePage/CoursePage.jsx";
 import logo from "../assets/LiveTestLogo.png"
 import { AuthContext } from '../context/auth.jsx';
 
