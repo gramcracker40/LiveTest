@@ -11,7 +11,6 @@ export const CameraAccess = () => {
   const [capturedImage, setCapturedImage] = useState(null);
   const [testId, setTestId] = useState('');
 
-
   // load opencv, get access to video feed, begin highlighting documents. 
   useEffect(() => {
     loadOpenCv(() => {
