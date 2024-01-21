@@ -1,9 +1,8 @@
-import CameraAccess from "./cameraAccess";
+import {CameraAccess} from "./cameraAccess";
 
 
-const SubmissionPage = () => {
+
+export const SubmissionPage = () => {
 
     return <CameraAccess></CameraAccess>
 }
-
-export default SubmissionPage;

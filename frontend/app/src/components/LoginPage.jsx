@@ -1,10 +1,11 @@
 import { useRef, useState, useCallback, useContext } from 'react';
+import { useNavigate } from "react-router-dom";
 import { EasyRequest, defHeaders, loginURL } from "../api/helpers.js";
-import CoursePage from "./coursePage/coursePage";
+import {CoursePage} from "./CoursePage/CoursePage.jsx";
 import logo from "../assets/LiveTestLogo.png"
-import { AuthContext } from '../context/auth';
+import { AuthContext } from '../context/auth.jsx';
 
-export default function LoginPage() {
+export const LoginPage = () => {
   const usernameRef = useRef('');
   const passwordRef = useRef('');
   let [loginAttempts, setLoginAttempts] = useState(0);
@@ -12,6 +13,8 @@ export default function LoginPage() {
   const [tooManyAttempts, setTooManyAttemps] = useState(false);
   const [passwordForgotten, setPasswordForgotten] = useState(false);
   const { authDetails, setAuthDetails } = useContext(AuthContext);
+
+  const navigate = useNavigate();
 
   // login to instance
   const loginHandler = useCallback(async (event) => {
@@ -42,6 +45,7 @@ export default function LoginPage() {
           name: req.data.name
         })
         localStorage.setItem("authDetails", JSON.stringify(authDetails))
+        navigate("/course")
       }
       else if (req.status === 401) {
         setInvalidCredentials(true);
@@ -67,7 +71,7 @@ export default function LoginPage() {
   console.log(`authDetails: ${authDetails}`)
 
   if (authDetails.isLoggedIn) {
-    return <CoursePage/>
+    navigate("/course")
   } else {
     return (
         <div className="bg-LogoBg w-full h-screen flex flex-col justify-center px-6 py-12 lg:px-8">
