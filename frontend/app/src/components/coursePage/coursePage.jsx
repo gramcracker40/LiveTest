@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { EasyRequest, defHeaders, instanceURL } from "../../api/helpers.js";
 import { AuthContext } from '../../context/auth.jsx';
+import { LogoutButton } from '../logoutButton.jsx';
 
 export const CoursePage = () => {
   const [courses, setCourses] = useState([]);
@@ -12,7 +13,7 @@ export const CoursePage = () => {
     // localStorage.setItem(
     //   "courses": JSON.stringify()
     // )
-    console.log(`Auth details --> ${authDetails}`)
+    console.log(`Auth details --> ${JSON.stringify(authDetails)}`)
     // Fetch courses if not in cache
     const courseURL = authDetails.type === 'teacher'
       ? instanceURL + `/course/teacher/${authDetails.id}`
@@ -24,13 +25,28 @@ export const CoursePage = () => {
         console.log(`req.data --> ${JSON.stringify(req.data)}`)
         if (req.status === 200) {
           setCourses(req.data);
+          fetchTests(); [1, 2, 3, 4, 5, "beery"]
         }
         // Handle other status codes appropriately
       } catch (error) {
         console.error('Error fetching courses', error);
       }
     };
+    const fetchTests = async () => {
+      console.log(`${JSON.stringify(courses)}`)
+      // try {
+      //   let req = await EasyRequest(testURL, defHeaders, "GET");
+      //   console.log(`req.data --> ${JSON.stringify(req.data)}`)
+      //   if (req.status === 200) {
+      //     setCourses(req.data);
+      //   }
+      //   // Handle other status codes appropriately
+      // } catch (error) {
+      //   console.error('Error fetching courses', error);
+      // }
+    };
     fetchCourses();
+    
   }, [authDetails]);
 
   const handleCourseSelect = (courseId) => {
@@ -70,7 +86,7 @@ export const CoursePage = () => {
           </div>
         </div>
         <div className="w-1/2 overflow-auto">
-          {selectedCourse ? (
+          {/* {selectedCourse ? (
             tests[selectedCourse] && tests[selectedCourse].length > 0 ? (
               <div className="tests-list space-y-4 p-4">
                 {tests[selectedCourse].map((test, index) => (
@@ -84,9 +100,10 @@ export const CoursePage = () => {
             )
           ) : (
             <p className="p-4">Select a course to view tests.</p>
-          )}
+          )} */}
         </div>
       </div>
+      < LogoutButton />
     </div>
   );
 };
