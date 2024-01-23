@@ -1,5 +1,5 @@
 import os, json
-from ScantronProcessor import \
+from core.ScantronProcessor import \
     ScantronProcessor, find_and_rotate, show_image
 
 class TestProcessor:
@@ -44,7 +44,6 @@ class TestProcessor:
         
         except FileNotFoundError as err:
             print(err)
-
 
     @classmethod
     def generate_key(self, key_path:str, num_questions:int) -> {int:str}:

@@ -4,10 +4,11 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from typing import List
 from models.test import CreateTest, UpdateTest, GetTest, CreateTestConfirmation
-from tables import Test
+from tables import Test, Course
 from db import get_db, session
 import base64
 from time import sleep
+from core.TestProcessor import TestProcessor
 
 router = APIRouter(
     prefix="/test",
@@ -24,10 +25,7 @@ def create_test(test: CreateTest):
     try:
         answer_key = base64.b64decode(test.answer_key.encode("utf-8"))
 
-        print(
-            f"""{type(test.name)}{type(test.start_t)}{type(test.end_t)}
-{type(test.num_questions)}{type(answer_key)}{type(test.course_id)}"""
-        )
+
 
         temp = Test(
             name=test.name,
@@ -37,6 +35,7 @@ def create_test(test: CreateTest):
             answer_key=answer_key,
             course_id=test.course_id,
             file_extension=test.file_extension
+            
         )
         session.add(temp)
         session.commit()
@@ -65,7 +64,7 @@ def get_all_tests():
             test.answer_key = base64.b64encode(test.answer_key).decode("utf8")
         print(f"answer_key: {type(tests[0].answer_key)}")
 
-        sleep(8)
+        #sleep(8)
         return tests
 
     except EncodingWarning:

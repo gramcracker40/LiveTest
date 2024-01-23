@@ -55,7 +55,6 @@ class Student(Base):
     __tablename__ = "students"
 
     id = Column(Integer, primary_key=True)
-    M_number = Column(String, nullable=False, unique=True)
     name = Column(String, nullable=False)
     email = Column(String, unique=True)  # differentiator for duplicates.
     password = Column(String)

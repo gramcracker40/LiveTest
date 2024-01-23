@@ -6,6 +6,9 @@ from typing import List
 from pydantic import BaseModel, StringConstraints
 from typing_extensions import Annotated
 
+class GetTestMinimum(BaseModel):
+    id: str
+    name: str
 
 class CreateTest(BaseModel):
     name: str
