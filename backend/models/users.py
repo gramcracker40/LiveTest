@@ -11,7 +11,6 @@ class CreateTeacher(BaseModel):
 class CreateStudent(CreateTeacher):
     pass
 
-
 class UpdateTeacher(BaseModel):
     email: Optional[str] = None
     password: Optional[str] = None

@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback, useContext } from 'react';
+import { useRef, useState, useCallback, useContext, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import { EasyRequest, defHeaders, loginURL } from "../api/helpers.js";
 import {CoursePage} from "./CoursePage/CoursePage.jsx";
@@ -12,9 +12,14 @@ export const LoginPage = () => {
   const [invalidCredentials, setInvalidCredentials] = useState(false);
   const [tooManyAttempts, setTooManyAttemps] = useState(false);
   const [passwordForgotten, setPasswordForgotten] = useState(false);
-  const { authDetails, setAuthDetails } = useContext(AuthContext);
+  const { authDetails, updateAuthDetails } = useContext(AuthContext);
 
   const navigate = useNavigate();
+
+  // Function to handle navigation
+  const handleNavigate = (path) => () => {
+    navigate(path);
+  };
 
   // login to instance
   const loginHandler = useCallback(async (event) => {
@@ -36,7 +41,7 @@ export const LoginPage = () => {
       if (req.status === 200) {
         setInvalidCredentials(false);
         
-        setAuthDetails({
+        updateAuthDetails({
           accessToken: req.data.access_token,
           isLoggedIn: true,
           type: req.data.type,
@@ -44,7 +49,7 @@ export const LoginPage = () => {
           email: req.data.email,
           name: req.data.name
         })
-        localStorage.setItem("authDetails", JSON.stringify(authDetails))
+        // localStorage.setItem("authDetails", JSON.stringify(authDetails))
         navigate("/course")
       }
       else if (req.status === 401) {
@@ -63,6 +68,12 @@ export const LoginPage = () => {
       }, 3000)
     }
   });
+
+  useEffect(() => {
+    if (authDetails.isLoggedIn) {
+      navigate("/course");
+    }
+  }, [authDetails, navigate])
 
   function passwordForgottenHandler() {
     setPasswordForgotten(prevState => !prevState);
@@ -144,8 +155,7 @@ export const LoginPage = () => {
               <div>
                 <button
                   type="submit"
-                  className="flex w-full justify-center rounded-md bg-cyan-500 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:text-cyan-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:text-cyan-700"
-                  href="/login/"
+                  className="flex w-full justify-center rounded-md bg-cyan-500 hover:bg-cyan-600 transition-colors duration-200 ease-in-out px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:text-cyan-700"
                 >
                   Sign in
                 </button>

@@ -104,7 +104,7 @@ def delete_teacher(teacher_id: int):
 def create_student(student: CreateStudent):
     try:
         new_student = Student(
-            name=student.name, email=student.email, M_number=student.M_number
+            name=student.name, email=student.email
         )
         new_student.password = pbkdf2_sha256.hash(student.password)
         session.add(new_student)

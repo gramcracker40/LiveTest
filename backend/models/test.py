@@ -26,6 +26,9 @@ class UpdateTest(BaseModel):
     num_questions: int
     answer_key: bytes
 
+class GetTests(BaseModel):
+    id: str
+    name: str
 
 class GetTest(BaseModel):
     id: str
