@@ -30,7 +30,7 @@ def create_test(test: CreateTest):
             f"""{type(test.name)}{type(test.start_t)}{type(test.end_t)}
 {type(test.num_questions)}{type(answer_key)}{type(test.course_id)}"""
         )
-
+        holder = "{1: 'A'}"
         temp = Test(
             name=test.name,
             start_t=test.start_t,
@@ -38,7 +38,8 @@ def create_test(test: CreateTest):
             num_questions=test.num_questions,
             answer_key=answer_key,
             course_id=test.course_id,
-            file_extension=test.file_extension
+            file_extension=test.file_extension,
+            answers=holder
         )
         session.add(temp)
         session.commit()
