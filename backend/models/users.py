@@ -9,8 +9,7 @@ class CreateTeacher(BaseModel):
 
 
 class CreateStudent(CreateTeacher):
-    M_number: str
-
+    pass
 
 class UpdateTeacher(BaseModel):
     email: Optional[str] = None

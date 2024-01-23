@@ -3,8 +3,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from typing import List
-from models.test import CreateTest, UpdateTest, GetTest, CreateTestConfirmation
-from tables import Test
+from models.test import CreateTest, UpdateTest, \
+    GetTest, CreateTestConfirmation, GetTests
+from tables import Test, Course
 from db import get_db, session
 import base64
 from time import sleep
@@ -28,7 +29,7 @@ def create_test(test: CreateTest):
             f"""{type(test.name)}{type(test.start_t)}{type(test.end_t)}
 {type(test.num_questions)}{type(answer_key)}{type(test.course_id)}"""
         )
-
+        found_answers = "{1: 'A'}"
         temp = Test(
             name=test.name,
             start_t=test.start_t,
@@ -36,7 +37,8 @@ def create_test(test: CreateTest):
             num_questions=test.num_questions,
             answer_key=answer_key,
             course_id=test.course_id,
-            file_extension=test.file_extension
+            file_extension=test.file_extension, 
+            answers=found_answers
         )
         session.add(temp)
         session.commit()
@@ -82,6 +84,14 @@ def get_test_by_id(test_id: int, db: Session = Depends(get_db)):
 
     return test
 
+@router.get("/course/{course_id}/", response_model=List[GetTests])
+def get_tests_for_course(course_id:int):
+    course = session.query(Course).filter_by(id = course_id).first()
+
+    if not course:
+        raise HTTPException(404, detail=f"Course {course_id} does not exist...")
+
+    return course.tests
 
 @router.put("/{test_id}/")
 def update_test(test_id: int, update_data: UpdateTest, db: Session = Depends(get_db)):
