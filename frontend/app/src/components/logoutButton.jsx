@@ -22,7 +22,7 @@ export const LogoutButton = () => {
   };
 
   return (
-      <button onClick={handleLogout} className="logout-button-styles">
+      <button onClick={handleLogout} className="logout-button-styles mt-8 px-4 py-2 bg-cyan-500 hover:bg-cyan-700 text-white font-bold rounded">
         Logout
       </button>
   );
