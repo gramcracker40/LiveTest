@@ -1,13 +1,18 @@
+import { useContext } from 'react';
 import { useNavigate } from "react-router-dom";
+import { AuthContext } from '../context/auth.jsx';
 
 export const LandingPage = () => {
   let navigate = useNavigate();
+
+  const { authDetails, updateAuthDetails } = useContext(AuthContext);
 
   // Function to handle navigation
   const handleNavigate = (path) => () => {
     navigate(path);
   };
 
+  console.log(`${authDetails}`)
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-900 px-6 py-24 text-center shadow-2xl">
       <div className="w-full max-w-2xl">
