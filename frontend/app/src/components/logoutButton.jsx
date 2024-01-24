@@ -18,7 +18,7 @@ export const LogoutButton = () => {
       name: ""
     });
     // Navigate to the login page
-    navigate("/login");
+    navigate("/");
   };
 
   return (
