@@ -70,23 +70,28 @@ if __name__ == "__main__":
     end = datetime.strptime("2023-12-19 18:00:00", "%Y-%m-%d %H:%M:%S")
     num_questions = 45
     course_id = 1
-    image_path = '../../real_examples/IMG_4161.jpg'
+    key_path = '../../test_data/FakeTest1/IMG_4162.jpg'
+    image_paths = [
+        "../../test_data/FakeTest1/IMG_4163.jpg", 
+        "../../test_data/FakeTest1/IMG_4164.jpg", 
+        "../../test_data/FakeTest1/IMG_4165.jpg"
+    ]
 
     submissions = [
         {
             "student_id": 1, 
-            "image_path": image_path
+            "image_path": image_paths[0]
         }, 
         {
             "student_id": 2, 
-            "image_path": image_path
+            "image_path": image_paths[1]
         }, 
         {
             "student_id": 3, 
-            "image_path": image_path
+            "image_path": image_paths[2]
         }
     ]
-    new_test = create_test(test_name, image_path, 45, course_id, start, end)
+    new_test = create_test(test_name, key_path, 45, course_id, start, end)
     test_id = new_test['id']
 
     first_submission = create_submission(submissions[0]["image_path"], 

@@ -1,8 +1,12 @@
+import json
+import base64
 from fastapi import HTTPException, APIRouter
 from pydantic import BaseModel
+import cv2
 from tables import Submission, Student, Test
 from db import session
 from models.submission import CreateSubmission, GetSubmission, UpdateSubmission
+from core.ScantronProcessor import ScantronProcessor
 
 router = APIRouter(
     prefix="/submission",
@@ -13,10 +17,40 @@ router = APIRouter(
 
 @router.post("/")
 def create_submission(submission: CreateSubmission):
-    student = session.query(Student).get(submission.student_id)
-    test = session.query(Test).get
+    # query student and test, ensure request validity
+    student = session.query(Student).get(submission.student_id).first()
+    test = session.query(Test).get(submission.test_id).first()
 
-    db_submission = Submission(**submission.__dict__)
+    if not student:
+        raise HTTPException(404, detail=f"student {submission.student_id} does not exist")
+
+    if not test:
+        raise HTTPException(404, detail=f"test {submission.test_id} does not exist")
+
+    # turn base64 string into bytes obj
+    submission_image = base64.b64decode(submission.submission_photo.encode("utf-8"))
+    
+    # create ScantronProcessor for handling submission 
+    new_submission = ScantronProcessor(
+        json.loads(test.answers), 
+        image=submission_image 
+    )
+    # process the submission, obtaining user answers and grade
+    graded_answers, grade = new_submission.process()
+    # convert Matlike obj to bytes obj for storage in db
+    image_buffer = cv2.imencode('.jpg', new_submission.image)[1]
+    graded_image = image_buffer.tobytes()
+
+    # instantiate new submission obj
+    db_submission = Submission(
+        graded_photo=graded_image, 
+        file_extension='.jpg', 
+        num_questions=test.num_questions, 
+        answers=json.dumps(graded_answers), 
+        grade=grade, 
+        student_id=student.id, 
+        test=test.id
+    )
     session.add(db_submission)
     session.commit()
     

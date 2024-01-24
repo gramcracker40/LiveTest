@@ -1,5 +1,7 @@
 from fastapi import HTTPException, APIRouter
 from fastapi import APIRouter, Depends, HTTPException
+import json
+import cv2
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from typing import List
@@ -19,40 +21,42 @@ router = APIRouter(
 )
 
 
-@router.post(
-    "/", response_model=CreateTestConfirmation
-)  # , #dependencies=[Depends(jwt_token_verification)])
+@router.post("/", response_model=CreateTestConfirmation)  # , #dependencies=[Depends(jwt_token_verification)])
 def create_test(test: CreateTest):
     try:
-        answer_key = base64.b64decode(test.answer_key.encode("utf-8"))
-
-        print(
-            f"""{type(test.name)}{type(test.start_t)}{type(test.end_t)}
-{type(test.num_questions)}{type(answer_key)}{type(test.course_id)}"""
+        answer_key_bytes = base64.b64decode(test.answer_key.encode("utf-8"))
+        answer_key = TestProcessor.generate_key(
+            test.num_questions, 
+            key_bytes=answer_key_bytes
         )
-        holder = "{1: 'A'}"
-        temp = Test(
+        print(f"Answer_key: {json.dumps(answer_key)}")
+        new_test = Test(
             name=test.name,
             start_t=test.start_t,
             end_t=test.end_t,
             num_questions=test.num_questions,
-            answer_key=answer_key,
+            answer_key=answer_key_bytes,
             course_id=test.course_id,
             file_extension=test.file_extension,
-            answers=holder
+            answers=json.dumps(answer_key)
         )
-        session.add(temp)
+        session.add(new_test)
         session.commit()
     except IntegrityError as e:
         print(f"Error create-test: {e}")
         session.rollback()
         raise HTTPException(status_code=400, detail="This test already exists")
+    except cv2.error as e:
+        print(str(e))
+        print("CV2 Error!!!")
+        session.rollback()
+        raise HTTPException(status_code=400, detail="There was an error processing this image, please submit a new one")
 
-    new_test = session.query(Test).filter(
+    new_t = session.query(Test).filter(
         Test.name == test.name, Test.course_id == test.course_id
     ).first()
 
-    return {"id": new_test.id, "name": new_test.name}
+    return {"id": new_t.id, "name": new_t.name}
 
 
 @router.get("/", response_model=List[GetTest])
@@ -60,17 +64,12 @@ def get_all_tests():
     tests = session.query(Test).all()
     if len(tests) == 0:
         return []
-    print(f"Tests: {tests}")
-    # returnable = [test for test in tests]
+
     try:
-        print(f"answer_key: {type(tests[0].answer_key)}")
         for test in tests:
             test.answer_key = base64.b64encode(test.answer_key).decode("utf8")
-        print(f"answer_key: {type(tests[0].answer_key)}")
 
-        #sleep(8)
         return tests
-
     except EncodingWarning:
         raise HTTPException(500, detail="Binary decoding warning...")
     finally:
@@ -78,11 +77,11 @@ def get_all_tests():
 
 
 @router.get("/{test_id}/", response_model=GetTest)
-def get_test_by_id(test_id: int, db: Session = Depends(get_db)):
-    test = db.query(Test).filter(Test.id == test_id).first()
+def get_test_by_id(test_id: str):
+    test = session.query(Test).filter(Test.id == test_id).first()
     if not test:
         raise HTTPException(status_code=404, detail="Test not found")
-
+    test.answer_key
     return test
 
 @router.get("/course/{course_id}/", response_model=List[GetTests])
@@ -113,8 +112,9 @@ def update_test(test_id: int, update_data: UpdateTest, db: Session = Depends(get
 
 
 @router.delete("/{test_id}/")
-def delete_test(test_id: int):
+def delete_test(test_id: str):
     test = session.query(Test).get(test_id)
+    print(f"test {test_id}")
     if not test:
         raise HTTPException(status_code=404, detail="Test not found")
 

@@ -36,13 +36,14 @@ class GetTest(BaseModel):
     start_t: datetime
     end_t: datetime
     num_questions: int
-    answer_key: str
     course_id: int
 
 class CreateTestConfirmation(BaseModel):
     id: str
     name: str
 
+class GetTestImage(BaseModel):
+    pass
 
 class ListTests(BaseModel):
     tests: List[GetTest]
