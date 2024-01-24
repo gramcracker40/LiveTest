@@ -1,10 +1,11 @@
 """
-implements the models required for the 'test' router
+implements the pydantic models required for the 'test' router
 """
 from datetime import datetime
 from typing import List
 from pydantic import BaseModel, StringConstraints
 from typing_extensions import Annotated
+from typing import Optional
 
 class GetTestMinimum(BaseModel):
     id: str
@@ -21,14 +22,15 @@ class CreateTest(BaseModel):
 
 
 class UpdateTest(BaseModel):
-    start_t: datetime
-    end_t: datetime
-    num_questions: int
-    answer_key: bytes
+    start_t: Optional[datetime] = None
+    end_t: Optional[datetime] = None
+    name: Optional[str] = None
+
 
 class GetTests(BaseModel):
     id: str
     name: str
+
 
 class GetTest(BaseModel):
     id: str
@@ -38,12 +40,15 @@ class GetTest(BaseModel):
     num_questions: int
     course_id: int
 
+
 class CreateTestConfirmation(BaseModel):
     id: str
     name: str
 
+
 class GetTestImage(BaseModel):
     pass
+
 
 class ListTests(BaseModel):
     tests: List[GetTest]

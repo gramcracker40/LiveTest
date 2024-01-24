@@ -5,8 +5,13 @@ import cv2
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from typing import List
-from models.test import CreateTest, UpdateTest, \
-    GetTest, CreateTestConfirmation, GetTests
+from models.test import (
+    CreateTest,
+    UpdateTest,
+    GetTest,
+    CreateTestConfirmation,
+    GetTests,
+)
 from tables import Test, Course
 from db import get_db, session
 import base64
@@ -21,13 +26,14 @@ router = APIRouter(
 )
 
 
-@router.post("/", response_model=CreateTestConfirmation)  # , #dependencies=[Depends(jwt_token_verification)])
+@router.post(
+    "/", response_model=CreateTestConfirmation
+)  # , #dependencies=[Depends(jwt_token_verification)])
 def create_test(test: CreateTest):
     try:
         answer_key_bytes = base64.b64decode(test.answer_key.encode("utf-8"))
         answer_key = TestProcessor.generate_key(
-            test.num_questions, 
-            key_bytes=answer_key_bytes
+            test.num_questions, key_bytes=answer_key_bytes
         )
         print(f"Answer_key: {json.dumps(answer_key)}")
         new_test = Test(
@@ -38,7 +44,7 @@ def create_test(test: CreateTest):
             answer_key=answer_key_bytes,
             course_id=test.course_id,
             file_extension=test.file_extension,
-            answers=json.dumps(answer_key)
+            answers=json.dumps(answer_key),
         )
         session.add(new_test)
         session.commit()
@@ -50,11 +56,16 @@ def create_test(test: CreateTest):
         print(str(e))
         print("CV2 Error!!!")
         session.rollback()
-        raise HTTPException(status_code=400, detail="There was an error processing this image, please submit a new one")
+        raise HTTPException(
+            status_code=400,
+            detail="There was an error processing this image, please submit a new one",
+        )
 
-    new_t = session.query(Test).filter(
-        Test.name == test.name, Test.course_id == test.course_id
-    ).first()
+    new_t = (
+        session.query(Test)
+        .filter(Test.name == test.name, Test.course_id == test.course_id)
+        .first()
+    )
 
     return {"id": new_t.id, "name": new_t.name}
 
@@ -84,41 +95,48 @@ def get_test_by_id(test_id: str):
     test.answer_key
     return test
 
+
 @router.get("/course/{course_id}/", response_model=List[GetTests])
-def get_tests_for_course(course_id:int):
-    course = session.query(Course).filter_by(id = course_id).first()
+def get_tests_for_course(course_id: int):
+    course = session.query(Course).filter_by(id=course_id).first()
 
     if not course:
         raise HTTPException(404, detail=f"Course {course_id} does not exist...")
 
     return course.tests
 
-@router.put("/{test_id}/")
-def update_test(test_id: int, update_data: UpdateTest, db: Session = Depends(get_db)):
-    test = db.query(Test).filter(Test.id == test_id).first()
 
-    # make sure it found one
+@router.patch("/{test_id}/")
+def update_test(test_id: str, update_data: UpdateTest):
+    test = session.query(Test).get(test_id)
+
     if not test:
         raise HTTPException(status_code=404, detail="Test not found")
 
-    test.start_t = update_data.start_t
-    test.end_t = update_data.end_t
-    test.num_questions = update_data.num_questions
-    test.answer_key = update_data.answer_key
+    for key, value in update_data.model_dump().items():
+        if value != None:
+            setattr(test, key, value)
 
-    db.commit()
+    try:
+        session.commit()
+    except IntegrityError:
+        session.rollback()
+        raise HTTPException(
+            400,
+            detail=f"""A test named 
+{update_data.name} already exists in this course""",
+        )
 
-    return test
+    return {"detail": "Successfully updated test details."}
 
 
 @router.delete("/{test_id}/")
 def delete_test(test_id: str):
     test = session.query(Test).get(test_id)
-    print(f"test {test_id}")
     if not test:
         raise HTTPException(status_code=404, detail="Test not found")
 
     session.delete(test)
     session.commit()
 
-    return {"message": "Test deleted successfully"}
+    return {"message": f"Test {test_id} deleted successfully"}
