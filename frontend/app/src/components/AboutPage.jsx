@@ -1,6 +1,14 @@
 import React from 'react';
+import { useNavigate } from "react-router-dom";
 
 export const AboutPage = () => {
+
+  const navigate = useNavigate();
+
+  const handleNavigate = (path) => {
+    navigate(path)
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white px-6 py-24 text-center shadow-2xl">
       <div className="max-w-2xl">
@@ -31,6 +39,14 @@ export const AboutPage = () => {
         <p className="text-gray-300">
           LiveTest is committed to simplifying the testing and grading process while providing educators with powerful tools to optimize their teaching strategies. Join us in transforming the way assessments are conducted and analyzed.
         </p>
+        <div className='mt-8'>
+          <button
+            onClick={() => handleNavigate("/")}
+            className="px-8 py-3 text-sm font-semibold rounded-md shadow-sm bg-cyan-200 text-gray-700 hover:bg-gray-300"
+          >
+            Back
+          </button>
+        </div>
       </div>
     </div>
   );
