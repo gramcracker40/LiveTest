@@ -10,6 +10,7 @@ from typing import Optional
 class GetTestMinimum(BaseModel):
     id: str
     name: str
+    
 
 class CreateTest(BaseModel):
     name: str
@@ -30,6 +31,8 @@ class UpdateTest(BaseModel):
 class GetTests(BaseModel):
     id: str
     name: str
+    start_t: datetime
+    end_t: datetime
 
 
 class GetTest(BaseModel):
