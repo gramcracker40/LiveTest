@@ -116,6 +116,7 @@ class Submission(Base):
         CheckConstraint(
             file_extension.in_(["jpg", "png"]), name="valid_file_extension"
         ),
+        CheckConstraint("student_id", "test_id") # ensures single submission
     )
 
 
@@ -132,7 +133,7 @@ class Test(Base):
     answers = Column(String, nullable=False)
 
     # relationships
-    submissions = relationship("Submission", back_populates="test")
+    submissions = relationship("Submission", back_populates="test", cascade="all, delete")
     course_id = Column(Integer, ForeignKey("courses.id"))
     course = relationship("Course", back_populates="tests")
 

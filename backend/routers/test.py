@@ -31,6 +31,11 @@ router = APIRouter(
 )  # , #dependencies=[Depends(jwt_token_verification)])
 def create_test(test: CreateTest):
     try:
+        course = session.query(Course).get(test.course_id)
+        if not course:
+            raise HTTPException(400, detail=f"Course {test.course_id} does not exist.")
+        
+        # start by generating the answer key
         answer_key_bytes = base64.b64decode(test.answer_key.encode("utf-8"))
         answer_key = TestProcessor.generate_key(
             test.num_questions, key_bytes=answer_key_bytes

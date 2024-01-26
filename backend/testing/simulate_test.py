@@ -2,7 +2,6 @@
 handles setting up the simulation for 'tests' and 'submissions'
 creates a test that is tied to a course (course_id must exist)
 It then submits three different answer keys to this test. 
-
 '''
 
 import base64
@@ -50,10 +49,10 @@ def create_submission(image_path:str, student_id:int, test_id:int):
     answer_key_str = base64.b64encode(image).decode("utf8")
     file_extension = os.path.splitext(image_path)[1][1:]
 
-    if file_extension not in ['jpg', 'png']:
+    if file_extension not in {'jpg', 'png'}:
         return {"error": "the image of the answer sheet should be a .png or .jpg"}
 
-    payload = json.dumps({"student_id": student_id, "answer_key": answer_key_str, 
+    payload = json.dumps({"student_id": student_id, "submission_photo": answer_key_str, 
                             "test_id": test_id, "file_extension": file_extension})
     response = requests.post(SUBMISSION_URL, data=payload, headers=HEADERS)
 
