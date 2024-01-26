@@ -97,7 +97,7 @@ def get_test_by_id(test_id: str):
     test = session.query(Test).filter(Test.id == test_id).first()
     if not test:
         raise HTTPException(status_code=404, detail="Test not found")
-    test.answer_key
+    
     return test
 
 
