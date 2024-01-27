@@ -27,9 +27,7 @@ export const CoursePage = () => {
     // ---------------------------- FETCHING COURSES -----------------------------------
 
     // Fetch courses if not in cache
-    const courseURL = authDetails.type === 'teacher'
-      ? instanceURL + `/course/teacher/${authDetails.id}`
-      : instanceURL + `/course/student/${authDetails.id}`;
+    const courseURL = instanceURL + `/course/${authDetails.type}/${authDetails.id}`
 
     console.log(`courseURL::: ${courseURL}`)
 
@@ -54,13 +52,12 @@ export const CoursePage = () => {
             for (let i = 0; i < test_num; i++) {
               fakeTests.push({
                 "name": "Name of a Longer Test " + (i + 1),
-                "date": `2024-01-${Math.floor(Math.random() * 31) + 1}`
+                "start_t": `2024-01-${String(Math.floor(Math.random() * 31) + 1).padStart(2, '0')}`
               });
             }
             return { ...course, tests: [...course.tests, ...fakeTests] };
           });
           setCourses(coursesWithFakeTests);
-          console.log(`These are courses and tests\n${JSON.stringify(courses)}`)
         }
         // Handle other status codes appropriately
       } catch (error) {
@@ -76,6 +73,8 @@ export const CoursePage = () => {
 
   useEffect(() => {
 
+    console.log(`These are courses and tests\n${JSON.stringify(courses)}`)
+
     const allTests = courses.flatMap(course => course.tests || [])
 
     setTests(allTests); // Flatten all tests from each course
@@ -85,18 +84,31 @@ export const CoursePage = () => {
   //  ------------------------- GETTING UPCOMING TESTS -----------------------------------
 
   useEffect(() => {
+    console.log(`tests: ${JSON.stringify(tests)}`)
+
     // Calculate upcoming tests only when courses data is updated
     const today = new Date();
     const oneWeekLater = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 7);
 
     const filteredTests = tests.filter(test => {
-      const testDate = new Date(test.date);
+      const testDate = new Date(test.start_t);
       return testDate >= today && testDate <= oneWeekLater;
-    }).sort((a, b) => new Date(a.date) - new Date(b.date));
+    }).sort((a, b) => new Date(a.start_t) - new Date(b.start_t));
 
     setUpcomingTests(filteredTests);
   }, [tests])
 
+  const handleDateFormatting = (date) => {
+    const dateObject = new Date(date);
+
+    const day = String(dateObject.getDate())//.padStart(2, '0');
+    const month = String(dateObject.getMonth() + 1)//.padStart(2, '0'); // Months are 0-indexed
+    const year = String(dateObject.getFullYear()).slice(2);           // Get last two digits of the year
+
+    const formattedDate = `${month}-${day}-${year}`;
+    console.log(formattedDate)
+    return formattedDate;
+  }
 
   const handleCourseSelect = (courseId) => {
     setSelectedCourse(courseId);
@@ -193,7 +205,7 @@ export const CoursePage = () => {
               {upcomingTests.map((test, index) => (
                 <li key={index} className='text-lg text-gray-700 flex justify-between'>
                   <span>{test.name}</span>
-                  <span>{test.date}</span>
+                  <span>{handleDateFormatting(test.start_t)}</span>
                 </li>
               ))}
             </ul>
@@ -210,7 +222,8 @@ export const CoursePage = () => {
                     course.tests.map((test, testIndex) => (
                       <div key={testIndex} className={`Test-${testIndex} flex justify-between`}>
                         <span className="text-md font-light">{test.name}</span>
-                        <span className="text-md">{test.date}</span>
+                        <span className="text-md">{handleDateFormatting(test.start_t)}</span>
+                        {/* <span className="text-md">{test.date}</span> */}
                       </div>
                     ))
                   ) : (
