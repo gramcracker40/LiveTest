@@ -38,8 +38,29 @@ export const CoursePage = () => {
       try {
         let req = await EasyRequest(courseURL, defHeaders, "GET");
         console.log(`req.data --> ${JSON.stringify(req.data)}`)
+        //  THE ACTUAL IF STATEMENT!!!!!
+        // if (req.status === 200) {
+        //   setCourses(req.data);
+        // }
         if (req.status === 200) {
-          setCourses(req.data);
+          const fetchedCourses = req.data.map(course => ({
+            ...course,
+            tests: course.tests || [], // Ensure tests is an array
+          }));
+          // Add fake tests here
+          const coursesWithFakeTests = fetchedCourses.map(course => {
+            let test_num = Math.floor(Math.random() * 5);
+            let fakeTests = [];
+            for (let i = 0; i < test_num; i++) {
+              fakeTests.push({
+                "name": "Name of a Longer Test " + (i + 1),
+                "date": `2024-01-${Math.floor(Math.random() * 31) + 1}`
+              });
+            }
+            return { ...course, tests: [...course.tests, ...fakeTests] };
+          });
+          setCourses(coursesWithFakeTests);
+          console.log(`These are courses and tests\n${JSON.stringify(courses)}`)
         }
         // Handle other status codes appropriately
       } catch (error) {
@@ -49,7 +70,17 @@ export const CoursePage = () => {
 
     fetchCourses();
 
-  }, [authDetails]);
+  }, [authDetails, navigate]);
+
+  //  ------------------------- GETTING ALL TESTS -----------------------------------
+
+  useEffect(() => {
+
+    const allTests = courses.flatMap(course => course.tests || [])
+
+    setTests(allTests); // Flatten all tests from each course
+
+  }, [courses]); // This useEffect depends on the courses state
 
   //  ------------------------- GETTING UPCOMING TESTS -----------------------------------
 
@@ -58,30 +89,20 @@ export const CoursePage = () => {
     const today = new Date();
     const oneWeekLater = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 7);
 
-    setTests(courses.flatMap(course => course.tests || [])); // Flatten all tests from each course
-
     const filteredTests = tests.filter(test => {
       const testDate = new Date(test.date);
       return testDate >= today && testDate <= oneWeekLater;
     }).sort((a, b) => new Date(a.date) - new Date(b.date));
 
     setUpcomingTests(filteredTests);
-  }, [courses]); // This useEffect depends on the courses state
+  }, [tests])
 
 
   const handleCourseSelect = (courseId) => {
     setSelectedCourse(courseId);
   };
 
-  // for adding fake tests
-  courses.map((course, index) => {
-    let test_num = Math.floor(Math.random() * 3)
-    for (let i = 0; i < test_num; i++) {
-      course.tests.push({ "name": "Name of a Longer Test " + (i + 1), "date": `2024-01-${Math.floor(Math.random() * 31) + 1}` })
-    }
-  })
-
-  console.log(`Courses::: ${courses}`);
+  // console.log(`Courses::: ${JSON.stringify(courses)}`);
   return (
     // <div className="course-page-container">
     //   <h1 className="text-2xl font-bold">Your Courses</h1>
@@ -163,7 +184,7 @@ export const CoursePage = () => {
     //   </div>
     // </div>
     <div className=" min-h-screen mx-auto w-full bg-cyan-50">
-      <div className='px-28 py-8'>
+      <div className='sm:px-28 sm:py-8 px-4 py-4'>
         <div className='grid grid-cols-1 gap-x-8 mb-10 p-4 rounded-lg shadow bg-white'>
             <h1 className='text-3xl text-cyan-800 mb-4 font-bold'>
               Upcoming Tests
@@ -177,7 +198,7 @@ export const CoursePage = () => {
               ))}
             </ul>
         </div>
-        <div className="grid grid-cols-2 gap-x-8 ">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 ">
           {courses.map((course, index) => (
             <React.Fragment key={course.id}>
               <div className="mb-8 p-4 bg-white rounded-lg shadow">
