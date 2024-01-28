@@ -1,7 +1,7 @@
-frontend/
+frontend/   vite/react/tailwind
 
 
-backend/
+backend/    fastapi/sqlalchemy/postgresql
 
 
 # Production commands
