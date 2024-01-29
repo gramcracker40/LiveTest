@@ -2,6 +2,8 @@
 __pycache__
 .vscode
 
+backend/venv
+
 # Logs
 frontend/logs
 frontend/*.log
