@@ -32,7 +32,6 @@ class GetTeacher(BaseModel):
     email: str
     courses: List[TeacherCourses]
 
-
 class GetStudent(BaseModel):
     id: int
     name: str

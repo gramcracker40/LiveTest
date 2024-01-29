@@ -20,10 +20,10 @@ HEADERS = {"Content-Type": "application/json", "Accept": "text/plain"}
 # constants for fake data creation
 SEMESTER = "Spring"
 SCHOOL_DOMAIN = "my.msutexas.edu"
-NUM_STUDENTS = 2000
-NUM_TEACHERS = 400
-NUM_COURSES = 600
-COURSES_PER_STUDENT = 7
+NUM_STUDENTS = 130
+NUM_TEACHERS = 10
+NUM_COURSES = 30
+COURSES_PER_STUDENT = 5
 subjects = ["MATH", "CMPS", "ENGL", "HIST", "CH", "SHOP", "TECH"]
 NUM_SUBJECTS = len(subjects)
 
@@ -35,7 +35,6 @@ students = [
             "name": f"Student {i}",
             "email": f"student{i}@{SCHOOL_DOMAIN}",
             "password": "pass",
-            "M_number": f"M20223{i}",
         }
     )
     for i in range(1, NUM_STUDENTS + 1)
@@ -69,10 +68,10 @@ courses = [
 
 # create all of the students/teachers
 for student in students:
-    response = requests.post(STUDENT_URL, data=student, headers=HEADERS)
+    requests.post(STUDENT_URL, data=student, headers=HEADERS)
 
 for teacher in teachers:
-    response = requests.post(TEACHER_URL, data=teacher, headers=HEADERS)
+    requests.post(TEACHER_URL, data=teacher, headers=HEADERS)
 
 
 # create the course and assign the teachers to a course based off %

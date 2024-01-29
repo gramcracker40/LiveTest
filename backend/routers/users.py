@@ -30,7 +30,7 @@ router = APIRouter(
 
 
 # TEACHERS
-@router.post("/teachers/", response_model=GetTeacher)#dependencies=[Depends(jwt_token_verification)])
+@router.post("/teachers/")#dependencies=[Depends(jwt_token_verification)])
 def create_teacher(teacher: CreateTeacher):
     try:
         new_teacher = Teacher(name=teacher.name, email=teacher.email)
@@ -43,7 +43,7 @@ def create_teacher(teacher: CreateTeacher):
             status_code=400, detail="Teacher with this email already exists"
         )
 
-    return new_teacher
+    return {}
 
 
 @router.get("/teachers/", response_model=List[GetTeacher])
@@ -100,7 +100,7 @@ def delete_teacher(teacher_id: int):
 
 
 # STUDENTS
-@router.post("/students/", response_model=GetStudent)
+@router.post("/students/")
 def create_student(student: CreateStudent):
     try:
         new_student = Student(
@@ -122,10 +122,7 @@ def create_student(student: CreateStudent):
                 status_code=400, detail="Student with this M_number already exists"
             )
 
-    student = (
-        session.query(Student).filter(Student.M_number == new_student.M_number).first()
-    )
-    return student
+    return {}
 
 
 @router.get("/students/", response_model=List[GetStudent])

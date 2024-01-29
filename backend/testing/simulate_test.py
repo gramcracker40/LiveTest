@@ -2,7 +2,6 @@
 handles setting up the simulation for 'tests' and 'submissions'
 creates a test that is tied to a course (course_id must exist)
 It then submits three different answer keys to this test. 
-
 '''
 
 import base64
@@ -50,10 +49,10 @@ def create_submission(image_path:str, student_id:int, test_id:int):
     answer_key_str = base64.b64encode(image).decode("utf8")
     file_extension = os.path.splitext(image_path)[1][1:]
 
-    if file_extension not in ['jpg', 'png']:
+    if file_extension not in {'jpg', 'png'}:
         return {"error": "the image of the answer sheet should be a .png or .jpg"}
 
-    payload = json.dumps({"student_id": student_id, "answer_key": answer_key_str, 
+    payload = json.dumps({"student_id": student_id, "submission_photo": answer_key_str, 
                             "test_id": test_id, "file_extension": file_extension})
     response = requests.post(SUBMISSION_URL, data=payload, headers=HEADERS)
 
@@ -70,23 +69,28 @@ if __name__ == "__main__":
     end = datetime.strptime("2023-12-19 18:00:00", "%Y-%m-%d %H:%M:%S")
     num_questions = 45
     course_id = 1
-    image_path = '../../real_examples/IMG_4161.jpg'
+    key_path = '../../test_data/FakeTest1/IMG_4162.jpg'
+    image_paths = [
+        "../../test_data/FakeTest1/IMG_4163.jpg", 
+        "../../test_data/FakeTest1/IMG_4164.jpg", 
+        "../../test_data/FakeTest1/IMG_4165.jpg"
+    ]
 
     submissions = [
         {
             "student_id": 1, 
-            "image_path": image_path
+            "image_path": image_paths[0]
         }, 
         {
             "student_id": 2, 
-            "image_path": image_path
+            "image_path": image_paths[1]
         }, 
         {
             "student_id": 3, 
-            "image_path": image_path
+            "image_path": image_paths[2]
         }
     ]
-    new_test = create_test(test_name, image_path, 45, course_id, start, end)
+    new_test = create_test(test_name, key_path, 45, course_id, start, end)
     test_id = new_test['id']
 
     first_submission = create_submission(submissions[0]["image_path"], 

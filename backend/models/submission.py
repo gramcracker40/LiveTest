@@ -13,6 +13,9 @@ class UpdateSubmission(BaseModel):
     student_id: int
     test_id: int
 
-class GetSubmission(UpdateSubmission):
+class GetSubmission(BaseModel):
     id: int
-    graded_image: str
+    student_id: int
+    grade: float
+    answers: str
+    

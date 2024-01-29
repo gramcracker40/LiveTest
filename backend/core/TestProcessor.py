@@ -1,5 +1,5 @@
 import os, json
-from ScantronProcessor import \
+from core.ScantronProcessor import \
     ScantronProcessor, find_and_rotate, show_image
 
 class TestProcessor:
@@ -45,9 +45,8 @@ class TestProcessor:
         except FileNotFoundError as err:
             print(err)
 
-
     @classmethod
-    def generate_key(self, key_path:str, num_questions:int) -> {int:str}:
+    def generate_key(self, num_questions:int, key_path:str=None, key_bytes:bytes=None) -> dict:
         '''
         given an image of a scantron key fully filled out, return the answers
           used to generate an answer key out of an existing already filled out scantron.
@@ -59,8 +58,17 @@ class TestProcessor:
         returns: answer key --> {1: 'A', 2: 'B', 3: 'E'} 
         '''
 
-        key = ScantronProcessor(key_path, {x: None for x in range(num_questions)})
-        key.image = find_and_rotate(key.image_path)        
+        key_dict = {x: None for x in range(num_questions)}
+        if key_bytes is not None:
+            # image bytes
+            key = ScantronProcessor(key_dict, image=key_bytes)
+        elif key_path is not None:
+            # image path
+            key = ScantronProcessor(key_dict, image_path=key_path)
+        else:
+            raise ValueError("Either key_path or key_bytes must be provided")
+
+        key.image = find_and_rotate(key.image)        
         key.resize_image(1700, 4400)
         answers = key.detect_answers(num_questions)
         final_key = key.find_scantrons_answers(answers, num_questions)
