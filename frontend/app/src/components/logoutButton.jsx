@@ -18,11 +18,11 @@ export const LogoutButton = () => {
       name: ""
     });
     // Navigate to the login page
-    navigate("/login");
+    navigate("/");
   };
 
   return (
-      <button onClick={handleLogout} className="logout-button-styles">
+      <button onClick={handleLogout} className="logout-button-styles mt-8 px-4 py-2 bg-cyan-500 hover:bg-cyan-700 text-white font-bold rounded">
         Logout
       </button>
   );

@@ -1,7 +1,7 @@
 from typing import List
 from pydantic import BaseModel
 from models.users import GetStudentMinimum
-from models.test import GetTestMinimum
+from models.test import GetTestMinimum, GetTests
 from typing import Optional
 
 
@@ -27,7 +27,7 @@ class UpdateCourse(BaseModel):
 class GetCourse(CreateCourse):
     id: int
     students: List[GetStudentMinimum]
-    tests: List[GetTestMinimum]
+    tests: List[GetTests]
 
 
 class GetCourseMinimum(BaseModel):

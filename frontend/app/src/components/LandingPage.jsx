@@ -1,12 +1,25 @@
+import { useContext, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
+import { AuthContext } from '../context/auth.jsx';
 
 export const LandingPage = () => {
   let navigate = useNavigate();
 
+  const { authDetails, updateAuthDetails } = useContext(AuthContext);
+
   // Function to handle navigation
-  const handleNavigate = (path) => () => {
+  const handleNavigate = (path) => {
     navigate(path);
   };
+
+  useEffect(() => {
+    if(authDetails.isLoggedIn) {
+      navigate("/course")
+      console.log("if state")
+      return
+    }
+    console.log(` use: ${JSON.stringify(authDetails)}`)
+  }, [authDetails, navigate])
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-900 px-6 py-24 text-center shadow-2xl">
@@ -19,7 +32,7 @@ export const LandingPage = () => {
         </p>
         <div className="mt-10 flex items-center justify-center gap-x-6">
           <button
-            onClick={handleNavigate("/login")}
+            onClick={() => handleNavigate("/login")}
             className="rounded-md bg-cyan-300 px-3.5 py-2.5 text-sm font-semibold
                     text-gray-900 shadow-sm hover:bg-gray-100 focus-visible:outline 
                     focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
@@ -27,7 +40,7 @@ export const LandingPage = () => {
             Login
           </button>
           <button
-            onClick={handleNavigate("/register")}
+            onClick={() => handleNavigate("/register")}
             className="text-sm font-semibold leading-6 text-white"
           >
             Register <span aria-hidden="true">→</span>
@@ -35,7 +48,7 @@ export const LandingPage = () => {
         </div>
         <div className="mt-10">
           <button
-            onClick={handleNavigate("/about")}
+            onClick={() => handleNavigate("/about")}
             className="rounded-md bg-cyan-200 px-5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
           >
             About

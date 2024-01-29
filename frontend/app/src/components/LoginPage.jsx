@@ -1,7 +1,6 @@
 import { useRef, useState, useCallback, useContext, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import { EasyRequest, defHeaders, loginURL } from "../api/helpers.js";
-import {CoursePage} from "./CoursePage/CoursePage.jsx";
 import logo from "../assets/LiveTestLogo.png"
 import { AuthContext } from '../context/auth.jsx';
 
@@ -33,12 +32,16 @@ export const LoginPage = () => {
 
       let req = await EasyRequest(loginURL, defHeaders, "POST", body);
       setLoginAttempts(loginAttempts++);
+
+      // ----------------- FOR DEBUGGING ---------------------
       console.log(req)
       console.log(req.data)
 
-      console.log(req.status)
+      console.log(`${req.status_code}`)
       console.log(loginAttempts)
-      if (req.status === 200) {
+      // -------------------------------------------------------
+
+      if (req.status === 200 && req.data.access_token) {
         setInvalidCredentials(false);
         
         updateAuthDetails({
@@ -49,12 +52,13 @@ export const LoginPage = () => {
           email: req.data.email,
           name: req.data.name
         })
-        // localStorage.setItem("authDetails", JSON.stringify(authDetails))
         navigate("/course")
       }
-      else if (req.status === 401) {
+      // invalid credentials
+      else if (req.status === 200 && req.data.status_code === 404) {
         setInvalidCredentials(true);
       }
+      // Not connecting to database
       else if (req.status === 500) {
         setInvalidCredentials(false);
       }
@@ -62,18 +66,20 @@ export const LoginPage = () => {
       console.log(error);
     }
 
-    if (loginAttempts > 5) {
-      setTimeout(() => {
-        setTooManyAttemps(true);
-      }, 3000)
-    }
+    // TODO
+    // if (loginAttempts > 5) {
+    //   setTimeout(() => {
+    //     setTooManyAttemps(true);
+    //   }, 3000)
+    // }
   });
 
   useEffect(() => {
     if (authDetails.isLoggedIn) {
+      console.log("useEffect for login")
       navigate("/course");
     }
-  }, [authDetails, navigate])
+  }, [authDetails])
 
   function passwordForgottenHandler() {
     setPasswordForgotten(prevState => !prevState);
@@ -81,100 +87,99 @@ export const LoginPage = () => {
 
   console.log(`authDetails: ${authDetails}`)
 
-  if (authDetails.isLoggedIn) {
-    navigate("/course")
-  } else {
-    return (
-        <div className="bg-LogoBg w-full h-screen flex flex-col justify-center px-6 py-12 lg:px-8">
-          <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-            <h1 className="font-bold text-8xl text-center mb-4 text-cyan-500">
-              LiveTest
-            </h1>
-            <img
-              className="mx-auto h-52 w-auto"
-              src={logo}
-              alt="LiveTestLogo"
-            />
-            <h2 className="mt-10 text-center text-xl font-bold leading-9 tracking-tight text-gray-700">
-              Sign in to your student/teacher account
-            </h2>
-          </div>
+  return (
+      <div className="bg-LogoBg w-full h-screen flex flex-col justify-center px-6 py-12 lg:px-8">
+        <div className="sm:mx-auto sm:w-full sm:max-w-sm">
+          <h1 className="font-bold text-8xl text-center mb-4 text-cyan-500">
+            LiveTest
+          </h1>
+          <img
+            className="mx-auto h-52 w-auto"
+            src={logo}
+            alt="LiveTestLogo"
+          />
+          <h2 className="mt-10 text-center text-xl font-bold leading-9 tracking-tight text-gray-700">
+            Sign in to your student/teacher account
+          </h2>
+        </div>
 
-          <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
-            <form className="space-y-6" onSubmit={loginHandler}>
-              <div>
+        <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
+          <form className="space-y-6" onSubmit={loginHandler}>
+            <div>
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium leading-6 text-gray-900"
+              >
+                Email
+              </label>
+              <div className="mt-2">
+                <input
+                  id="email"
+                  type="email"
+                  required
+                  ref={usernameRef}
+                  name="email"
+                  autoComplete="email"
+                  className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-cyan-500 sm:text-sm sm:leading-6"
+                />
+              </div>
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between">
                 <label
-                  htmlFor="email"
+                  htmlFor="password"
                   className="block text-sm font-medium leading-6 text-gray-900"
                 >
-                  Email
+                  Password
                 </label>
-                <div className="mt-2">
-                  <input
-                    id="email"
-                    ref={usernameRef}
-                    name="email"
-                    autoComplete="email"
-                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-cyan-500 sm:text-sm sm:leading-6"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <div className="flex items-center justify-between">
-                  <label
-                    htmlFor="password"
-                    className="block text-sm font-medium leading-6 text-gray-900"
+                <div className="text-sm" onClick={passwordForgottenHandler}>
+                  <p
+                    className="font-semibold text-cyan-500 hover:text-cyan-300"
                   >
-                    Password
-                  </label>
-                  <div className="text-sm" onClick={passwordForgottenHandler}>
-                    <p
-                      className="font-semibold text-cyan-500 hover:text-cyan-300"
-                    >
-                      Forgot password?
-                    </p>
-                  </div>
-                </div>
-                <div className="mt-2">
-                  <input
-                    id="password"
-                    name="password"
-                    ref={passwordRef}
-                    type="password"
-                    autoComplete="current-password"
-                    required
-                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-cyan-500 sm:text-sm sm:leading-6"
-                  />
+                    Forgot password?
+                  </p>
                 </div>
               </div>
-              
-              {invalidCredentials && <h2 className="text-red-600">Wrong username/password, please try again</h2>}
-              {tooManyAttempts && <h2 className="text-red-600">You have attempted to login more than 5 times, please wait 30 seconds and try again.</h2>}
-
-              <div>
-                <button
-                  type="submit"
-                  className="flex w-full justify-center rounded-md bg-cyan-500 hover:bg-cyan-600 transition-colors duration-200 ease-in-out px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:text-cyan-700"
-                >
-                  Sign in
-                </button>
+              <div className="mt-2">
+                <input
+                  id="password"
+                  name="password"
+                  ref={passwordRef}
+                  type="password"
+                  autoComplete="current-password"
+                  required
+                  className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-cyan-500 sm:text-sm sm:leading-6"
+                />
               </div>
-            </form>
+            </div>
+            
+            {invalidCredentials && <a className="text-red-600 ">Wrong username/password, please try again</a>}
+            {/* TODO*/}
+            {/* {tooManyAttempts && <h2 className="text-red-600">You have attempted to login more than 5 times, please wait 30 seconds and try again.</h2>} */}
 
-            {passwordForgotten && <h2 className="text-red-700">Please contact your instance administrator and notify them of the lockout</h2>}
+            <div>
+              <button
+                type="submit"
+                className="flex w-full justify-center rounded-md bg-cyan-500 hover:bg-cyan-600 transition-colors duration-200 ease-in-out px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:text-cyan-700"
+              >
+                Sign in
+              </button>
+            </div>
+          </form>
 
-            { <p className="mt-10 text-center text-sm text-gray-500">
-                Not a member?{" "}
-                <a
-                  href="#" // TODO: create link to registration page and backend configured for such offer
-                  className="font-semibold leading-6 text-indigo-600 hover:text-indigo-500"
-                >
-                  Start a 14 day free trial
-                </a>
-              </p> }
-          </div>
+          {passwordForgotten && <h2 className="text-red-700">Please contact your instance administrator and notify them of the lockout</h2>}
+
+          { <p className="mt-10 text-center text-sm text-gray-500">
+              Not a member?{" "}
+              <a
+                href="#" // TODO: create link to registration page and backend configured for such offer
+                className="font-semibold leading-6 text-indigo-600 hover:text-indigo-500"
+              >
+                Start a 14 day free trial
+              </a>
+            </p> }
         </div>
-    );
-    }
+      </div>
+  );
 }

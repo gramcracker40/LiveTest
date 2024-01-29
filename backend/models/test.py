@@ -29,10 +29,11 @@ class UpdateTest(BaseModel):
 
 
 class GetTests(BaseModel):
-    id: str
-    name: str
     start_t: datetime
     end_t: datetime
+    id: str
+    name: str
+    
 
 
 class GetTest(BaseModel):

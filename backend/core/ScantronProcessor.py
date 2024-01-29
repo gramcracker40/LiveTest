@@ -266,7 +266,7 @@ class ScantronProcessor:
 
         # ex : 1: (True, "A")
         results = {}
-
+        print()
         # If the answer is the correct answer
         for answer_num in answers:
             if answers[answer_num] == self.key[answer_num]:
