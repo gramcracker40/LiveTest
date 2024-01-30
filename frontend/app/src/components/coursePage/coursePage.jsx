@@ -219,7 +219,10 @@ export const CoursePage = () => {
           </ul>
         </div>
         <div>
-          <button className='bg-cyan-950 text-white text-lg rounded-md mb-4 px-4 py-2 hover:ring-1 hover: ring-bg-grey-500 hover:bg-grey-900'>
+          <button 
+          className='bg-cyan-950 text-white text-lg rounded-md mb-4 px-4 py-2 hover:ring-1 hover: ring-bg-grey-500 hover:bg-grey-900'
+          onClick={() => handleNavigate("/create-course")}
+          >
             Create a Course!
           </button>
         </div>
