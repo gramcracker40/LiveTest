@@ -47,6 +47,7 @@ def get_all_courses_for_teacher(teacher_id: int):
     if not teacher:
         raise HTTPException(404, detail=f"teacher_id: {teacher_id} not found")
 
+    print(str(teacher.courses))
     return teacher.courses
 
 
