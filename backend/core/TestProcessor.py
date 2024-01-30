@@ -1,5 +1,5 @@
 import os, json
-from core.ScantronProcessor import \
+from ScantronProcessor import \
     ScantronProcessor, find_and_rotate, show_image
 
 class TestProcessor:
@@ -50,7 +50,8 @@ class TestProcessor:
         '''
         given an image of a scantron key fully filled out, return the answers
           used to generate an answer key out of an existing already filled out scantron.
-        
+        needs a dark background for optimal results.
+
         key_path -> absolute path to the test's answer key image
                     the key simply needs to circle the correct answers and only
                     the correct answers. 
@@ -70,7 +71,9 @@ class TestProcessor:
 
         key.image = find_and_rotate(key.image)        
         key.resize_image(1700, 4400)
+        key.crop_answer_sheet()
         answers = key.detect_answers(num_questions)
+        show_image("detect_answers", key.image)
         final_key = key.find_scantrons_answers(answers, num_questions)
         final_key = {int(x): final_key[x] for x in final_key}
         show_image("answer-key-identified", key.image)
@@ -125,9 +128,9 @@ class TestProcessor:
 
 
 if __name__ == "__main__":
-    test = TestProcessor("../TestData/BatchOne/KEY1", "../TestData/BatchOne/KEY1.png", 30)
-    results, test_avg = test.process()
-    print(f"results: {results}\ntest average: {test_avg}")
+    # test = TestProcessor("../../test_data/BatchTwo/KEY1", "../TestData/BatchOne/KEY1.png", 30)
+    # results, test_avg = test.process()
+    # print(f"results: {results}\ntest average: {test_avg}")
 
-# key = TestProcessor.generate_key("real_examples/IMG_4162.jpg", 45)
-# print(key)
+    key = TestProcessor.generate_key(45, key_path="../../test_data/FakeTest1/IMG_4162.jpg")
+    print(key)

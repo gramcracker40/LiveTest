@@ -159,6 +159,25 @@ class ScantronProcessor:
                     self.image, M, (self.image.shape[1], self.image.shape[0])
                 )
 
+    
+    def crop_answer_sheet(self):
+        gray = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
+
+        # Determine the ROI boundaries
+        h, w = gray.shape
+
+        # approximate left and right bound. 
+        self.left_bound = int(0.145 * w)
+        self.right_bound = int(0.58 * w)
+
+        # approximate top and bottom bound for vertical cropping
+        self.top_bound = int(0.145 * h)
+        self.bottom_bound = int(0.93 * h)
+
+        # Crop the image to the answers
+        self.image = gray[self.top_bound:self.bottom_bound, self.left_bound:self.right_bound]
+
+
     def detect_answers(self, num_questions: int):
         """
         takes resized image and finds the shaded in rectangle.
@@ -168,18 +187,10 @@ class ScantronProcessor:
 
         also finds not answered.
         """
-        gray = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
-
-        # Determine the ROI boundaries
-        h, w = gray.shape
-        left_bound = int(0.15 * w)
-        right_bound = int(0.58 * w)
-
-        # Crop the image to the answers
-        roi = gray[:, left_bound:right_bound]
-        show_image('cropped', roi)
+        
+        show_image('cropped', self.image, w=900, h=1400)
         # Threshold the cropped image with adaptive thresholding, more leniance with handmade rectangles
-        _, thresh = cv2.threshold(roi, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+        _, thresh = cv2.threshold(self.image, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
         # show_image("thresh", thresh) # shows the threshold version of the scantron
         # Detect contours in cropped section
         contours, _ = cv2.findContours(
@@ -197,10 +208,11 @@ class ScantronProcessor:
             # Filtering conditions: Aspect ratio allow shadings to be interpreted as rectangles.
             if 650 < cv2.contourArea(contour) < 5000 and 1.1 < aspect_ratio < 7:
                 filled_rectangles.append(
-                    (x + left_bound, y, w, h)
-                )  # Adjust x-coordinate considering the cropped image
-                cv2.rectangle(roi, (x, y), (x + w, y + h), (0, 255, 0), 2)
-
+                    (x + self.left_bound, y, w, h)
+                ) 
+                cv2.rectangle(self.image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+        
+        show_image('answers_identified', self.image, w=900, h=1400)
         # Sort by vertical position
         filled_rectangles.sort(key=lambda r: r[1])
         # remove any extra markings in beginning
