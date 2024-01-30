@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { BackButton } from './BackButton';
+import { EasyRequest, instanceURL, defHeaders } from '../api/helpers';
 
 export const CreateTestPage = () => {
     const [testDetails, setTestDetails] = useState({
@@ -27,8 +28,18 @@ export const CreateTestPage = () => {
         // Assuming only the first file is relevant
         const file = e.target.files[0];
         if (file) {
-            // Additional checks can be added for file type
-            setTestDetails({ ...testDetails, answerKey: file });
+            // Assuming you want to convert the file to a base64 string
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => {
+                // Split the result to get only the base64 string
+                const base64String = reader.result.split(',')[1];
+                // Set the base64 string to your state, including other testDetails
+                setTestDetails({ ...testDetails, answerKey: base64String });
+            };
+            reader.onerror = (error) => {
+                console.error('Error converting file to base64:', error);
+            };
         }
     };
 
@@ -39,14 +50,40 @@ export const CreateTestPage = () => {
             alert("End time must be after start time.");
             return;
         }
-        // Submit logic here
-        console.log(testDetails);
-        navigate("/course"); // Navigate to the next route after submission
+
+        createTest();
     };
 
-      useEffect(() => {
+    useEffect(() => {
         console.log(`course ID: ${courseId}`)
-      }, [navigate])
+    }, [navigate])
+
+    const createTest = async () => {
+        const body = {
+            "name": testDetails.name,
+            "start_t": testDetails.startTime,
+            "end_t": testDetails.endTime,
+            "num_questions": testDetails.numberOfQuestions,
+            "answer_key": testDetails.answerKey,
+            "file_extension": "png",
+            "course_id": courseId
+        }
+
+        const URL = instanceURL + "/test/"
+
+        console.log(body)
+
+        try {
+            let req = await EasyRequest(URL, defHeaders, "POST", body)
+
+            if (req.status === 200) {
+                navigate("/course")
+            }
+        }
+        catch (error) {
+            console.error('Error creating test', error);
+        }
+    }
 
     return (
         <div className="bg-LogoBg w-full h-screen flex flex-col justify-center px-6 py-12 lg:px-8">

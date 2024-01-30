@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BackButton } from './BackButton';
+import { AuthContext } from '../context/auth';
+import { EasyRequest, defHeaders, instanceURL } from '../api/helpers';
 
 export const CreateCoursePage = () => {
     const navigate = useNavigate();
@@ -10,6 +12,7 @@ export const CreateCoursePage = () => {
     const [section, setSection] = useState('');
     const [year, setYear] = useState('');
     const [subject, setSubject] = useState('');
+    const { authDetails, updateAuthDetails } = useContext(AuthContext);
 
     const handleNavigate = (path) => {
         navigate(path)
@@ -23,7 +26,46 @@ export const CreateCoursePage = () => {
         console.log({ courseName, semester, courseNumber, section, year, subject });
         // navigate to another route after submission if needed
         // navigate('/some-route');
+
+        createCourse();
     };
+
+    useEffect(() => {
+        // ------------------------ AUTHENTICATION DETAILS ---------------------------
+
+        // if a user isn't logged in, take them back to the login page
+        if (!authDetails.isLoggedIn && authDetails.type != "teacher") {
+            navigate("/login")
+            return
+        }
+
+    }, [authDetails, navigate])
+
+    const createCourse = async () => {
+        const body = {
+            "name": courseName,
+            "semester_season": semester,
+            "course_number": courseNumber,
+            "section": section,
+            "year": year,
+            "teacher_id": authDetails.id,
+            "subject": subject
+        }
+
+        const URL = instanceURL + "/course/"
+
+        try {
+            let req = await EasyRequest(URL, defHeaders, "POST", body)
+
+            if (req.status === 200) {
+                navigate("/course")
+            }
+        }
+        catch(error) {
+            console.error('Error creating course', error);
+        }
+    }
+
 
     return (
         <div className="bg-LogoBg w-full h-screen flex flex-col justify-center px-6 py-12 lg:px-8">
