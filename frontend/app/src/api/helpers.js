@@ -31,11 +31,11 @@ export async function EasyRequest(url, headers, method, body=null) {
 }
 
 
-const url = "http://127.0.0.1:8000/auth/login/";
-const headers = { 'Content-Type': 'application/json' };
-const method = "POST";
-const body = { "email": "test", "password": "testtest" };
+// const url = "http://127.0.0.1:8000/auth/login/";
+// const headers = { 'Content-Type': 'application/json' };
+// const method = "POST";
+// const body = { "email": "test", "password": "testtest" };
 
-const test = await EasyRequest(url, headers, method, body).then(val => console.log(val));
+// const test = await EasyRequest(url, headers, method, body).then(val => console.log(val));
 
-console.log(test)
+// console.log(test)

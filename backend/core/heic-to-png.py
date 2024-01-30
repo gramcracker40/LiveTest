@@ -33,7 +33,7 @@ def convert_all_heic_to_png(input_directory, output_directory):
         print(f"Converting --> {heic_file}")
 
 if __name__ == "__main__":
-    input_directory = 'TestData/BatchOne/'
-    output_directory = 'TestData/BatchOne/'
+    input_directory = '../../test_data/HEIC/'
+    output_directory = '../../test_data/HEIC/'
 
     convert_all_heic_to_png(input_directory, output_directory)

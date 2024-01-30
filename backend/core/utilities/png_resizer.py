@@ -1,7 +1,7 @@
 from PIL import Image
 import os
 
-def resize_png_images(folder_path, target_size=1200000):
+def resize_png_images(folder_path, target_size=1350000):
     for filename in os.listdir(folder_path):
         if filename.endswith('.png'):
             file_path = os.path.join(folder_path, filename)
@@ -17,5 +17,5 @@ def resize_png_images(folder_path, target_size=1200000):
             # Save the resized image
             resized_img.save(file_path, optimize=True, quality=85)
 
-folder_path = '../../../test_data/BatchOne'
+folder_path = '../../../test_data/HEIC'
 resize_png_images(folder_path)

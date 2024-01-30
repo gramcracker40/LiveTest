@@ -5,8 +5,10 @@ import { LandingPage } from "./components/LandingPage";
 import { RegisterPage } from "./components/RegisterPage";
 import { LoginPage } from "./components/LoginPage";
 import { AboutPage } from "./components/AboutPage";
-import { CoursePage } from "./components/coursePage/coursePage";
-import { SubmissionPage } from "./components/submissionPage/submissionPage";
+import { CoursePage } from "./components/CoursePage/CoursePage";
+import { SubmissionPage } from "./components/SubmissionPage/SubmissionPage";
+import { CreateTestPage } from "./components/CreateTestPage";
+import { CreateCoursePage } from "./components/CreateCoursePage";
 
 export const AppRoutes = () => {
   return (
@@ -19,6 +21,8 @@ export const AppRoutes = () => {
           <Route path="/about" element={<AboutPage />} />
           <Route path="/course" element={<CoursePage />} />
           <Route path="/submission" element={<SubmissionPage />} />
+          <Route path="/create-test" element={<CreateTestPage />} />
+          <Route path="/create-course" element={<CreateCoursePage />} />
         </Routes>
       </Router>
     </AuthProvider>

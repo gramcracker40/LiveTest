@@ -2,6 +2,7 @@ import React, { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import logo from '../assets/LiveTestLogo.png';
 import { EasyRequest, defHeaders, instanceURL } from '../api/helpers';
+import { BackButton } from './BackButton';
 
 export const RegisterPage = () => {
   const nameRef = useRef('');
@@ -196,12 +197,13 @@ export const RegisterPage = () => {
           </div>
         </form>
         <div className="flex justify-center mt-4">
-          <button
+          {/* <button
             onClick={() => handleNavigate("/")}
-            className="px-8 py-3 text-sm font-semibold rounded-md shadow-sm bg-cyan-200 text-gray-700 hover:bg-gray-300"
+            className="px-8 py-3 text-sm font-semibold rounded-md shadow-sm bg-cyan-200 text-gray-700 hover:bg-cyan-300"
           >
             Back
-          </button>
+          </button> */}
+          < BackButton route="/" className="px-8 py-3 text-sm font-semibold rounded-md shadow-sm bg-cyan-200 text-gray-700 hover:bg-cyan-300" />
         </div>
       </div>
     </div>

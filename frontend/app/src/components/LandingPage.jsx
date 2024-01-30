@@ -12,15 +12,6 @@ export const LandingPage = () => {
     navigate(path);
   };
 
-  useEffect(() => {
-    if(authDetails.isLoggedIn) {
-      navigate("/course")
-      console.log("if state")
-      return
-    }
-    console.log(` use: ${JSON.stringify(authDetails)}`)
-  }, [authDetails, navigate])
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-900 px-6 py-24 text-center shadow-2xl">
       <div className="w-full max-w-2xl">
