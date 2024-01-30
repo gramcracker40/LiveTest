@@ -1,8 +1,11 @@
 import json
 import base64
+import io
 from sqlalchemy.exc import IntegrityError
 from fastapi import HTTPException, APIRouter
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
+from typing import List
 import cv2
 from tables import Submission, Student, Test
 from db import session
@@ -57,7 +60,7 @@ def create_submission(submission: CreateSubmission):
         session.add(db_submission)
         session.commit()
         
-        return {"detail": "successfully submitted the answer key for "}
+        return {"detail": f"successfully submitted the answer key for {test.name}"}
     except IntegrityError:
         raise HTTPException(400, detail="Student has already submitted to this test")
     except cv2.error as e:
@@ -65,6 +68,18 @@ def create_submission(submission: CreateSubmission):
         print("CV2 Error!!!")
         session.rollback()
         raise HTTPException(400, detail="Submission could not be processed, please try again.")
+
+
+@router.delete("/{submission_id}")
+def delete_submission(submission_id: int):
+    submission = session.query(Submission).get(submission_id)
+    if submission is None:
+        raise HTTPException(status_code=404, detail="Submission not found")
+    
+    session.delete(submission)
+    session.commit()
+
+    return {"detail": "successfully deleted submission"}
 
 
 @router.get("/{submission_id}", response_model=GetSubmission)
@@ -76,15 +91,31 @@ def get_submission(submission_id: int):
     return submission
 
 
+@router.get("/test/{test_id}", response_model=List[GetSubmission])
+def get_submissions_for_test(test_id: str):
+    test = session.query(Test).get(test_id)
 
-@router.delete("/{Submission_id}", response_model=GetSubmission)
-def delete_submission(Submission_id: int):
-    db = session()
-    db_Submission = db.query(Submission).filter(Submission.id == Submission_id).first()
-    if db_Submission is None:
-        db.close()
-        raise HTTPException(status_code=404, detail="Submission not found")
-    db.delete(db_Submission)
-    db.commit()
-    db.close()
-    return db_Submission
+    if test is None:
+        raise HTTPException(status_code=404, detail="Test not found")
+    
+    return test.submissions
+
+
+@router.get("/image/{submission_id}")
+def get_submission_image(submission_id: int):
+    submission = session.query(Submission).get(submission_id)
+
+    if not submission:
+        raise HTTPException(status_code=404, detail="Test not found")
+    
+    return StreamingResponse(io.BytesIO(submission.graded_photo), media_type="image/jpg")
+
+
+@router.get("/student/{student_id}", response_model=List[GetSubmission])
+def get_submissions_for_student(student_id: int):
+    student = session.query(Student).get(student_id)
+
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    
+    return student.submissions

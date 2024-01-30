@@ -1,7 +1,9 @@
 from fastapi import HTTPException, APIRouter
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import StreamingResponse
 import json
 import cv2
+import io
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from typing import List
@@ -28,7 +30,7 @@ router = APIRouter(
 
 @router.post(
     "/", response_model=CreateTestConfirmation
-)  # , #dependencies=[Depends(jwt_token_verification)])
+)  # , dependencies=[Depends(jwt_token_verification)])
 def create_test(test: CreateTest):
     try:
         course = session.query(Course).get(test.course_id)
@@ -111,6 +113,16 @@ def get_tests_for_course(course_id: int):
     return course.tests
 
 
+@router.get("/image/{test_id}")
+def get_test_key_image(test_id: str):
+    test = session.query(Test).get(test_id)
+
+    if not test:
+        raise HTTPException(status_code=404, detail="Test not found")
+    
+    return StreamingResponse(io.BytesIO(test.answer_key), media_type="image/jpg")
+
+
 @router.patch("/{test_id}/")
 def update_test(test_id: str, update_data: UpdateTest):
     test = session.query(Test).get(test_id)
@@ -141,7 +153,8 @@ def delete_test(test_id: str):
     if not test:
         raise HTTPException(status_code=404, detail="Test not found")
 
+    name = test.name
     session.delete(test)
     session.commit()
 
-    return {"message": f"Test {test_id} deleted successfully"}
+    return {"detail": f"Test {name} deleted successfully"}

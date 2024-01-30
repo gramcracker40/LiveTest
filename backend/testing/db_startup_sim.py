@@ -100,3 +100,9 @@ for s_id, student in enumerate(students):
         )
         courses.append(course_id)
         print(f"Added student {s_id + 1} to course {course_id}")
+
+# TODO
+# create 3 tests per course, grab all students in each course
+#   create a submission for every single student for each test
+        
+

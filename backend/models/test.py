@@ -35,7 +35,6 @@ class GetTests(BaseModel):
     name: str
     
 
-
 class GetTest(BaseModel):
     id: str
     name: str

@@ -40,7 +40,7 @@ def create_test(name:str, image_path:str, num_questions:int,
         print(response.text)
 
 
-def create_submission(image_path:str, student_id:int, test_id:int):
+def create_submission(image_path:str, student_id:int, test_id:str):
     '''
     submits a answer sheet to a specific test id. 
     '''
