@@ -148,7 +148,6 @@ class ScantronProcessor:
             for rho, theta in lines[0]:
                 # Convert the angle to degrees
                 angle = (theta * 180) / np.pi - 90
-
                 # Rotate the image
                 M = cv2.getRotationMatrix2D(
                     (self.image.shape[1] / 2, self.image.shape[0] / 2),
@@ -159,7 +158,6 @@ class ScantronProcessor:
                     self.image, M, (self.image.shape[1], self.image.shape[0])
                 )
 
-    
     def crop_answer_sheet(self):
         gray = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
 
@@ -167,11 +165,11 @@ class ScantronProcessor:
         h, w = gray.shape
 
         # approximate left and right bound. 
-        self.left_bound = int(0.145 * w)
+        self.left_bound = int(0.08 * w)
         self.right_bound = int(0.58 * w)
 
         # approximate top and bottom bound for vertical cropping
-        self.top_bound = int(0.145 * h)
+        self.top_bound = int(0.14 * h)
         self.bottom_bound = int(0.93 * h)
 
         # Crop the image to the answers
