@@ -50,6 +50,14 @@ def extract_contour_area(image, contour):
     return extracted_area
 
 
+def rotate_image(image, angle):
+    h, w = image.shape[:2]
+    center = (w // 2, h // 2)
+    M = cv2.getRotationMatrix2D(center, angle, 1.0)
+    rotated = cv2.warpAffine(image, M, (w, h), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REPLICATE)
+    return rotated
+
+
 def isolate_document(image_path):
     image = cv2.imread(image_path)
 
@@ -93,17 +101,25 @@ def isolate_document(image_path):
     # document is extracted perfectly need to arrange the 5 points now
     show_image("contours", image)
 
-    sorted_pts = np.array(docCnt)
+    # sort by adding x and y value.
+    sorted_pts = np.array( 
+        sorted(docCnt, key=lambda x:x[0][0] + x[0][1])
+    )
     print(f"sorted_pts: {sorted_pts}")
     top_left = sorted_pts[0]
-    top_right = sorted_pts[-1]
-    bottom_right = sorted_pts[-2]
-    # Assuming the bottom vertices are always the last three in sorted order
-    bottom_left_first = sorted_pts[1]  # First on the bottom left
-    additional_vertex = sorted_pts[2]  # The one to exclude
+    top_right = sorted_pts[1]
+    bottom_right = sorted_pts[-1]
+    bottom_left_first = sorted_pts[2]  
+    additional_vertex = sorted_pts[3]
 
     ordered_pts = np.array([top_left, top_right, bottom_right, bottom_left_first], dtype="float32").reshape(4, 2)
     additional_vertices = np.array([additional_vertex], dtype="float32")  # Stored for analysis
+
+    # calculate the angle for straight up and down orientation
+    delta_y = top_right[0][1] - top_left[0][1]
+    delta_x = top_right[0][0] - top_left[0][0]
+    angle = np.degrees(np.arctan2(delta_y, delta_x))
+
 
     print(f"ordered_pts: {ordered_pts}")
     print(f"additional_vertices: {additional_vertices}")
@@ -111,8 +127,11 @@ def isolate_document(image_path):
     extracted_area = extract_contour_area(image, docCnt.reshape(-1, 1, 2))
     show_image("Extracted Area", extracted_area)
 
+    rotated_image = rotate_image(extracted_area, angle)
+    show_image("Rotated Image", rotated_image)
+
     # Get the isolated document
-    return four_point_transform(image, ordered_pts)
+    return four_point_transform(rotated_image, ordered_pts)
 
 if __name__ == "__main__":
     # Replace 'path_to_image.jpg' with your image file
