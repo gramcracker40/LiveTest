@@ -2,25 +2,6 @@ import cv2
 import numpy as np
 from ScantronProcessor import show_image
 
-def merge_closest_points(points):
-    # Function to merge the closest two points in a set of five points
-    min_distance = float('inf')
-    pair_to_merge = (0, 1)
-
-    for i in range(len(points)):
-        for j in range(i + 1, len(points)):
-            distance = np.linalg.norm(points[i] - points[j])
-            if distance < min_distance:
-                min_distance = distance
-                pair_to_merge = (i, j)
-
-    # Merge the closest pair of points
-    merged_point = (points[pair_to_merge[0]] + points[pair_to_merge[1]]) / 2
-    new_points = [p for idx, p in enumerate(points) if idx not in pair_to_merge]
-    new_points.append(merged_point)
-
-    return np.array(new_points, dtype="float32")
-
 
 def four_point_transform(image, pts):
     # order the points before passing to four_point_transform
@@ -50,8 +31,16 @@ def extract_contour_area(image, contour):
     return extracted_area
 
 
-def isolate_document(image_path):
-    image = cv2.imread(image_path)
+def isolate_scantron(image_path:str=None, image_bytes:bytes=None):
+    
+    if image_path is not None:
+        image = cv2.imread(image_path)
+    elif image_bytes is not None:
+        image_array = np.frombuffer(image, dtype=np.uint8)
+        image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
+    else:
+        print(f"isolate_document error: please provide a valid image_path or image_bytes")
+        return
 
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     blur = cv2.GaussianBlur(gray, (5, 5), 0)
@@ -93,11 +82,11 @@ def isolate_document(image_path):
     # document is extracted perfectly need to arrange the 5 points now
     show_image("contours", image)
 
-    sorted_pts = np.array(docCnt)
+    sorted_pts = np.array(sorted(docCnt, key=lambda x: x[1]))
     print(f"sorted_pts: {sorted_pts}")
     top_left = sorted_pts[0]
-    top_right = sorted_pts[-1]
-    bottom_right = sorted_pts[-2]
+    top_right = sorted_pts[1]
+    bottom_right = sorted_pts[4]
     # Assuming the bottom vertices are always the last three in sorted order
     bottom_left_first = sorted_pts[1]  # First on the bottom left
     additional_vertex = sorted_pts[2]  # The one to exclude
@@ -116,7 +105,7 @@ def isolate_document(image_path):
 
 if __name__ == "__main__":
     # Replace 'path_to_image.jpg' with your image file
-    isolated_document = isolate_document("../../test_data/FakeTest3/KEY1.png")
+    isolated_document = isolate_scantron(image_path="../../test_data/FakeTest3/KEY1.png")
     cv2.imshow("Isolated Document", isolated_document)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
@@ -143,3 +132,21 @@ if __name__ == "__main__":
 #         rect[3] = pts[np.argmax(diff)]
 #         return rect
 
+# def merge_closest_points(points):
+#     # Function to merge the closest two points in a set of five points
+#     min_distance = float('inf')
+#     pair_to_merge = (0, 1)
+
+#     for i in range(len(points)):
+#         for j in range(i + 1, len(points)):
+#             distance = np.linalg.norm(points[i] - points[j])
+#             if distance < min_distance:
+#                 min_distance = distance
+#                 pair_to_merge = (i, j)
+
+#     # Merge the closest pair of points
+#     merged_point = (points[pair_to_merge[0]] + points[pair_to_merge[1]]) / 2
+#     new_points = [p for idx, p in enumerate(points) if idx not in pair_to_merge]
+#     new_points.append(merged_point)
+
+#     return np.array(new_points, dtype="float32")

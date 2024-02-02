@@ -2,9 +2,12 @@
 import cv2
 import os
 import glob
-from isolate_scantron import isolate_document, show_image  # Ensure this module is in the same directory
+from isolate_scantron import isolate_scantron, show_image  # Ensure this module is in the same directory
 
 def batch_process_documents(directory):
+    '''
+    tests isolate_scantron.py
+    '''
     # Check if the directory exists
     if not os.path.exists(directory):
         print("Directory does not exist.")
@@ -16,7 +19,7 @@ def batch_process_documents(directory):
     # Process each image
     for image_path in image_files:
         print(f"Processing {image_path}...")
-        isolated_document = isolate_document(image_path)
+        isolated_document = isolate_scantron(image_path=image_path)
         # Display the isolated document
         show_image(f"Isolated Document {image_path}", isolated_document)
         
