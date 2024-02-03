@@ -69,7 +69,10 @@ class TestProcessor:
         else:
             raise ValueError("Either key_path or key_bytes must be provided")
 
-        key.image = find_and_rotate(key.image)        
+        # key.resize_image(1700, 4400)
+        show_image("initial picture", key.image)
+        key.image = find_and_rotate(key.image)
+        show_image("found and rotated", key.image)       
         key.resize_image(1700, 4400)
         key.crop_answer_sheet()
         answers = key.detect_answers(num_questions)
@@ -132,5 +135,5 @@ if __name__ == "__main__":
     # results, test_avg = test.process()
     # print(f"results: {results}\ntest average: {test_avg}")
 
-    key = TestProcessor.generate_key(45, key_path="../../test_data/FakeTest1/IMG_4162.jpg")
+    key = TestProcessor.generate_key(17, key_path="../../test_data/FakeTest3/KEY3.png")
     print(key)
