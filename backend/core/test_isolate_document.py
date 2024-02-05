@@ -2,7 +2,7 @@
 import cv2
 import os
 import glob
-from isolate_scantron import isolate_document, show_image  # Ensure this module is in the same directory
+from isolate_document import isolate_document, show_image  # Ensure this module is in the same directory
 
 def batch_process_documents(directory):
     # Check if the directory exists
