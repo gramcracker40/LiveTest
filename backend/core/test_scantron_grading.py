@@ -2,8 +2,9 @@ import os
 import glob
 from isolate_document import \
     isolate_document, show_image, ScantronExtractionFailedError
-from find_answers import crop_to_answers
-from find_numbers import detect_numbers_from_image
+from find_answers import crop_to_answers, \
+    draw_vertical_lines_from_start_percentage, \
+    detect_answers
 
 def batch_process_documents(directory):
     # Check if the directory exists
@@ -22,8 +23,10 @@ def batch_process_documents(directory):
             show_image(f"Isolated Document {image_path}", isolated_document)
             cropped_image = crop_to_answers(isolated_document)  # Example: Crop to 80% of both width and height
             show_image('Cropped Image', cropped_image, w=500, h=800)
-            found_numbers = detect_numbers_from_image(cropped_image)
-            show_image('Numbers found', cropped_image, w=500, h=800)
+
+            detect_answers(cropped_image)
+            draw_vertical_lines_from_start_percentage(cropped_image,14.33, 17.33)
+            
 
             # To save the image, uncomment the following line and provide a save path
             # cv2.imwrite("path_to_save_directory/" + os.path.basename(image_path), isolated_document)

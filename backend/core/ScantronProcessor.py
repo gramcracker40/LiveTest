@@ -186,7 +186,7 @@ class ScantronProcessor:
         also finds not answered.
         """
         
-        show_image('cropped', self.image, w=900, h=1400)
+        # show_image('cropped', self.image, w=900, h=1400)
         # Threshold the cropped image with adaptive thresholding, more leniance with handmade rectangles
         _, thresh = cv2.threshold(self.image, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
         # show_image("thresh", thresh) # shows the threshold version of the scantron
