@@ -119,6 +119,9 @@ def isolate_document(image_path:str=None, image_bytes:bytes=None):
 
     if docCnt is not None:
         tl, tr, br, bl1, bl2 = find_points_positions(np.array(docCnt))
+        print(f"br: {br}\nbl1: {bl1}")
+        br[1] = bl1[1]
+        print(f"br: {br}\nbl1: {bl1}")
         transformed = four_point_transform(image, [tl, tr, br, bl1])
         
         # see stats to determine if it was successful or not

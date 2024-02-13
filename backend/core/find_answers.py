@@ -6,7 +6,7 @@ import easyocr, cv2, re
 from isolate_document import show_image
 import numpy as np
 
-def crop_to_answers(image, left=0.145, right=0.58, top=0.155, bottom=0.94):
+def crop_to_answers(image, left=0.14, right=0.58, top=0.155, bottom=0.945):
     """
     crop a Matlike image (cv2) given a left, right, top, bottom bound
     default: crops to scantrons answers
@@ -21,6 +21,53 @@ def crop_to_answers(image, left=0.145, right=0.58, top=0.155, bottom=0.94):
     bottom_bound = int(bottom * height)
 
     return cropped[top_bound:bottom_bound, left_bound:right_bound]
+
+
+def find_gray_contours(image):
+    '''
+    using hsv to isolate grey markings
+    '''
+    imghsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    lower_gray = np.array([0,0,0])
+    upper_gray = np.array([60,60,60])
+    mask = cv2.inRange(imghsv, lower_gray, upper_gray)
+    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+    im = np.copy(image)
+    cv2.drawContours(im, contours, -1, (0, 255, 0), 1)
+    show_image("find_gray_contours", im)
+
+
+
+
+def find_markings(image):
+    '''
+    find the grey markings on the scantron. 
+    '''
+    gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    # Binary Thresholding
+    #_, thresh_image = cv2.threshold(gray_image, thresh=80, maxval=255, type=cv2.THRESH_BINARY)
+
+    # OR Adaptive Thresholding for more complex scenarios
+    _, thresh = cv2.threshold(gray_image, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+
+    #thresh_image = cv2.adaptiveThreshold(gray_image, maxValue=255, adaptiveMethod=cv2.ADAPTIVE_THRESH_GAUSSIAN_C, thresholdType=cv2.THRESH_BINARY, blockSize=11, C=2)
+    show_image("thresholded", thresh)
+    contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+
+    for contour in contours:
+        # Approximate the contour
+        epsilon = 0.017 * cv2.arcLength(contour, True)
+        approx = cv2.approxPolyDP(contour, epsilon, True)
+
+        if 125 < cv2.contourArea(approx) < 200:
+            cv2.drawContours(image, [approx], -1, (0, 255, 0), 3)
+
+            # Use the approximated contour points
+            for point in approx:
+                x, y = point[0]
+                print(x, y)  # Do something with the coordinates
+
+    show_image("find_markings", image)
 
 
 def detect_answers(image):
@@ -71,7 +118,7 @@ def draw_horizontal_lines_percentage(image, percentage_interval):
         cv2.line(image, start_point, end_point, line_color, line_thickness)
     
     # Display the result
-    show_image('Image with Horizontal Lines', image)
+    
 
 
 def draw_vertical_lines_from_start_percentage(image, start_percentage, percentage_interval):
@@ -94,14 +141,27 @@ def draw_vertical_lines_from_start_percentage(image, start_percentage, percentag
         start_point = (x, 0)
         end_point = (x, height)
         cv2.line(image, start_point, end_point, line_color, line_thickness)
+
+
+def draw_horizontal_lines_from_start_percentage(image, start_percentage, percentage_interval):
+    height, width = image.shape[:2]
     
-    # Display the result
-    show_image('Image with Vertical Lines from Start Percentage', image)
-
-
-
-
-
+    # Calculate the start position and interval in pixels based on percentages
+    start_y = int((start_percentage / 100.0) * height)
+    interval = int((percentage_interval / 100.0) * height)
+    
+    # Set the color of the line (BGR format)
+    line_color = (0, 255, 0)  # Green
+    
+    # Set the thickness of the line
+    line_thickness = 1
+    
+    # Draw horizontal lines across the image starting from the calculated start position
+    for y in range(start_y, height, interval):
+        start_point = (0, y)
+        end_point = (width, y)
+        cv2.line(image, start_point, end_point, line_color, line_thickness)
+    
 
 
 
