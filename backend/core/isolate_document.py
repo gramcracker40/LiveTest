@@ -127,7 +127,7 @@ def isolate_document(image_path:str=None, image_bytes:bytes=None):
         # see stats to determine if it was successful or not
         height, width = transformed.shape[:2]
         dimension = height/width
-        if dimension > 2.4 and dimension < 2.6:
+        if dimension > 2.3 and dimension < 2.7:
             return transformed
         else:
             raise ScantronExtractionFailedError("""failed to extract Form 882E, please ensure the background is consistent and no lighting is distoring the view""")
