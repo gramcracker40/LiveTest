@@ -1,2 +1,4 @@
 rich 
 Pillow
+textwrap
+json

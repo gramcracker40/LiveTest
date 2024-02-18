@@ -6,7 +6,87 @@ pixels (8.5 inches * 300 DPI by 11 inches * 300 DPI).
 from PIL import Image, ImageDraw, ImageFont
 import os
 from myKwargs import MyKwargs
+from rich.console import Console
+import textwrap 
+import sys
+import datetime
+import json
 
+console = Console()
+
+
+def wrap_with_indent(text, width, indent):
+    """
+    Wrap text with indentation for lines after the first one.
+
+    :param text: The text to wrap.
+    :param width: The maximum width for each line.
+    :param indent: The number of spaces to indent lines after the first one.
+    :return: The wrapped text with indentation.
+    """
+    # Wrap the text
+    wrapped_text = textwrap.fill(text, width=width)
+
+    #print(wrapped_text)
+
+    # Indent lines after the first one
+    lines = wrapped_text.split('\n')
+    indented_lines = [lines[0]]+[f"{' ' * indent}{line}" for line in lines[1:]]
+
+    return '\n'.join(indented_lines)
+
+def wrap_docstring(obj):
+    """
+    Wrap a __doc__ string based on terminal width.
+
+    :param obj: The object whose __doc__ string should be wrapped.
+    :return: The wrapped __doc__ string.
+    """
+    terminal_width = os.get_terminal_size().columns
+    docstring = obj.__doc__
+    if docstring:
+        wrapped_docstring = textwrap.fill(docstring, width=terminal_width)
+        return wrapped_docstring
+    else:
+        return "No docstring available."
+
+
+
+def find_longest_key(dictionary):
+    """
+    Find the longest key (by character length) in a dictionary.
+
+    :param dictionary: The dictionary to search.
+    :return: The longest key.
+    """
+    longest_key = max(dictionary.keys(), key=len)
+    return longest_key
+
+def get_params(fname='docs.json'):
+    """
+    """
+
+    with open(fname) as f:
+        params = json.load(f)
+
+    width = os.get_terminal_size().columns
+    pad_keys = len(find_longest_key(params))
+    pad_types = 7
+    indent = pad_keys + pad_types + 3
+
+    paramsString = ""
+
+    for k,v in params.items():
+
+        t = f"({v['type']})".ljust(pad_types,' ')
+        d = v['description']
+        k = k.ljust(pad_keys, ' ')
+
+        d = wrap_with_indent(d, width-indent, indent)
+        
+
+        paramsString += f"[bold]{k}[/bold] [magenta]{t}[/magenta]: {d}\n"
+    return paramsString
 
 def open_image(image_path):
     # Check if the file exists
@@ -43,6 +123,9 @@ def fontSizeToPixels(dpi, font_size):
     pixels = font_size * (dpi / 72)
     return int(pixels)
 
+def generateName(num_questions,num_ans_options):
+    timestamp = datetime.datetime.now().timestamp()
+    return f"{num_questions}-{num_ans_options}-{int(timestamp)}"
 
 class Pictron:
     def __init__(self, **kwargs):
@@ -59,16 +142,19 @@ class Pictron:
             "bubble_size": 12,
             "font_path": "./fonts/RobotoMono-Regular.ttf",
             "font_bold":"./fonts/RobotoMono-Bold.ttf",
-            "page_gutters": [300,100,100,100],
+            "page_margins": [300,100,100,100],
             "line_spacing": 20,
             "answer_spacing": 5,
             "label_spacing": 5,
             "zebra_shading": True,
             "label_style": None,
             "que_ident_style": None,
+            "font_alpha": 50,
+            "outPath":'./generatedSheets',
+            "outName":None
         }
         """
-        print(kwargs)
+        console.print(kwargs)
 
         # "label_style": None,
         # "que_ident_style": None,
@@ -93,9 +179,17 @@ class Pictron:
         self.answer_spacing = kwargs.get("answer_spacing", 5)
         self.label_spacing = kwargs.get("label_spacing", 5)
         self.line_spacing = kwargs.get("line_spacing", 25)
-        self.page_gutters = kwargs.get("page_gutters", 5)
+        self.page_margins = kwargs.get("page_margins", (100,100,100,100))
 
         self.zebra_shading = kwargs.get("zebra_shading", False)
+
+        self.outPath = kwargs.get("outPath", './generatedSheets')
+
+        self.outName = kwargs.get("outName",None)
+
+        if self.outName is None: 
+            self.outName = generateName(self.num_questions,self.num_ans_options)
+        print(self.outName)
 
         self.img_width = inchesToPixels(self.dpi, self.page_size[0])
         self.img_height = inchesToPixels(self.dpi, self.page_size[1])
@@ -112,11 +206,13 @@ class Pictron:
         if self.font_bold:
             self.font_bold = ImageFont.truetype(self.font_bold, 36)
 
-        try:
-            self.alignment_image = open_image(self.img_align_path)
-            # Proceed with your operations on the image
-        except FileNotFoundError as e:
-            print(e)
+        
+
+        # try:
+        #     self.alignment_image = open_image(self.img_align_path)
+        #     # Proceed with your operations on the image
+        # except FileNotFoundError as e:
+        #     print(e)
 
         try:
             self.alignment_image = open_image(self.img_align_path)
@@ -162,6 +258,20 @@ class Pictron:
             font=self.font,
         )
 
+    def drawZebraLines(self,x,y):
+
+        x = self.page_margins[1]
+        y += self.line_spacing + self.bubble_height // 2 + 5
+        w = (self.page_size[0] * self.dpi) - (self.page_margins[1] + self.page_margins[3])
+        h = self.bubble_height
+
+        for i in range(self.num_questions):
+            if i % 2 == 0:
+                print(f"x:{x} y:{y} w:{w} h:{h}")
+                self.addRectangle(x,y,w,h,color=(240,240,240),line=None)
+            y += self.bubble_height + self.line_spacing
+
+
     def addBubble(self, x, y, line_thickness=2):
         x1 = x - (self.font_size_adj // 2)
         y1 = y - (self.font_size_adj // 2)
@@ -177,8 +287,10 @@ class Pictron:
 
             self.draw.rectangle([x1, y1, x2, y2], outline="black", width=line_thickness)
 
-    def addRectangle(self, x, y, w, h, color=(0, 0, 0), line=2):
-        self.draw.rectangle([x, y, x + w, y + h], outline=color, width=line)
+    def addRectangle(self, x, y, w, h, color=(0, 0, 0), line=0):
+        self.draw.rectangle([x, y, x + w, y + h], fill=color, outline=line)
+
+        #draw.rectangle(rectangle_coordinates, fill=rectangle_color, outline=None)   
 
     def drawTestNumBoxes(self, x, y, w, h, n=8):
         """
@@ -219,7 +331,11 @@ class Pictron:
         i = 0
         n = 1
 
+        if self.zebra_shading:
+            self.drawZebraLines(x,y)
+
         for _ in range(self.num_questions * self.num_ans_options):
+            
             if i % self.num_ans_options == 0:
                 x = start_x
                 y += self.bubble_height + self.line_spacing
@@ -235,7 +351,7 @@ class Pictron:
             x += 25
             self.addBubble(x, y)
             label = chr((i % self.num_ans_options) + 65)
-            self.addBubbleLabel(x, y, label, (200, 200, 200))
+            self.addBubbleLabel(x-3, y, label, (200, 200, 200))
 
             x += self.bubble_width + self.answer_spacing
 
@@ -253,8 +369,8 @@ class Pictron:
             ),
         ]
 
-        top = self.page_gutters[0]
-        right = self.page_gutters[3]
+        top = self.page_margins[0]
+        right = self.page_margins[3]
 
         self.pasteAlignmentImages(positions)
         self.drawTestNumBoxes(500, 100, 60, 75, 8)
@@ -264,26 +380,35 @@ class Pictron:
         )
         self.addAnswerBubbles(right, top)
 
-    def saveImage(self, outname="temp.png", show=False):
+    def saveImage(self, outPath=None,outName=None, show=False):
         # Save the image
         print("saving...")
         # self.final_image = Image.alpha_composite(self.image, self.overlay)
+<<<<<<< HEAD
         self.image.save(f"./generatedSheets/temp{self.num_questions}.png")
+=======
+        if outPath is None:
+            outPath = self.outPath
+        if outName is None:
+            outName = self.outName
+        name = os.path.join(outPath,outName)
+
+        print(f"{name}.png")
+        self.image.save(f"{name}.png")
+        self.image.save(f"{name}.pdf")
+>>>>>>> 64ba23d (added some docs generation code, and zebra striping, etc.)
         # self.image.show()
-
-
-import sys
 
 
 def usage():
     """
     Usage function for the custom scantron generator.
 
-    Required Arguments:
+    [bold]Required Arguments[/bold]:
         questions=int          Number of questions (25, 50, 100, 200; default=50).
         options=int            Number of lettered options per question (default=7).
 
-    Optional Arguments:
+    [bold]Optional Arguments[/bold]:
         signature=bool         Include a signature line (default=True).
         test_id=bool           Include test ID boxes (default=True).
         info_location=str      Location for student info (top, left, right; default=top).
@@ -292,12 +417,13 @@ def usage():
         logo_path=str          Path to an optional logo image file.
         header=str             Custom header text for the scantron.
 
-    Example:
+    [bold]Example[/bold]:
         python script.py questions=100 options=5 signature=False test_id=True info_location=left border_size=0.5 check_size=0.1 logo_path=/path/to/logo.png header="Exam 101"
 
     Note: Boolean values can be passed as True/False.
     """
-    print(usage.__doc__)
+    wrapped = wrap_docstring(usage)
+    console.print(wrapped)
 
 
 def main():
@@ -348,7 +474,7 @@ if __name__ == "__main__":
         bubble_ratio        (float): Value to choose the width of a bubble if its an ellipse or rectangle (e.g 1.5 = 150% of height)
         font_path           (str): path to txt font
         font_bold           (str): path to bold txt font if any
-        page_gutters         (list): pixel size of any additional padding for [top,right,bottom,left]
+        page_margins        (list): pixel size of any additional padding for [top,right,bottom,left]
         line_spacing        (int): pixel padding between lines of answers
         answer_spacing      (int): pixel padding between answer bubbles
         label_spacing       (int): pixel padding between label and bubble
@@ -382,6 +508,42 @@ if __name__ == "__main__":
             "font_alpha": 50,
         }
 
+<<<<<<< HEAD
         pictron = Pictron(**info)
         pictron.generate()
         pictron.saveImage()
+=======
+    console.print(get_params('docs.json'))
+
+    #"img_align_path": "./assets/images/target_144x.png",
+
+    info = {
+        "page_size": (8.5, 11),
+        "img_align_path": "./assets/images/checkerboard_144x_adj_color.jpg",
+        "logo_path": "./assets/images/LiveTestLogo_144x.png",
+        "num_ans_options": 6,
+        "num_questions": 40,
+        "dpi": 288,
+        "font_size": 11,
+        "bubble_shape": "ellipse",
+        "bubble_size": 13,
+        "bubble_ratio": 1.5,
+        "font_path": "./assets/fonts/RobotoMono-Regular.ttf",
+        "font_bold": "./assets/fonts/RobotoMono-Bold.ttf",
+        "page_margins": (300, 100, 100, 50),
+        "line_spacing": 10,
+        "answer_spacing": 3,
+        "label_spacing": 5,
+        "zebra_shading": True,
+        "label_style": None,
+        "que_ident_style": None,
+        "font_alpha": 50,
+        "outPath":'./generatedSheets',
+        "outName":None
+    }
+
+
+    pictron = Pictron(**info)
+    pictron.generate()
+    pictron.saveImage()
+>>>>>>> 64ba23d (added some docs generation code, and zebra striping, etc.)

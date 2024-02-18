@@ -1,0 +1,125 @@
+{
+    "answer_spacing": {
+        "default": 5,
+        "type": "int",
+        "description": "The spacing in pixels between two answer bubbles horizontally."
+    },
+    "bubble_ratio": {
+        "default": 1,
+        "type": "float",
+        "description": "The ratio of the bubble size to the text letters for Answers."
+    },
+    "bubble_shape": {
+        "default": "circle",
+        "type": "str",
+        "description": "The shape of the answer bubble: ['circle','square','rectangle','oval']"
+    },
+    "bubble_size": {
+        "default": 15,
+        "type": "int",
+        "description": "The bubble size in pts like 12pt or 15pt"
+    },
+    "dpi": {
+        "default": 288,
+        "type": "int",
+        "description": "Dots per inch which specifies how much detail is saved in the image. 300 is standard for good images, I chose 288 because it is a factor of ???"
+    },
+    "font_alpha": {
+        "default": 50,
+        "type": "int",
+        "description": "The opaqueness of the font (see through layer) from 0 - 100 where 0 is totally solid and 100 is clear."
+    },
+    "font_path": {
+        "default": "./assets/fonts/RobotoMono.ttf",
+        "type": "str",
+        "description": "The font location. Will also load italics, bold, and bold-italics if they exist."
+    },
+    "font_size": {
+        "default": 12,
+        "type": "int",
+        "description": "The default font size if none is specified."
+    },
+    "img_align_path": {
+        "default": "./assets/images/checkerboard_144x.jpg",
+        "type": "str",
+        "description": "The path and name of the image to help with identifying and aligning the picture of the answer sheet."
+    },
+    "label_spacing": {
+        "default": 5,
+        "type": "int",
+        "description": "Padding in pixels between label and bubble"
+    },
+    "label_style": {
+        "default": null,
+        "type": "str",
+        "description": "Style string for the A B C .... (tbd)"
+    },
+    "line_spacing": {
+        "default": 10,
+        "type": "int",
+        "description": "Padding in pixels between lines of answers"
+    },
+    "logo_path": {
+        "default": "./assets/images/LiveTestLogo_144x.png",
+        "type": "str",
+        "description": "Path to the app logo"
+    },
+    "num_ans_options": {
+        "default": 4,
+        "type": "int",
+        "description": "Number of answer bubbles (A-?)"
+    },
+    "num_questions": {
+        "default": 20,
+        "type": "int",
+        "description": "Number of questions to place in answer sheet."
+    },
+    "num_coolumns": {
+        "default": null,
+        "type": "int",
+        "description": "Force a specific number of columns. Not implemented."
+    },
+    "outName": {
+        "default": null,
+        "type": "str",
+        "description": "The file name of the answer sheet when its saved. Default uses a naming convention."
+    },
+    "outPath": {
+        "default": "./",
+        "type": "str",
+        "description": "The location to save the answer sheet. Default is current directory."
+    },
+    "page_gutters": {
+        "default": 20,
+        "type": "int",
+        "description": "The spacing between columns of answers."
+    },
+    "page_margins": {
+        "default": [
+            300,
+            100,
+            100,
+            50
+        ],
+        "type": "list",
+        "description": "The spacing between page egdes and the text: [Top, Right, Bottom, Left]"
+    },
+    "page_size": {
+        "default": [
+            8.5,
+            11
+        ],
+        "type": "list",
+        "description": "List with [width,height] e.g. [8.5,11]"
+    },
+    "que_ident_style": {
+        "type": "str",
+        "default": "N.",
+        "description": "The style of each question identifier. Example: 1. or 1) or 1:"
+    },
+    "zebra_shading": {
+        "default": null,
+        "type": "str",
+        "description": "Place shade behind alternating lines? None for no, or some color for yes. E.g. (200,200,200) or hex color."
+    }
+}
