@@ -10,7 +10,7 @@ import cv2
 from tables import Submission, Student, Test
 from db import session
 from models.submission import CreateSubmission, GetSubmission, UpdateSubmission
-from core.ScantronProcessor import ScantronProcessor
+# from core.ScantronProcessor import ScantronProcessor
 
 router = APIRouter(
     prefix="/submission",
@@ -19,8 +19,20 @@ router = APIRouter(
     redirect_slashes=True
 )
 
+
 @router.post("/")
-def create_submission(submission: CreateSubmission):
+def create_submission_live(submission: CreateSubmission):
+    '''
+    create a submission using the offical LiveTest answer sheets
+    '''
+    pass
+
+
+@router.post("/882E")
+def create_submission_882E(submission: CreateSubmission):
+    '''
+    Create a submission using a Form 882E
+    '''
     # query student and test, ensure request validity
     student = session.query(Student).get(submission.student_id)
     test = session.query(Test).get(submission.test_id)
@@ -37,23 +49,23 @@ def create_submission(submission: CreateSubmission):
         test_key = {int(x): test_key[x] for x in test_key}
         print("test_key", json.dumps(test_key))
         # create ScantronProcessor for handling submission 
-        new_submission = ScantronProcessor(
-            test_key, 
-            image=submission_image 
-        )
+        # new_submission = ScantronProcessor(
+        #     test_key, 
+        #     image=submission_image 
+        # )
         # process the submission, obtaining user answers and grade
-        graded_answers, grade = new_submission.process()
-        # convert Matlike obj to bytes obj for storage in db
-        image_buffer = cv2.imencode('.jpg', new_submission.image)[1]
-        graded_image = image_buffer.tobytes()
+        # graded_answers, grade = new_submission.process()
+        # # convert Matlike obj to bytes obj for storage in db
+        # image_buffer = cv2.imencode('.jpg', new_submission.image)[1]
+        # graded_image = image_buffer.tobytes()
 
         # instantiate new submission obj
         db_submission = Submission(
-            graded_photo=graded_image, 
+            # graded_photo=graded_image, 
             file_extension='jpg', 
             num_questions=test.num_questions, 
-            answers=json.dumps(graded_answers), 
-            grade=grade, 
+            # answers=json.dumps(graded_answers), 
+            # grade=grade, 
             student_id=student.id, 
             test_id=test.id
         )

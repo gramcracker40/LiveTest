@@ -357,30 +357,32 @@ if __name__ == "__main__":
         label_style         (str): Style string for the A B C .... (tbd)
         que_ident_style     (str): Style string for the 1. 2. 3. .... (tbd)
     """
+    question_counts = [20, 30, 50, 75, 100, 125, 150, 175, 200]
+    
+    for count in question_counts:
+        info = {
+            "page_size": (8.5, 11),
+            "img_align_path": "./assets/images/target_144x.png",
+            "logo_path": "./assets/images/LiveTestLogo_144x.png",
+            "num_ans_options": 4,
+            "num_questions": count,
+            "dpi": 288,
+            "font_size": 12,
+            "bubble_shape": "circle",
+            "bubble_size": 15,
+            "bubble_ratio": 1,
+            "font_path": "./assets/fonts/RobotoMono-Regular.ttf",
+            "font_bold": "./assets/fonts/RobotoMono-Bold.ttf",
+            "page_gutters": (300, 100, 100, 50),
+            "line_spacing": 10,
+            "answer_spacing": 5,
+            "label_spacing": 5,
+            "zebra_shading": True,
+            "label_style": None,
+            "que_ident_style": None,
+            "font_alpha": 50,
+        }
 
-    info = {
-        "page_size": (8.5, 11),
-        "img_align_path": "./assets/images/target_144x.png",
-        "logo_path": "./assets/images/LiveTestLogo_144x.png",
-        "num_ans_options": 4,
-        "num_questions": 20,
-        "dpi": 288,
-        "font_size": 12,
-        "bubble_shape": "circle",
-        "bubble_size": 15,
-        "bubble_ratio": 1,
-        "font_path": "./assets/fonts/RobotoMono-Regular.ttf",
-        "font_bold": "./assets/fonts/RobotoMono-Bold.ttf",
-        "page_gutters": (300, 100, 100, 50),
-        "line_spacing": 10,
-        "answer_spacing": 5,
-        "label_spacing": 5,
-        "zebra_shading": True,
-        "label_style": None,
-        "que_ident_style": None,
-        "font_alpha": 50,
-    }
-
-    pictron = Pictron(**info)
-    pictron.generate()
-    pictron.saveImage()
+        pictron = Pictron(**info)
+        pictron.generate()
+        pictron.saveImage()

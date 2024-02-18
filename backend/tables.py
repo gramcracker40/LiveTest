@@ -128,6 +128,7 @@ class Test(Base):
     start_t = Column(DateTime)
     end_t = Column(DateTime)
     num_questions = Column(Integer)
+    num_choices = Column(Integer)
     answer_key = Column(LargeBinary, nullable=False)
     file_extension = Column(String, nullable=False)
     answers = Column(String, nullable=False)
