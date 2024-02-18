@@ -268,8 +268,7 @@ class Pictron:
         # Save the image
         print("saving...")
         # self.final_image = Image.alpha_composite(self.image, self.overlay)
-        self.image.save("./generatedSheets/temp3.png")
-        self.image.save("./generatedSheets/temp3.pdf")
+        self.image.save(f"./generatedSheets/temp{self.num_questions}.png")
         # self.image.show()
 
 
@@ -369,7 +368,7 @@ if __name__ == "__main__":
             "dpi": 288,
             "font_size": 12,
             "bubble_shape": "circle",
-            "bubble_size": 15,
+            "bubble_size": 12,
             "bubble_ratio": 1,
             "font_path": "./assets/fonts/RobotoMono-Regular.ttf",
             "font_bold": "./assets/fonts/RobotoMono-Bold.ttf",
