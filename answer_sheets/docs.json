@@ -12,7 +12,7 @@
     "bubble_shape": {
         "default": "circle",
         "type": "str",
-        "description": "The shape of the answer bubble: ['circle','square','rectangle','oval']"
+        "description": "The shape of the answer bubble: ['circle','square','rectangle','ellipse']"
     },
     "bubble_size": {
         "default": 15,
@@ -74,7 +74,7 @@
         "type": "int",
         "description": "Number of questions to place in answer sheet."
     },
-    "num_coolumns": {
+    "num_columns": {
         "default": null,
         "type": "int",
         "description": "Force a specific number of columns. Not implemented."
@@ -102,7 +102,7 @@
             50
         ],
         "type": "list",
-        "description": "The spacing between page egdes and the text: [Top, Right, Bottom, Left]"
+        "description": "The spacing between page edges and the text: [Top, Right, Bottom, Left]"
     },
     "page_size": {
         "default": [
