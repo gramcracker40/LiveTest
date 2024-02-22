@@ -126,7 +126,7 @@ def fontSizeToPixels(dpi, font_size):
 
 def generateName(num_questions, num_ans_options):
     timestamp = datetime.datetime.now().timestamp()
-    return f"{num_questions}-{num_ans_options}-{int(timestamp)}"
+    return f"{num_questions}-{num_ans_options}-const"   # {int(timestamp)}
 
 
 class Pictron:
@@ -166,6 +166,7 @@ class Pictron:
         self.bubble_size = kwargs.get("bubble_size", 15)
         self.bubble_ratio = kwargs.get("bubble_ratio", 1)
         self.bubble_shape = kwargs.get("bubble_shape", "circle")
+        self.column_width = kwargs.get("column_width", 85)
 
         self.font_size = kwargs.get("font_size", 14)
         self.font_path = kwargs.get("font_path", None)
@@ -325,45 +326,64 @@ class Pictron:
         self.addRectangle(x + 300, y + 50, 500, 3, (0, 0, 0), 2)
 
     def addAnswerBubbles(self, start_x, start_y):
+        '''
+        TODO: right align question numbers. When brought into 
+            triple digits the alignment of answer bubbles is not lining up
+        
+        TODO: add horizontal check for last column. 
+            change bubble_size, column_width dynamically to ensure a fit for number 
+            of questions requested by params. 
+            currently being placed outside of bound of paper.
 
+        TODO: determine width of single character and add it to self.column_width whenever
+            the generated question number reaches 100 (n)
+        '''
         x = start_x
-        y = start_y - (self.bubble_height)
+        y = start_y
 
-        i = 0
-        n = 1
+        i = 0  # Overall count for number of circles placed
+        n = 1  # Question number
 
         if self.zebra_shading:
             self.drawZebraLines(x, y)
 
-        for _ in range(self.num_questions * self.num_ans_options):
+        option_set_width = (self.bubble_width + self.answer_spacing) \
+                * self.num_ans_options + self.column_width
 
+        while n <= self.num_questions:
             if i % self.num_ans_options == 0:
+                label = f"{n:02}."
+            
+                # dynamically adjust spacing based on the length of the question number
+                label_width = len(label) * (self.font_size_adj // 2)  # Estimate label width
+                label_bubble_spacing = 10  # Minimum spacing between label and first bubble
+                
+                # check if starting a new column is needed only when new answer is being created
+                if y + self.bubble_height > self.img_height - self.page_margins[2]:
+                    start_x += option_set_width + self.label_spacing  # Shift to next column
+                    x = start_x
+                    y = start_y
+
+                # add question number
+                self.addBubbleLabel(x, y, label) 
+                x += label_width + label_bubble_spacing
+
+            # add answer choice
+            self.addBubble(x, y)
+            answer_label = chr((i % self.num_ans_options) + 65)  # A, B, C, etc.
+            self.addBubbleLabel(x - (label_bubble_spacing/2), y, answer_label, (200, 200, 200))
+            
+            # increment x to place the next answer choice if need be. 
+            x += self.bubble_width + self.answer_spacing
+            
+            # check to see if we placed all options for this question. 
+            if (i + 1) % self.num_ans_options == 0:
                 x = start_x
                 y += self.bubble_height + self.line_spacing
-
-                if n < 10:
-                    l = "0" + str(n)
-                else:
-                    l = str(n)
-                self.addBubbleLabel(x, y, f"{l}. ")
                 n += 1
-                x += 75
-
-            if n % 20 == 0:
-                y = start_y - (self.bubble_height)
-                start_x = (
-                    start_x
-                    + (self.bubble_width + self.answer_spacing) * self.num_ans_options
-                )
-
-            x += 25
-            self.addBubble(x, y)
-            label = chr((i % self.num_ans_options) + 65)
-            self.addBubbleLabel(x - 3, y, label, (200, 200, 200))
-
-            x += self.bubble_width + self.answer_spacing
 
             i += 1
+
 
     def generate(self):
         w, h = self.alignment_image.size
@@ -381,7 +401,6 @@ class Pictron:
         right = self.page_margins[3]
 
         self.pasteAlignmentImages(positions)
-        self.drawTestNumBoxes(500, 100, 60, 75, 8)
         self.drawSignatureLine(1350, 100)
         self.pasteImage(
             self.img_width // 2 - self.logo_image.width // 2, 50, self.logo_image
@@ -400,7 +419,7 @@ class Pictron:
 
         print(f"{name}.png")
         self.image.save(f"{name}.png")
-        self.image.save(f"{name}.pdf")
+        #self.image.save(f"{name}.pdf")
         # self.image.show()
 
 
@@ -488,61 +507,36 @@ if __name__ == "__main__":
         label_style         (str): Style string for the A B C .... (tbd)
         que_ident_style     (str): Style string for the 1. 2. 3. .... (tbd)
     """
-    question_counts = [20, 30, 50, 75, 100, 125, 150, 175, 200]
+    question_counts = [20, 30, 50, 75, 100, 125, 150, 175, 200, 250]
 
     for count in question_counts:
+        console.print(get_params("docs.json"))
+
         info = {
             "page_size": (8.5, 11),
-            "img_align_path": "./assets/images/target_144x.png",
+            "img_align_path": "./assets/images/checkerboard_144x_adj_color.jpg",
             "logo_path": "./assets/images/LiveTestLogo_144x.png",
-            "num_ans_options": 4,
+            "num_ans_options": 5,
             "num_questions": count,
             "dpi": 288,
-            "font_size": 12,
+            "font_size": 13,
             "bubble_shape": "circle",
-            "bubble_size": 12,
+            "bubble_size": 15,
             "bubble_ratio": 1,
             "font_path": "./assets/fonts/RobotoMono-Regular.ttf",
             "font_bold": "./assets/fonts/RobotoMono-Bold.ttf",
-            "page_gutters": (300, 100, 100, 50),
+            "page_margins": (300, 100, 100, 50),
             "line_spacing": 10,
-            "answer_spacing": 5,
+            "answer_spacing": 6,
             "label_spacing": 5,
             "zebra_shading": True,
             "label_style": None,
             "que_ident_style": None,
             "font_alpha": 50,
+            "outPath": "./generatedSheets",
+            "outName": None,
         }
 
-    console.print(get_params("docs.json"))
-
-    # "img_align_path": "./assets/images/target_144x.png",
-
-    info = {
-        "page_size": (8.5, 11),
-        "img_align_path": "./assets/images/checkerboard_144x_adj_color.jpg",
-        "logo_path": "./assets/images/LiveTestLogo_144x.png",
-        "num_ans_options": 3,
-        "num_questions": 50,
-        "dpi": 288,
-        "font_size": 13,
-        "bubble_shape": "circle",
-        "bubble_size": 15,
-        "bubble_ratio": 1,
-        "font_path": "./assets/fonts/RobotoMono-Regular.ttf",
-        "font_bold": "./assets/fonts/RobotoMono-Bold.ttf",
-        "page_margins": (300, 100, 100, 50),
-        "line_spacing": 10,
-        "answer_spacing": 3,
-        "label_spacing": 5,
-        "zebra_shading": True,
-        "label_style": None,
-        "que_ident_style": None,
-        "font_alpha": 50,
-        "outPath": "./generatedSheets",
-        "outName": None,
-    }
-
-    pictron = Pictron(**info)
-    pictron.generate()
-    pictron.saveImage()
+        pictron = Pictron(**info)
+        pictron.generate()
+        pictron.saveImage()
