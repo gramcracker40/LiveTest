@@ -18,7 +18,7 @@ from tables import Test, Course
 from db import get_db, session
 import base64
 from time import sleep
-from core.TestProcessor import TestProcessor
+# from core.TestProcessor import TestProcessor
 
 router = APIRouter(
     prefix="/test",
@@ -28,10 +28,18 @@ router = APIRouter(
 )
 
 
-@router.post(
-    "/", response_model=CreateTestConfirmation
-)  # , dependencies=[Depends(jwt_token_verification)])
-def create_test(test: CreateTest):
+@router.post("/", response_model=CreateTestConfirmation)  # , dependencies=[Depends(jwt_token_verification)])
+def create_test_live(test: CreateTest):
+    '''
+    Create a test using the offical LiveTest answer sheets
+    '''
+
+
+@router.post("/882E", response_model=CreateTestConfirmation)  # , dependencies=[Depends(jwt_token_verification)])
+def create_test_882E(test: CreateTest):
+    '''
+    Create a test using a Form 882E
+    '''
     try:
         course = session.query(Course).get(test.course_id)
         if not course:
@@ -39,10 +47,10 @@ def create_test(test: CreateTest):
         
         # start by generating the answer key
         answer_key_bytes = base64.b64decode(test.answer_key.encode("utf-8"))
-        answer_key = TestProcessor.generate_key(
-            test.num_questions, key_bytes=answer_key_bytes
-        )
-        print(f"Answer_key: {json.dumps(answer_key)}")
+        # answer_key = TestProcessor.generate_key(
+        #     test.num_questions, key_bytes=answer_key_bytes
+        # )
+        # print(f"Answer_key: {json.dumps(answer_key)}")
         new_test = Test(
             name=test.name,
             start_t=test.start_t,
@@ -51,7 +59,7 @@ def create_test(test: CreateTest):
             answer_key=answer_key_bytes,
             course_id=test.course_id,
             file_extension=test.file_extension,
-            answers=json.dumps(answer_key),
+            # answers=json.dumps(answer_key),
         )
         session.add(new_test)
         session.commit()
