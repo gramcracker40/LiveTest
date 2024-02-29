@@ -327,21 +327,17 @@ class Pictron:
 
     def addAnswerBubbles(self, start_x, start_y):
         '''
-        TODO: right align question numbers. When brought into 
-            triple digits the alignment of answer bubbles is not lining up
         
         TODO: add horizontal check for last column. 
             change bubble_size, column_width dynamically to ensure a fit for number 
             of questions requested by params. 
             currently being placed outside of bound of paper.
 
-        TODO: determine width of single character and add it to self.column_width whenever
-            the generated question number reaches 100 (n)
         '''
         x = start_x
         y = start_y
 
-        i = 0  # Overall count for number of circles placed
+        i = 0  # Overall count for number of answer choices placed
         n = 1  # Question number
 
         if self.zebra_shading:
@@ -350,23 +346,24 @@ class Pictron:
         option_set_width = (self.bubble_width + self.answer_spacing) \
                 * self.num_ans_options + self.column_width
 
+        # begin outputting answer choices
         while n <= self.num_questions:
+            # check to see if we are on to the next question
             if i % self.num_ans_options == 0:
-                label = f"{n:>3}."
-
-            
-                # dynamically adjust spacing based on the length of the question number
-                label_width = len(label) * (self.font_size_adj // 2)  # Estimate label width
-                label_bubble_spacing = 10  # Minimum spacing between label and first bubble
-                
                 # check if starting a new column is needed only when new answer is being created
                 if y + self.bubble_height > self.img_height - self.page_margins[2]:
                     start_x += option_set_width + self.label_spacing  # Shift to next column
                     x = start_x
                     y = start_y
 
-                # add question number
-                self.addBubbleLabel(x, y, label) 
+                question_label = f"{n:>3}."
+
+                # dynamically adjust spacing based on the length of the question number
+                label_width = len(question_label) * (self.font_size_adj // 2)  # Estimate label width
+                label_bubble_spacing = 10  # Minimum spacing between label and first bubble
+
+                # add question number to start off the new row
+                self.addBubbleLabel(x, y, question_label) 
                 x += label_width + label_bubble_spacing
 
             # add answer choice
@@ -377,7 +374,7 @@ class Pictron:
             # increment x to place the next answer choice if need be. 
             x += self.bubble_width + self.answer_spacing
             
-            # check to see if we placed all options for this question. 
+            # check to see if we placed all answer choices for this question. 
             if (i + 1) % self.num_ans_options == 0:
                 x = start_x
                 y += self.bubble_height + self.line_spacing
