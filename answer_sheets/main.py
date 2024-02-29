@@ -352,7 +352,8 @@ class Pictron:
 
         while n <= self.num_questions:
             if i % self.num_ans_options == 0:
-                label = f"{n:02}."
+                label = f"{n:>3}."
+
             
                 # dynamically adjust spacing based on the length of the question number
                 label_width = len(label) * (self.font_size_adj // 2)  # Estimate label width
@@ -521,7 +522,7 @@ if __name__ == "__main__":
             "dpi": 288,
             "font_size": 13,
             "bubble_shape": "circle",
-            "bubble_size": 15,
+            "bubble_size": 12,
             "bubble_ratio": 1,
             "font_path": "./assets/fonts/RobotoMono-Regular.ttf",
             "font_bold": "./assets/fonts/RobotoMono-Bold.ttf",
