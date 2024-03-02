@@ -199,6 +199,7 @@ class Pictron:
         self.img_height = inchesToPixels(self.dpi, self.page_size[1])
 
         self.font_size_adj = fontSizeToPixels(self.dpi, self.font_size)
+        print(f"self.font_size_adj: {self.font_size_adj}")
         self.bubble_height = fontSizeToPixels(self.dpi, self.bubble_size)
         self.bubble_width = (
             fontSizeToPixels(self.dpi, self.bubble_size) * self.bubble_ratio
@@ -264,8 +265,6 @@ class Pictron:
         self.draw.rectangle([x, y, x + w, y + h], fill=color, outline=line)
 
         # draw.rectangle(rectangle_coordinates, fill=rectangle_color, outline=None)
-
-
 
     def drawZebraLines(self, x, y):
 
@@ -371,10 +370,6 @@ class Pictron:
 
                 question_label = f"{n:>3}."
 
-                # dynamically adjust spacing based on the length of the question number
-                label_width = len(question_label) * (self.font_size_adj // 2)  # Estimate label width
-                label_bubble_spacing = 10  # Minimum spacing between label and first bubble
-
                 # if we are randomizing filled circles, choose the answer for this question here, save to random_choices
                 if randomize_filled:
                     fill_answer = random.choice(range(self.num_ans_options))
@@ -384,12 +379,15 @@ class Pictron:
 
                 # add question number to start off the new row
                 self.addBubbleLabel(x, y, question_label) 
-                x += label_width + label_bubble_spacing
+
+                # dynamically allocate necessary spacing between question number and first answer choice. 
+                x += len(question_label) + (self.font_size_adj // 2) + self.bubble_width + 10
 
             # add answer choice - determine if it will be filled or not
             answer_label = chr((i % self.num_ans_options) + 65)  # A, B, C, etc.
             self.addBubble(x, y, filled=(i % self.num_ans_options) == fill_answer)
-            self.addBubbleLabel(x - (label_bubble_spacing/2), y, answer_label, (200, 200, 200))
+            self.addBubbleLabel(x - (self.bubble_width/5), y, answer_label, (200, 200, 200)) \
+                if (i % self.num_ans_options) != fill_answer else None
             
             # increment x to place the next answer choice if need be. 
             x += self.bubble_width + self.answer_spacing
@@ -530,7 +528,7 @@ if __name__ == "__main__":
         label_style         (str): Style string for the A B C .... (tbd)
         que_ident_style     (str): Style string for the 1. 2. 3. .... (tbd)
     """
-    question_counts = [20, 30, 50, 75, 100, 125, 150, 175, 200, 250]
+    question_counts = [20, 30, 50, 75, 100, 125, 150, 175, 200, 250, 275, 300]
 
     for count in question_counts:
         console.print(get_params("docs.json"))
@@ -541,16 +539,15 @@ if __name__ == "__main__":
             "logo_path": "./assets/images/LiveTestLogo_144x.png",
             "num_ans_options": 5,
             "num_questions": count,
-            "dpi": 288,
-            "font_size": 13,
+            "font_size": 32,
             "bubble_shape": "circle",
-            "bubble_size": 12,
+            "bubble_size": 20,
             "bubble_ratio": 1,
             "font_path": "./assets/fonts/RobotoMono-Regular.ttf",
             "font_bold": "./assets/fonts/RobotoMono-Bold.ttf",
             "page_margins": (300, 100, 100, 50),
             "line_spacing": 10,
-            "answer_spacing": 6,
+            "answer_spacing": 45,
             "label_spacing": 5,
             "zebra_shading": True,
             "label_style": None,
