@@ -11,6 +11,7 @@ import textwrap
 import sys
 import datetime
 import json
+import random
 
 console = Console()
 
@@ -258,6 +259,13 @@ class Pictron:
             fill=fill,
             font=self.font,
         )
+    
+    def addRectangle(self, x, y, w, h, color=(0, 0, 0), line=0):
+        self.draw.rectangle([x, y, x + w, y + h], fill=color, outline=line)
+
+        # draw.rectangle(rectangle_coordinates, fill=rectangle_color, outline=None)
+
+
 
     def drawZebraLines(self, x, y):
 
@@ -274,21 +282,24 @@ class Pictron:
                 self.addRectangle(x, y, w, h, color=(240, 240, 240), line=None)
             y += self.bubble_height + self.line_spacing
 
-    def addBubble(self, x, y, line_thickness=2):
+    def addBubble(self, x, y, line_thickness=2, filled:bool=False):
         x1 = x - (self.font_size_adj // 2)
         y1 = y - (self.font_size_adj // 2)
         x2 = x1 + self.bubble_width
         y2 = y1 + self.bubble_height
 
         if self.bubble_shape in ["circle", "ellipse"]:
-            # Draw the circle with a specific fill color (e.g., 'red', 'blue', 'green', or an RGB tuple)
-
-            self.draw.ellipse([x1, y1, x2, y2], outline="black", width=line_thickness)
+            if filled:
+                self.draw.ellipse([x1, y1, x2, y2], outline="black", width=line_thickness, fill="black")
+            else:
+                self.draw.ellipse([x1, y1, x2, y2], outline="black", width=line_thickness)
 
         elif self.bubble_shape in ["rectangle", "square"]:
-
-            self.draw.rectangle([x1, y1, x2, y2], outline="black", width=line_thickness)
-
+            if filled:
+                self.draw.rectangle([x1, y1, x2, y2], outline="black", fill="black")
+            else:
+                self.draw.rectangle([x1, y1, x2, y2], outline="black", width=line_thickness)
+    
     def addRectangle(self, x, y, w, h, color=(0, 0, 0), line=0):
         self.draw.rectangle([x, y, x + w, y + h], fill=color, outline=line)
 
@@ -325,7 +336,7 @@ class Pictron:
         )
         self.addRectangle(x + 300, y + 50, 500, 3, (0, 0, 0), 2)
 
-    def addAnswerBubbles(self, start_x, start_y):
+    def addAnswerBubbles(self, start_x, start_y, randomize_filled:bool=False):
         '''
         
         TODO: add horizontal check for last column. 
@@ -362,13 +373,18 @@ class Pictron:
                 label_width = len(question_label) * (self.font_size_adj // 2)  # Estimate label width
                 label_bubble_spacing = 10  # Minimum spacing between label and first bubble
 
+                if randomize_filled:
+                    fill_answer = random.choice(range(self.num_ans_options))
+                else:
+                    fill_answer = None
+
                 # add question number to start off the new row
                 self.addBubbleLabel(x, y, question_label) 
                 x += label_width + label_bubble_spacing
 
-            # add answer choice
-            self.addBubble(x, y)
+            # add answer choice - determine if it will be filled or not
             answer_label = chr((i % self.num_ans_options) + 65)  # A, B, C, etc.
+            self.addBubble(x, y, filled=(i % self.num_ans_options) == fill_answer)
             self.addBubbleLabel(x - (label_bubble_spacing/2), y, answer_label, (200, 200, 200))
             
             # increment x to place the next answer choice if need be. 
@@ -383,7 +399,7 @@ class Pictron:
             i += 1
 
 
-    def generate(self):
+    def generate(self, random_filled:bool=False):
         w, h = self.alignment_image.size
         positions = [
             (0, 0),
@@ -403,7 +419,7 @@ class Pictron:
         self.pasteImage(
             self.img_width // 2 - self.logo_image.width // 2, 50, self.logo_image
         )
-        self.addAnswerBubbles(right, top)
+        self.addAnswerBubbles(right, top, randomize_filled=random_filled)
 
     def saveImage(self, outPath=None, outName=None, show=False):
         # Save the image
@@ -536,5 +552,5 @@ if __name__ == "__main__":
         }
 
         pictron = Pictron(**info)
-        pictron.generate()
+        pictron.generate(random_filled=True)
         pictron.saveImage()
