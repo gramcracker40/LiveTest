@@ -357,6 +357,8 @@ class Pictron:
         option_set_width = (self.bubble_width + self.answer_spacing) \
                 * self.num_ans_options + self.column_width
 
+        self.random_choices = {}
+
         # begin outputting answer choices
         while n <= self.num_questions:
             # check to see if we are on to the next question
@@ -373,8 +375,10 @@ class Pictron:
                 label_width = len(question_label) * (self.font_size_adj // 2)  # Estimate label width
                 label_bubble_spacing = 10  # Minimum spacing between label and first bubble
 
+                # if we are randomizing filled circles, choose the answer for this question here, save to random_choices
                 if randomize_filled:
                     fill_answer = random.choice(range(self.num_ans_options))
+                    self.random_choices[n] = chr(fill_answer + 65)
                 else:
                     fill_answer = None
 
@@ -420,6 +424,7 @@ class Pictron:
             self.img_width // 2 - self.logo_image.width // 2, 50, self.logo_image
         )
         self.addAnswerBubbles(right, top, randomize_filled=random_filled)
+        
 
     def saveImage(self, outPath=None, outName=None, show=False):
         # Save the image
@@ -429,12 +434,16 @@ class Pictron:
             outPath = self.outPath
         if outName is None:
             outName = self.outName
-        name = os.path.join(outPath, outName)
+        self.name = os.path.join(outPath, outName)
 
-        print(f"{name}.png")
-        self.image.save(f"{name}.png")
+        print(f"{self.name}.png")
+        self.image.save(f"{self.name}.png")
         #self.image.save(f"{name}.pdf")
         # self.image.show()
+
+        if self.random_choices != {}:
+            with open(f"{os.path.split(self.name)[-1]}.json", 'w') as fp:
+                json.dump(self.random_choices, fp, indent=True)
 
 
 def usage():
