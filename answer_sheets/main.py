@@ -442,7 +442,7 @@ class Pictron:
         # self.image.show()
 
         if self.random_choices != {}:
-            with open(f"{os.path.split(self.name)[-1]}.json", 'w') as fp:
+            with open(f"generatedSheets/answersJSON/{os.path.split(self.name)[-1]}.json", 'w') as fp:
                 json.dump(self.random_choices, fp, indent=True)
 
 
