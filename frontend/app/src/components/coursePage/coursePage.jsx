@@ -3,6 +3,7 @@ import { EasyRequest, defHeaders, instanceURL } from "../../api/helpers.js";
 import { AuthContext } from '../../context/auth.jsx';
 import { LogoutButton } from '../logoutButton.jsx';
 import { useNavigate } from 'react-router-dom'
+import { AnalyticsPage } from '../AnalyticsPage.jsx';
 
 export const CoursePage = () => {
   const [courses, setCourses] = useState([]);
@@ -175,7 +176,8 @@ export const CoursePage = () => {
                 <div className="Tests">
                   {course.tests.length > 0 ? (
                     course.tests.map((test, testIndex) => (
-                      <div key={testIndex} className={`Test-${testIndex} flex justify-between transform transition duration-300 hover:text-cyan-700 hover:scale-105  hover:cursor-pointer`}>
+                      <div key={testIndex} className={`Test-${testIndex} flex justify-between transform transition duration-300 hover:text-cyan-700 hover:scale-105  hover:cursor-pointer`}
+                        onClick={() => handleNavigate("/course/analytics", { test })}>
                         <span className="text-md font-light">{test.name}</span>
                         <span className="text-md">{handleDateFormatting(test.start_t)}</span>
                       </div>
