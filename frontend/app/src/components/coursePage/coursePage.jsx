@@ -57,8 +57,8 @@ export const CoursePage = () => {
               const day = String(Math.floor(Math.random() * 31) + 1).padStart(2, '0')
               fakeTests.push({
                 "name": "Name of a Longer Test " + (i + 1),
-                "start_t": `2024-01-${day}T10:00:00`,
-                "end_t": `2024-01-${day}T20:00:00`
+                "start_t": `2024-03-${day}T10:00:00`,
+                "end_t": `2024-03-${day}T20:00:00`
               });
             }
             return { ...course, tests: [...course.tests, ...fakeTests] };
@@ -143,57 +143,6 @@ export const CoursePage = () => {
 
   // console.log(`Courses::: ${JSON.stringify(courses)}`);
   return (
-    // <div className="course-page-container">
-    //   <h1 className="text-2xl font-bold">Your Courses</h1>
-    //   <div className="courses-list">
-    //     {courses.map(course => (
-    //       // <CourseCard key={course.id} course={course} /> // Render the CourseCard component
-    //       // <div key={course.id} className="course-item">
-    //       //   <h2>{course.name}</h2>
-    //       //   {/* Additional course details */}
-    //       // </div>
-    //     ))}
-    //     {!courses && <LoadingScreen></LoadingScreen>}
-    //   </div>
-    // </div>
-    // <div className="container mx-auto px-4">
-    //   <div className="flex divide-x divide-gray-300">
-
-    //     {/* <div className="w-1/2">
-    //       <h1 className="text-2xl font-bold">Your Courses</h1>
-    //       <div className="courses-list space-y-4">
-    //         {courses.map(course => (
-    //           <div
-    //             key={course.id}
-    //             className="course-item cursor-pointer p-4 hover:bg-gray-100"
-    //             onClick={() => handleCourseSelect(course.id)}
-    //           >
-    //             <h2 className="text-lg font-semibold">{course.name}</h2>
-
-    //           </div>
-    //         ))}
-    //       </div>
-    //     </div> */}
-    //     {/* <div className="w-1/2 overflow-auto">
-    //       {selectedCourse ? (
-    //         tests[selectedCourse] && tests[selectedCourse].length > 0 ? (
-    //           <div className="tests-list space-y-4 p-4">
-    //             {tests[selectedCourse].map((test, index) => (
-    //               <div key={index} className="test-item p-2 border-b border-gray-200">
-    //                 {test.name} - {test.date}
-    //               </div>
-    //             ))}
-    //           </div>
-    //         ) : (
-    //           <p className="p-4">No tests available for this course.</p>
-    //         )
-    //       ) : (
-    //         <p className="p-4">Select a course to view tests.</p>
-    //       )}
-    //     </div> */}
-    //   </div>
-    //   < LogoutButton />
-    // </div>
 
     <div className=" min-h-screen mx-auto w-full bg-cyan-50">
       <div className='sm:px-28 sm:py-8 px-4 py-4'>
@@ -206,11 +155,17 @@ export const CoursePage = () => {
               <li key={index} className='text-lg text-gray-700 flex justify-between'>
                 <span>{test.name}</span>
                 {handleDateFormatting(test.start_t, test.end_t) === "LIVE" ? (
-                  <a 
-                    onClick={() => handleNavigate("/submission", { test })} 
-                    className="text-md cursor-pointer text-cyan-500 hover:text-cyan-700">
-                    LIVE
-                  </a>
+                  <>
+                    {authDetails.type === 'student' && <a
+                      onClick={() => handleNavigate("/submission", { test })}
+                      className="text-md cursor-pointer text-cyan-500 hover:text-cyan-700">
+                      LIVE
+                    </a> } 
+                    {authDetails.type === 'teacher' && <a
+                      className='text-md text-cyan-500'>
+                      LIVE
+                    </a>}
+                  </>
                 ) : (
                   <span>{handleDateFormatting(test.start_t, test.end_t)}</span>
                 )}
@@ -218,24 +173,24 @@ export const CoursePage = () => {
             ))}
           </ul>
         </div>
-        <div>
-          <button 
-          className='bg-cyan-950 text-white text-lg rounded-md mb-4 px-4 py-2 hover:ring-1 hover: ring-bg-grey-500 hover:bg-grey-900'
-          onClick={() => handleNavigate("/create-course")}
+        {authDetails.type === 'teacher' && <div>
+          <button
+            className='bg-cyan-950 text-white text-lg rounded-md mb-4 px-4 py-2 hover:ring-1 hover: ring-bg-grey-500 hover:bg-grey-900'
+            onClick={() => handleNavigate("/create-course")}
           >
             Create a Course!
           </button>
-        </div>
+        </div>}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 ">
           {courses.map((course, index) => (
             <React.Fragment key={course.id}>
               <div className="mb-8 p-4 bg-white span rounded-lg shadow">
                 <div className={`Course-${index} flex justify-between mb-4`}>
                   <span className="text-xl font-semibold">{course.name}</span>
-                  <button
+                  {authDetails.type === 'teacher' && <button
                     className='bg-cyan-500 rounded-lg py-1 px-2 text-white hover:bg-cyan-400 hover:ring-2 hover:ring-cyan-300 hover:border-cyan-300'
                     onClick={() => handleNavigate("/create-test", { courseId: course.id })}
-                  >Create Test +</button>
+                  >Create Test +</button>}
                 </div>
                 <div className="Tests">
                   {course.tests.length > 0 ? (
