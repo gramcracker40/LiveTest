@@ -26,20 +26,16 @@ export const CoursePage = () => {
       navigate("/")
       return
     }
-    console.log(`Auth details --> ${JSON.stringify(authDetails)}`)
 
     // ---------------------------- FETCHING COURSES -----------------------------------
 
     // Fetch courses if not in cache
     const courseURL = instanceURL + `/course/${authDetails.type}/${authDetails.id}`
 
-    console.log(`courseURL::: ${courseURL}`)
-
     // API request to get courses for that teacher
     const fetchCourses = async () => {
       try {
         let req = await EasyRequest(courseURL, defHeaders, "GET");
-        console.log(`req.data --> ${JSON.stringify(req.data)}`)
         //  THE ACTUAL IF STATEMENT!!!!!
         // if (req.status === 200) {
         //   setCourses(req.data);
@@ -78,20 +74,13 @@ export const CoursePage = () => {
   //  ------------------------- GETTING ALL TESTS -----------------------------------
 
   useEffect(() => {
-
-    console.log(`These are courses and tests\n${JSON.stringify(courses)}`)
-
     const allTests = courses.flatMap(course => course.tests || [])
-
     setTests(allTests); // Flatten all tests from each course
-
   }, [courses]); // This useEffect depends on the courses state
 
   //  ------------------------- GETTING UPCOMING TESTS -----------------------------------
 
   useEffect(() => {
-    console.log(`tests: ${JSON.stringify(tests)}`)
-
     // Calculate upcoming tests only when courses data is updated
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()); // Today at 12 AM
@@ -105,19 +94,11 @@ export const CoursePage = () => {
     setUpcomingTests(filteredTests);
   }, [tests])
 
-  useEffect(() => {
-    console.log(`upcoming tests: ${JSON.stringify(upcomingTests)}`)
-  }, [upcomingTests])
 
   const handleDateFormatting = (start, end) => {
-    // console.log(`before end: ${end}`)
     const testStart = new Date(start);
     const testEnd = new Date(end);
     const now = new Date();
-
-    // console.log(`now: ${now}`)
-    // console.log(`testStart: ${testStart}`)
-    // console.log(`testEnd: ${testEnd}`)
 
     if (now >= testStart && now <= testEnd) {
       // Test is currently live
@@ -141,7 +122,6 @@ export const CoursePage = () => {
     setSelectedCourse(courseId);
   };
 
-  // console.log(`Courses::: ${JSON.stringify(courses)}`);
   return (
 
     <div className=" min-h-screen mx-auto w-full bg-cyan-50">
@@ -195,10 +175,9 @@ export const CoursePage = () => {
                 <div className="Tests">
                   {course.tests.length > 0 ? (
                     course.tests.map((test, testIndex) => (
-                      <div key={testIndex} className={`Test-${testIndex} flex justify-between`}>
+                      <div key={testIndex} className={`Test-${testIndex} flex justify-between hover:cursor-pointer`} onClick={console.log("CLICKED!!")}>
                         <span className="text-md font-light">{test.name}</span>
                         <span className="text-md">{handleDateFormatting(test.start_t)}</span>
-                        {/* <span className="text-md">{test.date}</span> */}
                       </div>
                     ))
                   ) : (
