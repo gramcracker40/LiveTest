@@ -6,12 +6,12 @@ import { EasyRequest, defHeaders, instanceURL } from '../api/helpers';
 import { BarChart, Bar, Label, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
 export const AnalyticsPage = () => {
-    const location = useLocation()
 
+    const location = useLocation()
     const test = location.state.test
 
     const testAvg = 90;
-    const myGrade = 73;
+    const myGrade = 55;
     const testHigh = 100;
     const testLow = 50;
 
@@ -40,12 +40,9 @@ export const AnalyticsPage = () => {
         };
     });
 
-    const data = [
+    const pieData = [
         { name: 'grade', value: myGrade },
     ];
-
-    // Colors for each section
-    const COLORS = ['#13CD34', '#00C49F'];
 
     return (
         <div className=" min-h-screen mx-auto w-full bg-cyan-50">
@@ -55,55 +52,94 @@ export const AnalyticsPage = () => {
                         {test.name}
                     </h1>
                 </div>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 ">
-                    <div className="mb-8 p-4 bg-white rounded-lg shadow">
-                        <ResponsiveContainer width="100%" height={300}>
-                            <BarChart
-                                data={histogramData}
-                                margin={{
-                                    top: 5,
-                                    right: 30,
-                                    left: 20,
-                                    bottom: 5,
-                                }}
-                            >
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="grade" />
-                                {/* <YAxis /> */}
-                                <Tooltip />
-                                <Bar dataKey="count" fill="#8884d8" />
-                            </BarChart>
-                        </ResponsiveContainer>
+                <Analytics pieData={pieData} histogramData={histogramData} myGrade={myGrade} testAvg={testAvg} testHigh={testHigh} testLow={testLow}  />
+            </div>
+        </div>
+
+
+    )
+}
+
+export const Analytics = (props) => {
+
+    const testAvg = props.testAvg;
+    const myGrade = props.myGrade;
+    const testHigh = props.testHigh;
+    const testLow = props.testLow;
+
+    const histogramData = props.histogramData;
+    const pieData = props.pieData
+
+    // Colors for each type of grade. Green for >= 70. Yellow for >= 60. Red for everything else.
+    const COLORS = ['#13CD34', '#FFE800', '#EF2424'];
+
+    return (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 ">
+            <div className="mb-8 p-4 bg-white rounded-lg shadow">
+                <span className='flex justify-center text-lg'>Class Grades</span>
+                <ResponsiveContainer width="100%" height={300}>
+                    <BarChart
+                        data={histogramData}
+                        margin={{
+                            top: 5,
+                            right: 30,
+                            left: 20,
+                            bottom: 5,
+                        }}
+                    >
+                        <XAxis dataKey="grade" />
+                        {/* <YAxis /> */}
+                        <Tooltip />
+                        <Bar dataKey="count" fill="#8884d8" />
+                    </BarChart>
+                </ResponsiveContainer>
+            </div>
+            <div className='mb-8 p-4 bg-white rounded-lg shadow grid grid-cols-2'>
+                <div>
+                    <span className='justify-center flex text-lg'>My Grade</span>
+                    <PieChart width={200} height={200} className='justify-center flex'>
+                        <Pie
+                            data={pieData}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={65}
+                            outerRadius={80}
+                            fill={myGrade >= 70 ? COLORS[0] : myGrade >= 60 ? COLORS[1] : COLORS[2]}
+                            title="My grade"
+                            dataKey="value"
+                            startAngle={90} // Starting angle
+                            endAngle={(-360 * (myGrade / 100.0)) + 90} // End angle, this is where you control the fill amount
+                        >
+                            <Label
+                                value={Math.round(100 * myGrade) / 100}
+                                position="center"
+                                className='text-black text-5xl justify-center '
+                            />
+                        </Pie>
+                    </PieChart>
+                </div>
+                <div className='grid grid-rows-3 ml-3'>
+                    <div className='border-cyan-700 border rounded-3xl mb-2'>
+                        <div className='flex flex-col m-3'>
+                            <span className='self-start'>Average</span>
+                            <span className='flex-grow flex items-center justify-center text-3xl'>{testAvg}</span>
+                        </div>
                     </div>
-                    <div className='mb-8 p-4 bg-white  rounded-lg shadow'>
-                        <span className='text-lg'>Grade</span>
-                        <PieChart width={200} height={200}>
-                            <Pie
-                                data={data}
-                                cx="50%"
-                                cy="50%"
-                                innerRadius={60}
-                                outerRadius={80}
-                                fill="#8884d8"
-                                title="My grade"
-                                paddingAngle={5}
-                                dataKey="value"
-                                startAngle={90} // Starting angle
-                                endAngle={(-360 * (myGrade / 100.0)) + 90} // End angle, this is where you control the fill amount
-                            >
-                                {
-                                    data.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)
-                                }
-                                <Label
-                                    value={myGrade}
-                                    position="center"
-                                    style={{ fill: 'black', fontSize: 40 }} // Style for the label
-                                />
-                            </Pie>
-                        </PieChart>
+                    <div className=' border-cyan-700 border rounded-3xl mb-2'>
+                        <div className='flex flex-col m-3'>
+                            <span className='self-start'>High</span>
+                            <span className='flex-grow flex items-center justify-center text-3xl'>{testHigh}</span>
+                        </div>
+                    </div>
+                    <div className=' border-cyan-700 border rounded-3xl mb-1'>
+                        <div className='flex flex-col m-3'>
+                            <span className='self-start'>Low</span>
+                            <span className='flex items-center justify-center text-4xl'>{testLow}</span>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     )
 }
+
