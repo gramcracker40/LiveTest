@@ -8,12 +8,23 @@ import { BarChart, Bar, Label, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Res
 export const AnalyticsPage = () => {
 
     const location = useLocation()
-    const test = location.state.test
+    const course = location.state.course
+
+    const [selectedTest, setSelectedTest] = useState()
+    const [areTests, setAreTests] = useState(false)
 
     const testAvg = 90;
-    const myGrade = 55;
+    const myGrade = 82.4356;
     const testHigh = 100;
     const testLow = 50;
+
+    useEffect(() => {
+        course.tests.length > 0 ? setAreTests(true) : setAreTests(false)
+    }, [])
+
+    useEffect(() => {
+        console.log(areTests)
+    }, [areTests])
 
     // I want to make a 2 column grid. on the left side will be a histogram of the grades of the whole class.
     // and on the right side will be the standard deviation showing the high, low, avg, and students grade
@@ -44,15 +55,57 @@ export const AnalyticsPage = () => {
         { name: 'grade', value: myGrade },
     ];
 
+    const handleTestSelection = (test) => {
+        setSelectedTest(test);
+    }
+
+    const handleDateFormatting = (start, end) => {
+        const testStart = new Date(start);
+        const testEnd = new Date(end);
+        const now = new Date();
+
+        if (now >= testStart && now <= testEnd) {
+            // Test is currently live
+            return "LIVE";
+        }
+        // Check if the test date is the same as today's date
+        else if (testStart.toDateString() === now.toDateString()) {
+            // Format as "Today at HH:MM AM/PM"
+            return `Today at ${testStart.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`;
+        }
+        else {
+            // Format as "MM-DD-YY"
+            const day = String(testStart.getDate())//.padStart(2, '0');
+            const month = String(testStart.getMonth() + 1)//.padStart(2, '0');
+            const year = String(testStart.getFullYear()).slice(2);
+            return `${month}-${day}-${year}`;
+        }
+    }
+
+
     return (
         <div className=" min-h-screen mx-auto w-full bg-cyan-50">
             <div className='sm:px-20 sm:py-8 px-4 py-4'>
                 <div className='gap-x-8 mb-7 p-4 rounded-lg shadow bg-white'>
                     <h1 className='text-5xl justify-center flex'>
-                        {test.name}
+                        {course.name}
                     </h1>
+                    <div className="Tests">
+                        {
+                            course.tests.map((test, testIndex) => (
+                                <div key={testIndex} className={`Test-${testIndex} flex justify-between transform transition duration-300 hover:text-cyan-700 hover:scale-105  hover:cursor-pointer`} onClick={() => { handleTestSelection(test) }}>
+                                    <span className="text-md font-light">{test.name}</span>
+                                    <span className="text-md">{handleDateFormatting(test.start_t)}</span>
+                                </div>
+                            ))
+                        }
+                    </div>
                 </div>
-                <Analytics pieData={pieData} histogramData={histogramData} myGrade={myGrade} testAvg={testAvg} testHigh={testHigh} testLow={testLow}  />
+                {
+                    areTests && selectedTest ? <Analytics pieData={pieData} histogramData={histogramData} myGrade={myGrade} testAvg={testAvg} testHigh={testHigh} testLow={testLow} />
+                        : areTests && !selectedTest ? <span className='flex justify-center text-xl'>Please select a test</span>
+                            : <span className='flex justify-center text-xl'>This course has no tests</span>
+                }
             </div>
         </div>
 
@@ -90,7 +143,7 @@ export const Analytics = (props) => {
                         <XAxis dataKey="grade" />
                         {/* <YAxis /> */}
                         <Tooltip />
-                        <Bar dataKey="count" fill="#8884d8" />
+                        <Bar dataKey="count" fill="#0097A7" />
                     </BarChart>
                 </ResponsiveContainer>
             </div>
