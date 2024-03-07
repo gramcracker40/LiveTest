@@ -103,6 +103,9 @@ export const AnalyticsPage = () => {
                         : areTests && !selectedTest ? <span className='flex justify-center text-xl'>Please select a test</span>
                             : <span className='flex justify-center text-xl'>This course has no tests</span>
                 }
+                <div className="flex justify-center mt-4">
+                    < BackButton route="/course" className="px-8 py-3 text-sm font-semibold rounded-md shadow-sm bg-cyan-200 text-gray-700 hover:bg-cyan-300" />
+                </div>
             </div>
         </div>
 
