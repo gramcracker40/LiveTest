@@ -26,9 +26,6 @@ export const AnalyticsPage = () => {
         console.log(areTests)
     }, [areTests])
 
-    // I want to make a 2 column grid. on the left side will be a histogram of the grades of the whole class.
-    // and on the right side will be the standard deviation showing the high, low, avg, and students grade
-
     // Array of student grades
     const grades = [84, 81, 75, 92, 67, 73, 84, 86, 80, 83,
         89, 72, 86, 79, 73, 76, 81, 68, 83, 84,

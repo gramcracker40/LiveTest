@@ -165,19 +165,22 @@ export const CoursePage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 ">
           {courses.map((course, index) => (
             <React.Fragment key={course.id}>
-              <div className="mb-8 p-4 bg-white span rounded-lg shadow">
+              <div className="mb-8 p-4 bg-white span rounded-lg shadow transform transition duration-300 hover:text-cyan-700 hover:scale-105  hover:cursor-pointer"
+                   onClick={() => handleNavigate("/course/analytics", { course })}>
                 <div className={`Course-${index} flex justify-between mb-4`}>
                   <span className="text-xl font-semibold">{course.name}</span>
                   {authDetails.type === 'teacher' && <button
                     className='bg-cyan-500 rounded-lg py-1 px-2 text-white hover:bg-cyan-400 hover:ring-2 hover:ring-cyan-300 hover:border-cyan-300'
-                    onClick={() => handleNavigate("/create-test", { courseId: course.id })}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleNavigate("/create-test", { courseId: course.id })
+                    }}
                   >Create Test +</button>}
                 </div>
                 <div className="Tests">
                   {course.tests.length > 0 ? (
                     course.tests.map((test, testIndex) => (
-                      <div key={testIndex} className={`Test-${testIndex} flex justify-between transform transition duration-300 hover:text-cyan-700 hover:scale-105  hover:cursor-pointer`}
-                        onClick={() => handleNavigate("/course/analytics", { test })}>
+                      <div key={testIndex} className={`Test-${testIndex} flex justify-between`}>
                         <span className="text-md font-light">{test.name}</span>
                         <span className="text-md">{handleDateFormatting(test.start_t)}</span>
                       </div>
