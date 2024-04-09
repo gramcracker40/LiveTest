@@ -183,7 +183,7 @@ class Pictron:
         self.answer_spacing = kwargs.get("answer_spacing", 5)
         self.label_spacing = kwargs.get("label_spacing", 5)
         self.line_spacing = kwargs.get("line_spacing", 25)
-        self.page_margins = kwargs.get("page_margins", (100, 100, 100, 100))
+        self.page_margins = kwargs.get("page_margins", (50, 50, 50, 50))
 
         self.zebra_shading = kwargs.get("zebra_shading", False)
 
@@ -206,10 +206,10 @@ class Pictron:
         )
 
         if self.font_path:
-            self.font = ImageFont.truetype(self.font_path, 36)
+            self.font = ImageFont.truetype(self.font_path, self.font_size_adj)
 
         if self.font_bold:
-            self.font_bold = ImageFont.truetype(self.font_bold, 36)
+            self.font_bold = ImageFont.truetype(self.font_bold, self.font_size_adj)
 
         # try:
         #     self.alignment_image = open_image(self.img_align_path)
@@ -255,7 +255,7 @@ class Pictron:
         # )
 
         self.draw.text(
-            [x, y - self.font_size_adj // 2],
+            [x + self.bubble_width // 6, y],
             label,
             fill=fill,
             font=self.font,
@@ -269,9 +269,9 @@ class Pictron:
     def drawZebraLines(self, x, y):
 
         x = self.page_margins[1]
-        y += self.line_spacing + self.bubble_height // 2 + 5
+        # y += self.line_spacing + self.bubble_height
         w = (self.page_size[0] * self.dpi) - (
-            self.page_margins[1] + self.page_margins[3]
+            (self.page_margins[1] + self.page_margins[3]) // 2
         )
         h = self.bubble_height
 
@@ -279,7 +279,7 @@ class Pictron:
             if i % 2 == 0:
                 print(f"x:{x} y:{y} w:{w} h:{h}")
                 self.addRectangle(x, y, w, h, color=(240, 240, 240), line=None)
-            y += self.bubble_height + self.line_spacing
+            y += h
 
     def addBubble(self, x, y, line_thickness=2, filled:bool=False):
         x1 = x - (self.font_size_adj // 2)
@@ -337,7 +337,14 @@ class Pictron:
 
     def addAnswerBubbles(self, start_x, start_y, randomize_filled:bool=False):
         '''
-        
+            build the answer sheets answer bubbles with the given settings set in the constructor. 
+            
+            start_x(int), start_y(int) = starting coordinates in pixels to start placing bubbles
+            
+            randomize_filled: bool --> we can also make the answer sheets in a way to have one of the answer 
+            bubbles filled out already and a json file produced that records the 
+            choice that was made. 
+
         TODO: add horizontal check for last column. 
             change bubble_size, column_width dynamically to ensure a fit for number 
             of questions requested by params. 
@@ -350,9 +357,10 @@ class Pictron:
         i = 0  # Overall count for number of answer choices placed
         n = 1  # Question number
 
-        if self.zebra_shading:
-            self.drawZebraLines(x, y)
+        # if self.zebra_shading:
+        #     self.drawZebraLines(x, y)
 
+        # 
         option_set_width = (self.bubble_width + self.answer_spacing) \
                 * self.num_ans_options + self.column_width
 
@@ -378,18 +386,18 @@ class Pictron:
                     fill_answer = None
 
                 # add question number to start off the new row
-                self.addBubbleLabel(x, y, question_label) 
+                self.addBubbleLabel(x - self.label_spacing, y, question_label) 
 
                 # dynamically allocate necessary spacing between question number and first answer choice. 
-                x += len(question_label) + (self.font_size_adj // 2) + self.bubble_width + 10
+                x += len(question_label) + ((self.font_size_adj // 2) * 3) + (self.bubble_width  // 2)
 
             # add answer choice - determine if it will be filled or not
             answer_label = chr((i % self.num_ans_options) + 65)  # A, B, C, etc.
             self.addBubble(x, y, filled=(i % self.num_ans_options) == fill_answer)
-            self.addBubbleLabel(x - (self.bubble_width/5), y, answer_label, (200, 200, 200)) \
+            self.addBubbleLabel(x, y, answer_label, (200, 200, 200)) \
                 if (i % self.num_ans_options) != fill_answer else None
             
-            # increment x to place the next answer choice if need be. 
+            # increment x to place the next answer_choice
             x += self.bubble_width + self.answer_spacing
             
             # check to see if we placed all answer choices for this question. 
@@ -528,7 +536,7 @@ if __name__ == "__main__":
         label_style         (str): Style string for the A B C .... (tbd)
         que_ident_style     (str): Style string for the 1. 2. 3. .... (tbd)
     """
-    question_counts = [20, 30, 50, 75, 100, 125, 150, 175, 200, 250, 275, 300]
+    question_counts = [100]
 
     for count in question_counts:
         console.print(get_params("docs.json"))
@@ -539,16 +547,17 @@ if __name__ == "__main__":
             "logo_path": "./assets/images/LiveTestLogo_144x.png",
             "num_ans_options": 5,
             "num_questions": count,
-            "font_size": 32,
+            "font_size": 10,
             "bubble_shape": "circle",
-            "bubble_size": 20,
+            "bubble_size": 22,
             "bubble_ratio": 1,
             "font_path": "./assets/fonts/RobotoMono-Regular.ttf",
             "font_bold": "./assets/fonts/RobotoMono-Bold.ttf",
             "page_margins": (300, 100, 100, 50),
-            "line_spacing": 10,
-            "answer_spacing": 45,
-            "label_spacing": 5,
+            "line_spacing": 20,
+            "column_width": 55,
+            "answer_spacing": 15,
+            "label_spacing": 25,
             "zebra_shading": True,
             "label_style": None,
             "que_ident_style": None,
