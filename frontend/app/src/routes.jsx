@@ -5,10 +5,11 @@ import { LandingPage } from "./components/LandingPage";
 import { RegisterPage } from "./components/RegisterPage";
 import { LoginPage } from "./components/LoginPage";
 import { AboutPage } from "./components/AboutPage";
-import { CoursePage } from "./components/CoursePage/CoursePage";
+import { CoursePage } from "./components/coursePage/coursePage";
 import { SubmissionPage } from "./components/SubmissionPage/SubmissionPage";
 import { CreateTestPage } from "./components/CreateTestPage";
 import { CreateCoursePage } from "./components/CreateCoursePage";
+import { AnalyticsPage } from "./components/AnalyticsPage";
 
 export const AppRoutes = () => {
   return (
@@ -20,6 +21,7 @@ export const AppRoutes = () => {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/course" element={<CoursePage />} />
+          <Route path="/course/analytics" element={<AnalyticsPage />} />
           <Route path="/submission" element={<SubmissionPage />} />
           <Route path="/create-test" element={<CreateTestPage />} />
           <Route path="/create-course" element={<CreateCoursePage />} />
