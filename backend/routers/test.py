@@ -33,6 +33,7 @@ def create_test_live(test: CreateTest):
     '''
     Create a test using the offical LiveTest answer sheets
     '''
+    pass
 
 
 @router.post("/882E", response_model=CreateTestConfirmation)  # , dependencies=[Depends(jwt_token_verification)])

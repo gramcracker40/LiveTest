@@ -16,6 +16,7 @@ class UpdateSubmission(BaseModel):
 class GetSubmission(BaseModel):
     id: int
     student_id: int
+    student_name: str 
     grade: float
     answers: str
     
