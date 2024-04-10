@@ -326,12 +326,12 @@ class Pictron:
             x += w
 
     def drawSignatureLine(self, x, y):
-
+        signatureLabelFont = ImageFont.truetype(self.font_bold, fontSizeToPixels(self.dpi, 10))
         self.draw.text(
             [x, y],
             "Signature: ",
             fill=(0, 0, 0),
-            font=self.font_bold,
+            font=signatureLabelFont,
         )
         self.addRectangle(x + 300, y + 50, 500, 3, (0, 0, 0), 2)
 
@@ -376,7 +376,7 @@ class Pictron:
                     x = start_x
                     y = start_y
 
-                question_label = f"{n:>3}."
+                question_label = f"{n:>3}"
 
                 # if we are randomizing filled circles, choose the answer for this question here, save to random_choices
                 if randomize_filled:
@@ -536,7 +536,7 @@ if __name__ == "__main__":
         label_style         (str): Style string for the A B C .... (tbd)
         que_ident_style     (str): Style string for the 1. 2. 3. .... (tbd)
     """
-    question_counts = [100]
+    question_counts = [150]
 
     for count in question_counts:
         console.print(get_params("docs.json"))
