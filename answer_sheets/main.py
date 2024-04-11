@@ -199,7 +199,6 @@ class Pictron:
         self.img_height = inchesToPixels(self.dpi, self.page_size[1])
 
         self.font_size_adj = fontSizeToPixels(self.dpi, self.font_size)
-        print(f"self.font_size_adj: {self.font_size_adj}")
         self.bubble_height = fontSizeToPixels(self.dpi, self.bubble_size)
         self.bubble_width = (
             fontSizeToPixels(self.dpi, self.bubble_size) * self.bubble_ratio
@@ -326,7 +325,7 @@ class Pictron:
             x += w
 
     def drawSignatureLine(self, x, y):
-        signatureLabelFont = ImageFont.truetype(self.font_bold, fontSizeToPixels(self.dpi, 10))
+        signatureLabelFont = ImageFont.truetype(self.font_path, fontSizeToPixels(self.dpi, 10))
         self.draw.text(
             [x, y],
             "Signature: ",
