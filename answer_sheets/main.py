@@ -184,7 +184,7 @@ class Pictron:
         self.answer_spacing = kwargs.get("answer_spacing", 5)
         self.label_spacing = kwargs.get("label_spacing", 5)
         self.line_spacing = kwargs.get("line_spacing", 25)
-        self.line_thickness = kwargs.get("line_thickness", 4)
+        self.line_thickness = kwargs.get("line_thickness", 8)
 
         self.page_margins = kwargs.get("page_margins", (50, 50, 50, 50))
 
@@ -557,7 +557,7 @@ if __name__ == "__main__":
             "font_bold": "./assets/fonts/RobotoMono-Bold.ttf",
             "page_margins": (300, 100, 100, 50),
             "line_spacing": 20,
-            "column_width": 55,
+            "column_width": 70,
             "answer_spacing": 15,
             "label_spacing": 25,
             "zebra_shading": True,

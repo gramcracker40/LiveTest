@@ -1,5 +1,188 @@
 {
-    "3":[],
+    "2": [
+        {
+            "font_size": 40,
+            "bubble_size": 95,
+            "line_spacing": 180,
+            "answer_spacing": 45,
+            "label_spacing": 40, 
+            "column_width": 205,
+            "num_ans_options": 2,
+            "num_questions": 10
+        },
+        {
+            "font_size": 25,
+            "bubble_size": 60,
+            "line_spacing": 30,
+            "column_width": 200,
+            "answer_spacing": 40,
+            "label_spacing": 45, 
+            "num_ans_options": 2,
+            "num_questions": 20
+        },
+        {
+            "font_size": 24,
+            "bubble_size": 60,
+            "line_spacing": 40,
+            "column_width": 160,
+            "answer_spacing": 30,
+            "label_spacing": 20, 
+            "num_ans_options": 2,
+            "num_questions": 30
+        }, 
+        {
+            "font_size": 20,
+            "bubble_size": 48,
+            "line_spacing": 75,
+            "column_width": 90,
+            "answer_spacing": 35,
+            "label_spacing": 25, 
+            "num_ans_options": 2,
+            "num_questions": 40
+        },
+        {
+            "font_size": 17,
+            "bubble_size": 41,
+            "line_spacing": 115,
+            "column_width": 85,
+            "answer_spacing": 20,
+            "label_spacing": 15, 
+            "num_ans_options": 2,
+            "num_questions": 50
+        },
+        {
+            "font_size": 15,
+            "bubble_size": 36,
+            "line_spacing": 40,
+            "column_width": 100,
+            "answer_spacing": 30,
+            "label_spacing": 25, 
+            "num_ans_options": 2,
+            "num_questions": 75
+        }, 
+        {
+            "font_size": 11,
+            "bubble_size": 27,
+            "line_spacing": 80,
+            "column_width": 70,
+            "answer_spacing": 19,
+            "label_spacing": 15,
+            "num_ans_options": 2,
+            "num_questions": 100
+        },
+        {
+            "font_size": 11,
+            "bubble_size": 26,
+            "line_spacing": 20,
+            "column_width": 75,
+            "answer_spacing": 20,
+            "label_spacing": 15,
+            "num_ans_options": 2,
+            "num_questions": 150
+        },
+        {
+            "font_size": 9,
+            "bubble_size": 22,
+            "line_spacing": 23,
+            "column_width": 65,
+            "answer_spacing": 18.5,
+            "label_spacing": 15,
+            "num_ans_options": 2,
+            "num_questions": 200
+        }
+    ],
+    "3":[
+        {
+            "font_size": 32,
+            "bubble_size": 75,
+            "line_spacing": 220,
+            "answer_spacing": 30,
+            "label_spacing": 25, 
+            "column_width": 100,
+            "num_ans_options": 3,
+            "num_questions": 10
+        },
+        {
+            "font_size": 24,
+            "bubble_size": 58,
+            "line_spacing": 30,
+            "column_width": 200,
+            "answer_spacing": 40,
+            "label_spacing": 45, 
+            "num_ans_options": 3,
+            "num_questions": 20
+        },
+        {
+            "font_size": 20,
+            "bubble_size": 48,
+            "line_spacing": 80,
+            "column_width": 90,
+            "answer_spacing": 30,
+            "label_spacing": 30, 
+            "num_ans_options": 3,
+            "num_questions": 30
+        }, 
+        {
+            "font_size": 17,
+            "bubble_size": 42,
+            "line_spacing": 30,
+            "column_width": 120,
+            "answer_spacing": 35,
+            "label_spacing": 40, 
+            "num_ans_options": 3,
+            "num_questions": 40
+        },
+        {
+            "font_size": 15,
+            "bubble_size": 35,
+            "line_spacing": 75,
+            "column_width": 75,
+            "answer_spacing": 20,
+            "label_spacing": 30, 
+            "num_ans_options": 3,
+            "num_questions": 50
+        },
+        {
+            "font_size": 12,
+            "bubble_size": 29,
+            "line_spacing": 30,
+            "column_width": 110,
+            "answer_spacing": 30,
+            "label_spacing": 25, 
+            "num_ans_options": 3,
+            "num_questions": 75
+        }, 
+        {
+            "font_size": 10,
+            "bubble_size": 23,
+            "line_spacing": 75,
+            "column_width": 70,
+            "answer_spacing": 19,
+            "label_spacing": 15,
+            "num_ans_options": 3,
+            "num_questions": 100
+        },
+        {
+            "font_size": 9,
+            "bubble_size": 22,
+            "line_spacing": 20,
+            "column_width": 50,
+            "answer_spacing": 23,
+            "label_spacing": 15,
+            "num_ans_options": 3,
+            "num_questions": 150
+        },
+        {
+            "font_size": 7.5,
+            "bubble_size": 18,
+            "line_spacing": 23,
+            "column_width": 45,
+            "answer_spacing": 18.5,
+            "label_spacing": 15,
+            "num_ans_options": 3,
+            "num_questions": 200
+        }
+    ],
     "4": [
         {
             "font_size": 24,
@@ -91,8 +274,6 @@
             "num_questions": 200
         }
     ],
-    "6":[],
-    "7": [],
     "5": [
         { 
             "font_size": 24,
@@ -182,6 +363,187 @@
             "num_ans_options": 5,
             "num_questions": 200
         }
-
+    ], 
+    "6": [
+        {
+            "font_size": 25,
+            "bubble_size": 62,
+            "line_spacing": 30,
+            "answer_spacing": 100,
+            "label_spacing": 45, 
+            "num_ans_options": 6,
+            "num_questions": 10
+        },
+        {
+            "font_size": 16,
+            "bubble_size": 37,
+            "line_spacing": 135,
+            "column_width": 70,
+            "answer_spacing": 30,
+            "label_spacing": 45, 
+            "num_ans_options": 6,
+            "num_questions": 20
+        },
+        {
+            "font_size": 15,
+            "bubble_size": 35,
+            "line_spacing": 40,
+            "column_width": 90,
+            "answer_spacing": 30,
+            "label_spacing": 35, 
+            "num_ans_options": 6,
+            "num_questions": 30
+        }, 
+        {
+            "font_size": 12,
+            "bubble_size": 27,
+            "line_spacing": 30,
+            "column_width": 120,
+            "answer_spacing": 35,
+            "label_spacing": 40, 
+            "num_ans_options": 6,
+            "num_questions": 40
+        },
+        {
+            "font_size": 10,
+            "bubble_size": 23,
+            "line_spacing": 75,
+            "column_width": 65,
+            "answer_spacing": 25,
+            "label_spacing": 25, 
+            "num_ans_options": 6,
+            "num_questions": 50
+        },
+        {
+            "font_size": 9,
+            "bubble_size": 21,
+            "line_spacing": 25,
+            "column_width": 90,
+            "answer_spacing": 30,
+            "label_spacing": 25, 
+            "num_ans_options": 6,
+            "num_questions": 75
+        }, 
+        {
+            "font_size": 7.5,
+            "bubble_size": 17,
+            "line_spacing": 43,
+            "column_width": 45,
+            "answer_spacing": 20,
+            "label_spacing": 25,
+            "num_ans_options": 6,
+            "num_questions": 100
+        },
+        {
+            "font_size": 6,
+            "bubble_size": 13.3,
+            "line_spacing": 20,
+            "column_width": 85,
+            "answer_spacing": 30,
+            "label_spacing": 15,
+            "num_ans_options": 6,
+            "num_questions": 150
+        },
+        {
+            "font_size": 5,
+            "bubble_size": 12,
+            "line_spacing": 21,
+            "column_width": 45,
+            "answer_spacing": 21,
+            "label_spacing": 15,
+            "num_ans_options": 6,
+            "num_questions": 200
+        }
+    ], 
+    "7": [
+        {
+            "font_size": 25,
+            "bubble_size": 62,
+            "line_spacing": 30,
+            "answer_spacing": 65,
+            "label_spacing": 45, 
+            "num_ans_options": 7,
+            "num_questions": 10
+        },
+        {
+            "font_size": 14,
+            "bubble_size": 32,
+            "line_spacing": 140,
+            "column_width": 60,
+            "answer_spacing": 29,
+            "label_spacing": 25, 
+            "num_ans_options": 7,
+            "num_questions": 20
+        },
+        {
+            "font_size": 13,
+            "bubble_size": 30,
+            "line_spacing": 65,
+            "column_width": 90,
+            "answer_spacing": 30,
+            "label_spacing": 30, 
+            "num_ans_options": 7,
+            "num_questions": 30
+        }, 
+        {
+            "font_size": 12,
+            "bubble_size": 27,
+            "line_spacing": 30,
+            "column_width": 120,
+            "answer_spacing": 35,
+            "label_spacing": 40, 
+            "num_ans_options": 7,
+            "num_questions": 40
+        },
+        {
+            "font_size": 9,
+            "bubble_size": 20.5,
+            "line_spacing": 85,
+            "column_width": 45,
+            "answer_spacing": 20,
+            "label_spacing": 25, 
+            "num_ans_options": 7,
+            "num_questions": 50
+        },
+        {
+            "font_size": 8,
+            "bubble_size": 19,
+            "line_spacing": 35,
+            "column_width": 50,
+            "answer_spacing": 25,
+            "label_spacing": 25, 
+            "num_ans_options": 7,
+            "num_questions": 75
+        }, 
+        {
+            "font_size": 6.5,
+            "bubble_size": 15,
+            "line_spacing": 50,
+            "column_width": 30,
+            "answer_spacing": 19,
+            "label_spacing": 15,
+            "num_ans_options": 7,
+            "num_questions": 100
+        },
+        {
+            "font_size": 6,
+            "bubble_size": 13,
+            "line_spacing": 20,
+            "column_width": 35,
+            "answer_spacing": 25,
+            "label_spacing": 15,
+            "num_ans_options": 7,
+            "num_questions": 150
+        },
+        {
+            "font_size": 4.75,
+            "bubble_size": 11,
+            "line_spacing": 25,
+            "column_width": 25,
+            "answer_spacing": 18.5,
+            "label_spacing": 15,
+            "num_ans_options": 7,
+            "num_questions": 200
+        }
     ]
 }
