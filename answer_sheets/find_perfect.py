@@ -27,11 +27,14 @@ with open(f"perfect_configs.json", "r") as conf_file:
     config_templates = json.load(conf_file)
 
 
-def find_best_config(num_questions:int, num_choices:int=5):
+def find_best_config(num_questions:int, num_choices:int=5) -> dict:
     '''
     given a number of questions and choices. return the best configuration
     for the Pictron answer sheet generation possible. 
     '''
+    if num_questions <= 0 or num_questions > 200:
+        return False
+
     templates = config_templates[str(num_choices)]
     template_counts = (10, 20, 30, 40, 50, 75, 100, 150, 200)
     template = 0
@@ -52,16 +55,16 @@ best = find_best_config(17, 4)
 print(f"BEST: {best}")
 
 
-# perf_conf_5 = {
-#     10: {
-#         "font_size": 24,
-#         "bubble_size": 60,
-#         "line_spacing": 35,
-#         "answer_spacing": 100,
-#         "label_spacing": 40, 
-#         "num_ans_options": 6,
-#         "num_questions": 10,
-#     },
+perf_conf_5 = {
+    10: {
+        "font_size": 24,
+        "bubble_size": 60,
+        "line_spacing": 35,
+        "answer_spacing": 100,
+        "label_spacing": 40, 
+        "num_ans_options": 6,
+        "num_questions": 10,
+    },
 #     20: {
 #         "font_size": 23,
 #         "bubble_size": 55,
@@ -142,11 +145,11 @@ print(f"BEST: {best}")
 #         "num_ans_options": 6,
 #         "num_questions": 200,
 #     }
-# }
+}
 
-# for q_count in perf_conf_5:
-#     perf_conf_5[q_count] |= primary_config
-#     print(perf_conf_5[q_count])
-#     pictron = Pictron(**perf_conf_5[q_count])
-#     pictron.generate(random_filled=False)
-#     pictron.saveImage()
+for q_count in perf_conf_5:
+    perf_conf_5[q_count] |= primary_config
+    print(perf_conf_5[q_count])
+    pictron = Pictron(**perf_conf_5[q_count])
+    pictron.generate(random_filled=False)
+    pictron.saveImage()

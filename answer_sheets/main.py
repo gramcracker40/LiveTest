@@ -147,6 +147,7 @@ class Pictron:
             "font_bold":"./fonts/RobotoMono-Bold.ttf",
             "page_margins": [300,100,100,100],
             "line_spacing": 20,
+            "line_thickness": 3,
             "answer_spacing": 5,
             "label_spacing": 5,
             "zebra_shading": True,
@@ -183,6 +184,8 @@ class Pictron:
         self.answer_spacing = kwargs.get("answer_spacing", 5)
         self.label_spacing = kwargs.get("label_spacing", 5)
         self.line_spacing = kwargs.get("line_spacing", 25)
+        self.line_thickness = kwargs.get("line_thickness", 4)
+
         self.page_margins = kwargs.get("page_margins", (50, 50, 50, 50))
 
         self.zebra_shading = kwargs.get("zebra_shading", False)
@@ -392,7 +395,7 @@ class Pictron:
 
             # add answer choice - determine if it will be filled or not
             answer_label = chr((i % self.num_ans_options) + 65)  # A, B, C, etc.
-            self.addBubble(x, y, filled=(i % self.num_ans_options) == fill_answer)
+            self.addBubble(x, y, filled=(i % self.num_ans_options) == fill_answer, line_thickness=self.line_thickness)
             self.addBubbleLabel(x, y, answer_label, (200, 200, 200)) \
                 if (i % self.num_ans_options) != fill_answer else None
             
