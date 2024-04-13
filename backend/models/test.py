@@ -2,10 +2,9 @@
 implements the pydantic models required for the 'test' router
 """
 from datetime import datetime
-from typing import List
-from pydantic import BaseModel, StringConstraints
+from typing import List, Optional
+from pydantic import BaseModel, Field, Json
 from typing_extensions import Annotated
-from typing import Optional
 
 class GetTestMinimum(BaseModel):
     id: str
@@ -16,10 +15,10 @@ class CreateTest(BaseModel):
     name: str
     start_t: datetime
     end_t: datetime
-    num_questions: int
-    answer_key: str
-    file_extension: Annotated[str, StringConstraints(pattern=r'^(jpg|png)$')]
+    num_questions: int = Field(..., ge=1, le=200)  # Number of questions must be between 0 and 200
+    num_choices: int = Field(..., ge=2, le=7)
     course_id: int
+    answers: Json
 
 
 class UpdateTest(BaseModel):

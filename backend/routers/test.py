@@ -14,6 +14,8 @@ from models.test import (
     CreateTestConfirmation,
     GetTests,
 )
+from answer_sheets.main import Pictron
+from answer_sheets.find_perfect import find_best_config
 from tables import Test, Course
 from db import get_db, session
 import base64
@@ -33,7 +35,17 @@ def create_test_live(test: CreateTest):
     '''
     Create a test using the offical LiveTest answer sheets
     '''
-    pass
+    new_test = Test(**test)
+    answer_sheet_config = find_best_config(test.num_questions, test.num_choices)
+    answer_sheet = Pictron(**answer_sheet_config)
+    answer_sheet.generate()
+    new_test.answer_key_blank = answer_sheet.image
+
+    
+
+
+
+
 
 
 @router.post("/882E", response_model=CreateTestConfirmation)  # , dependencies=[Depends(jwt_token_verification)])

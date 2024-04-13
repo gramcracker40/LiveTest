@@ -127,11 +127,12 @@ class Test(Base):
     name = Column(String, nullable=False)
     start_t = Column(DateTime)
     end_t = Column(DateTime)
-    num_questions = Column(Integer)
-    num_choices = Column(Integer)
-    answer_key = Column(LargeBinary, nullable=False)
-    file_extension = Column(String, nullable=False)
+    num_questions = Column(Integer, nullable=False)
+    num_choices = Column(Integer, nullable=False)
+    
     answers = Column(String, nullable=False)
+    answer_key_blank = Column(LargeBinary, nullable=False)
+    answer_key_filled = Column(LargeBinary, nullable=False)
 
     # relationships
     submissions = relationship("Submission", back_populates="test", cascade="all, delete")
