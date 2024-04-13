@@ -18,7 +18,7 @@ class CreateTest(BaseModel):
     num_questions: int = Field(..., ge=1, le=200)  # Number of questions must be between 0 and 200
     num_choices: int = Field(..., ge=2, le=7)
     course_id: int
-    answers: Json
+    answers: dict
 
 
 class UpdateTest(BaseModel):

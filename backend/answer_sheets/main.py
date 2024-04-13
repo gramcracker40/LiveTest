@@ -5,7 +5,9 @@ pixels (8.5 inches * 300 DPI by 11 inches * 300 DPI).
 
 from PIL import Image, ImageDraw, ImageFont
 import os
+# from myKwargs import MyKwargs
 from answer_sheets.myKwargs import MyKwargs
+
 from rich.console import Console
 import textwrap
 import sys
@@ -337,7 +339,7 @@ class Pictron:
         )
         self.addRectangle(x + 300, y + 50, 500, 3, (0, 0, 0), 2)
 
-    def addAnswerBubbles(self, start_x, start_y, randomize_filled:bool=False):
+    def addAnswerBubbles(self, start_x, start_y, randomize_filled:bool=False, answers:dict=None):
         '''
             build the answer sheets answer bubbles with the given settings set in the constructor. 
             
@@ -346,6 +348,8 @@ class Pictron:
             randomize_filled: bool --> we can also make the answer sheets in a way to have one of the answer 
             bubbles filled out already and a json file produced that records the 
             choice that was made. 
+
+            answers: dict --> {1: 'A', 2:'E', 3:'C'}. For building a Test that has an established answer key. 
 
         TODO: add horizontal check for last column. 
             change bubble_size, column_width dynamically to ensure a fit for number 
@@ -384,6 +388,12 @@ class Pictron:
                 if randomize_filled:
                     fill_answer = random.choice(range(self.num_ans_options))
                     self.random_choices[n] = chr(fill_answer + 65)
+                # if we are generating an answer sheet for a test key, we may already have the key to generate as well. 
+                elif type(answers) == dict:
+                    vals = {"A": 0, "B": 1,  "C": 2, "D": 3, "E": 4, "F": 5, "G": 6}
+                    fill_answer = vals[answers[n]] if n in answers else None
+                    # print(f"fill_answer: {vals[answers[n]]}")
+                # blank sheet meant for use in LiveTest
                 else:
                     fill_answer = None
 
@@ -411,7 +421,7 @@ class Pictron:
             i += 1
 
 
-    def generate(self, random_filled:bool=False):
+    def generate(self, random_filled:bool=False, answers:dict=None):
         w, h = self.alignment_image.size
         positions = [
             (0, 0),
@@ -431,7 +441,7 @@ class Pictron:
         self.pasteImage(
             self.img_width // 2 - self.logo_image.width // 2, 50, self.logo_image
         )
-        self.addAnswerBubbles(right, top, randomize_filled=random_filled)
+        self.addAnswerBubbles(right, top, randomize_filled=random_filled, answers=answers)
         
 
     def saveImage(self, outPath=None, outName=None, show=False):
@@ -539,7 +549,7 @@ if __name__ == "__main__":
         label_style         (str): Style string for the A B C .... (tbd)
         que_ident_style     (str): Style string for the 1. 2. 3. .... (tbd)
     """
-    question_counts = [150]
+    question_counts = [150, 20, 50, 75]
 
     for count in question_counts:
         console.print(get_params("docs.json"))
