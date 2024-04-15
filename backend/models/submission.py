@@ -1,9 +1,9 @@
 from pydantic import BaseModel, StringConstraints
 from typing_extensions import Annotated
+from fastapi import UploadFile
 
 class CreateSubmission(BaseModel):
-    submission_photo: str
-    file_extension: Annotated[str, StringConstraints(pattern=r'^(jpg|png)$')]
+    submission_image: UploadFile
     student_id: int
     test_id: str
     

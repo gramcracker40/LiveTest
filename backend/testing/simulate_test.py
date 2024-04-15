@@ -1,101 +1,39 @@
-'''
-handles setting up the simulation for 'tests' and 'submissions'
-creates a test that is tied to a course (course_id must exist)
-It then submits three different answer keys to this test. 
-'''
-
-import base64
-import json                    
 import requests
 import os
-from datetime import datetime
+from pathlib import Path
+from answer_sheets.find_perfect import find_best_config
+from answer_sheets.main import Pictron
 
-URL = 'http://localhost:8000'
-TEST_URL = f'{URL}/test/'
-SUBMISSION_URL = f'{URL}/submission/'
-HEADERS = {'Content-Type': 'application/json', 'Accept': 'text/plain'}
-
-def create_test(name:str, image_path:str, num_questions:int, 
-                course_id:int, start:datetime, end:datetime):
-    '''
-    image path: must be valid path to a png or jpg image to process. 
-    '''
-    try:
-        # stringify the test key image that was passed using base64 and utf8
-        with open(image_path, "rb") as f:
-            im_bytes = f.read()   
-        answer_key_str = base64.b64encode(im_bytes).decode("utf8")
-        file_extension = os.path.splitext(image_path)[1][1:]
-        print(f"FIle extension: {file_extension}")
-        # build the json object and post the data to the API
-        payload = json.dumps({"name": name, "answer_key": answer_key_str, "start_t": str(start), 
-            "end_t":str(end), "num_questions": num_questions,
-            "course_id": course_id, "file_extension": file_extension})
-        response = requests.post(TEST_URL, data=payload, headers=HEADERS)
-        data = response.json() 
-        print(data)
-
-        return data    
-    except requests.exceptions.RequestException:
-        print(response.text)
+DIRECTORY_PATH = '../answer_sheets/generatedSheets'  # Path to the directory containing images
+API_URL = 'http://localhost:8000/submission/'  # URL to the FastAPI endpoint
+TEST_ID = '1b73cfc1-b88a-4d98-bbcf-e1cbfb6afc9b'  # Example test ID, change as needed
+TEST_NAME = 'Test #5 example'
+COURSE_NAME = 'HIGHLY COMPLEX ALGEBRA V'
+STUDENT_ID_START = 1
+STUDENT_ID_END = 1
 
 
-def create_submission(image_path:str, student_id:int, test_id:str):
-    '''
-    submits a answer sheet to a specific test id. 
-    '''
-    with open(image_path, "rb") as f:
-        image = f.read()
-    answer_key_str = base64.b64encode(image).decode("utf8")
-    file_extension = os.path.splitext(image_path)[1][1:]
+def student_id_generator(start, end):
+    """Generate student IDs in a cycle from start to end."""
+    while True:
+        for id in range(start, end + 1):
+            yield id
 
-    if file_extension not in {'jpg', 'png'}:
-        return {"error": "the image of the answer sheet should be a .png or .jpg"}
+def create_submissions(test_id, num_questions, num_choices, student_id_start, student_id_end):
+    student_ids = student_id_generator(student_id_start, student_id_end)
+    current_student_id = next(student_ids) 
 
-    payload = json.dumps({"student_id": student_id, "submission_photo": answer_key_str, 
-                            "test_id": test_id, "file_extension": file_extension})
-    response = requests.post(SUBMISSION_URL, data=payload, headers=HEADERS)
+    answer_sheet_config = find_best_config(num_questions, num_choices)
+    generator = Pictron(**answer_sheet_config)
+    generator.generate(random_filled=True)
 
-    if response.status_code == 200:
-        print(f"Successfully submitted image: {image_path}\n\tstudent id: {student_id}\n\ttest_id: {test_id}\n")
-        print(response.text)
-    else:    
-        print(f"Error: {response.status_code}, message: {response.text}")
+
+    files = {'submission_image': generator.image}
+    data = {'student_id': current_student_id, 'test_id': test_id}
     
+    response = requests.post(API_URL, files=files, data=data)
+    print(f"Response from server for {current_student_id}: {response.status_code} - {response.text}")
 
 if __name__ == "__main__":
-    test_name = "Test One --Gg"
-    start = datetime.strptime("2023-12-19 15:00:00", "%Y-%m-%d %H:%M:%S")
-    end = datetime.strptime("2023-12-19 18:00:00", "%Y-%m-%d %H:%M:%S")
-    num_questions = 45
-    course_id = 1
-    key_path = '../../test_data/FakeTest1/IMG_4162.jpg'
-    image_paths = [
-        "../../test_data/FakeTest1/IMG_4163.jpg", 
-        "../../test_data/FakeTest1/IMG_4164.jpg", 
-        "../../test_data/FakeTest1/IMG_4165.jpg"
-    ]
+    create_submissions(DIRECTORY_PATH,  STUDENT_ID_START, STUDENT_ID_END, TEST_ID)
 
-    submissions = [
-        {
-            "student_id": 1, 
-            "image_path": image_paths[0]
-        }, 
-        {
-            "student_id": 2, 
-            "image_path": image_paths[1]
-        }, 
-        {
-            "student_id": 3, 
-            "image_path": image_paths[2]
-        }
-    ]
-    new_test = create_test(test_name, key_path, 45, course_id, start, end)
-    test_id = new_test['id']
-
-    first_submission = create_submission(submissions[0]["image_path"], 
-                submissions[0]["student_id"], test_id)
-    second_submission = create_submission(submissions[1]["image_path"], 
-                submissions[1]["student_id"], test_id)
-    third_submission = create_submission(submissions[2]["image_path"], 
-                submissions[2]["student_id"], test_id)

@@ -4,24 +4,24 @@ given number of questions and choices in usage with Pictron.
 '''
 # from main import Pictron
 from answer_sheets.main import Pictron
-
+import os
 import json
 
 # default non changing configurations for pictron
 primary_config = {
     "page_size": (8.5, 11),
-    "img_align_path": "./answer_sheets/assets/images/checkerboard_144x_adj_color.jpg",
-    "logo_path": "./answer_sheets/assets/images/LiveTestLogo_144x.png",
+    "img_align_path": "answer_sheets/assets/images/checkerboard_144x_adj_color.jpg",
+    "logo_path": "answer_sheets/assets/images/LiveTestLogo_144x.png",
     "bubble_shape": "circle",
     "bubble_ratio": 1,
-    "font_path": "./answer_sheets/assets/fonts/RobotoMono-Regular.ttf",
-    "font_bold": "./answer_sheets/assets/fonts/RobotoMono-Bold.ttf",
+    "font_path": "answer_sheets/assets/fonts/RobotoMono-Regular.ttf",
+    "font_bold": "answer_sheets/assets/fonts/RobotoMono-Bold.ttf",
     "page_margins": (300, 100, 100, 50),
     "zebra_shading": False,
     "label_style": None,
     "que_ident_style": None,
     "font_alpha": 50,
-    "outPath": "./answer_sheets/generatedSheets/perfTEST",
+    "outPath": "answer_sheets/generatedSheets/perfTEST",
     "outName": None,
 }
 
@@ -53,7 +53,7 @@ def find_best_config(num_questions:int, num_choices:int=5) -> dict:
 
 
 if __name__ == "__main__":
-    best = find_best_config(4, 2)
+    best = find_best_config(38, 6)
     print(f"BEST: {best}")
 
     # best_config_ex = {
@@ -68,8 +68,10 @@ if __name__ == "__main__":
     # }
         
     pictron = Pictron(**best)
-    pictron.generate(answers={1: 'A', 2: 'B', 3: 'A', 4: 'B', 5: 'D'})
+    pictron.generate(random_filled=True, course_name="Advanced Programming", test_name="Test 1: Syntax vs Semantics")
+    print(os.getcwd())
     pictron.saveImage()
+    
 
 
 
@@ -83,3 +85,4 @@ if __name__ == "__main__":
     #     "num_ans_options": 2,
     #     "num_questions": 20,
     # },
+

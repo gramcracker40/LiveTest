@@ -20,9 +20,9 @@ HEADERS = {"Content-Type": "application/json", "Accept": "text/plain"}
 # constants for fake data creation
 SEMESTER = "Spring"
 SCHOOL_DOMAIN = "my.msutexas.edu"
-NUM_STUDENTS = 130
-NUM_TEACHERS = 10
-NUM_COURSES = 30
+NUM_STUDENTS = 50
+NUM_TEACHERS = 5
+NUM_COURSES = 20
 COURSES_PER_STUDENT = 5
 subjects = ["MATH", "CMPS", "ENGL", "HIST", "CH", "SHOP", "TECH"]
 NUM_SUBJECTS = len(subjects)

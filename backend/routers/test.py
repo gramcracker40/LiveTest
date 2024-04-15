@@ -51,15 +51,17 @@ def create_test_live(test: CreateTest):
     answer_sheet = Pictron(**answer_sheet_config)
     
     # generate and save the blank version image of the test
-    answer_sheet.generate()
+    answer_sheet.generate(course_name=course.name, test_name=test.name)
     #answer_sheet.image.show(title=f"Blank test: {test.name}")
     blank_bytes = io.BytesIO()
     answer_sheet.image.save(blank_bytes, format="PNG")
     new_test.answer_key_blank = blank_bytes.getvalue()
    
     # generate and save the filled in key version of the test
-    answer_sheet.generate(answers=
-        {int(question_num): answer for question_num, answer in test.answers.items()}
+    answer_sheet.generate(
+        answers={int(question_num): answer for question_num, answer in test.answers.items()}, 
+        course_name=course.name, 
+        test_name=test.name
     )
     #answer_sheet.image.show(title=f"Test Key: {test.name}")
     filled_bytes = io.BytesIO()

@@ -4,7 +4,7 @@ from typing import List
 from models.course import CreateCourse, UpdateCourse, GetCourse, GetCourseMinimum
 from tables import Course, Student, Teacher
 from db import session
-from jwt import jwt_token_verification
+from routers.auth import jwt_token_verification
 
 router = APIRouter(
     prefix="/course",

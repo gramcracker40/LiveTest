@@ -98,9 +98,9 @@ class Submission(Base):
     __tablename__ = "submission"
     id = Column(Integer, primary_key=True)
 
-    graded_photo = Column(LargeBinary, nullable=False)
-    file_extension = Column(String, nullable=False)
-    num_questions = Column(Integer)
+    submission_image = Column(LargeBinary, nullable=False)
+    graded_image = Column(LargeBinary, nullable=False)
+
     answers = Column(String, nullable=False)  # JSON string produced by
     # grade_answers in SubmissionProcessor
     grade = Column(Float, nullable=False)
@@ -113,10 +113,7 @@ class Submission(Base):
     test = relationship("Test", back_populates="submissions")
 
     __table_args__ = (
-        CheckConstraint(
-            file_extension.in_(["jpg", "png"]), name="valid_file_extension"
-        ),
-        CheckConstraint("student_id", "test_id") # ensures single submission
+        CheckConstraint("student_id", "test_id"), # ensures single submission
     )
 
 

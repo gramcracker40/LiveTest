@@ -308,26 +308,26 @@ class Pictron:
 
         # draw.rectangle(rectangle_coordinates, fill=rectangle_color, outline=None)
 
-    def drawTestNumBoxes(self, x, y, w, h, n=8):
+    def drawCourseTestName(self, course_name, test_name, x=650, y=35):
         """
+        draw the course and test name on top of the answer sheet to make the answer sheet more unique
+
         Params:
+            course_name (str)
+            test_name (str)
             x (int) : startx
             y (int) : starty
-            w (int) : rectangle width
-            h (int) : rectangle height
-            n (int) : number of boxes
+
         """
 
         self.draw.text(
             [x - 300, y],
-            "Test Number: ",
+            f"{course_name} : {test_name}",
             fill=(0, 0, 0),
             font=self.font_bold,
         )
 
-        for _ in range(n):
-            self.addRectangle(x, y, w, h, (0, 0, 0), 2)
-            x += w
+        
 
     def drawSignatureLine(self, x, y):
         signatureLabelFont = ImageFont.truetype(self.font_path, fontSizeToPixels(self.dpi, 10))
@@ -338,6 +338,7 @@ class Pictron:
             font=signatureLabelFont,
         )
         self.addRectangle(x + 300, y + 50, 500, 3, (0, 0, 0), 2)
+
 
     def addAnswerBubbles(self, start_x, start_y, randomize_filled:bool=False, answers:dict=None):
         '''
@@ -421,7 +422,8 @@ class Pictron:
             i += 1
 
 
-    def generate(self, random_filled:bool=False, answers:dict=None):
+    def generate(self, random_filled:bool=False, answers:dict=None, 
+                 course_name:str=None, test_name:str=None):
         w, h = self.alignment_image.size
         positions = [
             (0, 0),
@@ -437,9 +439,11 @@ class Pictron:
         right = self.page_margins[3]
 
         self.pasteAlignmentImages(positions)
-        self.drawSignatureLine(1350, 100)
+        self.drawCourseTestName(course_name, test_name) \
+            if course_name is not None and test_name is not None else None
+        self.drawSignatureLine(350, 130)
         self.pasteImage(
-            self.img_width // 2 - self.logo_image.width // 2, 50, self.logo_image
+            180, 20, self.logo_image
         )
         self.addAnswerBubbles(right, top, randomize_filled=random_filled, answers=answers)
         
@@ -460,9 +464,9 @@ class Pictron:
         #self.image.save(f"{name}.pdf")
         # self.image.show()
 
-        if self.random_choices != {}:
-            with open(f"generatedSheets/answersJSON/{os.path.split(self.name)[-1]}.json", 'w') as fp:
-                json.dump(self.random_choices, fp, indent=True)
+        # if self.random_choices != {}:
+        #     with open(f"generatedSheets/answersJSON/{os.path.split(self.name)[-1]}.json", "w") as fp:
+        #         json.dump(self.random_choices, fp, indent=True)
 
 
 def usage():

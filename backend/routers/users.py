@@ -10,7 +10,7 @@ from sqlalchemy.exc import IntegrityError
 from tables import Student, Teacher
 from passlib.hash import pbkdf2_sha256
 from typing import List
-from jwt import jwt_token_verification
+from routers.auth import jwt_token_verification
 from models.users import (
     CreateStudent,
     CreateTeacher,

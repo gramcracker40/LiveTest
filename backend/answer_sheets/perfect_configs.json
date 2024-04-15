@@ -337,7 +337,7 @@
             "font_size": 10,
             "bubble_size": 22,
             "line_spacing": 20,
-            "column_width": 55,
+            "column_width": 58,
             "answer_spacing": 15,
             "label_spacing": 25,
             "num_ans_options": 5,
