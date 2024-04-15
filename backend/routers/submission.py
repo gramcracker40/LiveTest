@@ -22,7 +22,7 @@ router = APIRouter(
 
 
 @router.post("/")
-def create_submission_live(submission: CreateSubmission, user=Depends(get_current_user)):
+def create_submission_live(submission: CreateSubmission):#, user=Depends(get_current_user)
     '''
     # TODO add a check to make sure the given student is actually in the course associated with the test
     # TODO make sure the student has not already submitted to the test
@@ -57,7 +57,7 @@ def create_submission_live(submission: CreateSubmission, user=Depends(get_curren
             for question_num in graded
         }), # {1: ("A", True), 2: ("F", False)}  -->  answers (JSON str)
         grade=grade,
-        student_id=user.id,
+        student_id=submission.student_id,
         test_id=test.id
     )
 

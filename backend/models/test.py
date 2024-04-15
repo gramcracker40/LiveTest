@@ -40,6 +40,7 @@ class GetTest(BaseModel):
     start_t: datetime
     end_t: datetime
     num_questions: int
+    num_choices: int
     course_id: int
 
 

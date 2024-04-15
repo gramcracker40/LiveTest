@@ -1,13 +1,12 @@
 import requests
-import os
-from pathlib import Path
 from answer_sheets.find_perfect import find_best_config
 from answer_sheets.main import Pictron
 
 DIRECTORY_PATH = '../answer_sheets/generatedSheets'  # Path to the directory containing images
 API_URL = 'http://localhost:8000/submission/'  # URL to the FastAPI endpoint
 TEST_ID = '1b73cfc1-b88a-4d98-bbcf-e1cbfb6afc9b'  # Example test ID, change as needed
-TEST_NAME = 'Test #5 example'
+NUM_QUESTIONS = 15
+NUM_CHOICES = 3
 COURSE_NAME = 'HIGHLY COMPLEX ALGEBRA V'
 STUDENT_ID_START = 1
 STUDENT_ID_END = 1
@@ -35,5 +34,5 @@ def create_submissions(test_id, num_questions, num_choices, student_id_start, st
     print(f"Response from server for {current_student_id}: {response.status_code} - {response.text}")
 
 if __name__ == "__main__":
-    create_submissions(DIRECTORY_PATH,  STUDENT_ID_START, STUDENT_ID_END, TEST_ID)
+    create_submissions(TEST_ID, NUM_QUESTIONS, NUM_CHOICES, STUDENT_ID_START, STUDENT_ID_END)
 
