@@ -2,7 +2,7 @@ import json
 import base64
 import io
 from sqlalchemy.exc import IntegrityError
-from fastapi import HTTPException, APIRouter, Depends
+from fastapi import HTTPException, APIRouter, Depends, Form, UploadFile
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from typing import List
@@ -22,8 +22,13 @@ router = APIRouter(
 
 
 @router.post("/")
-def create_submission_live(submission: CreateSubmission):#, user=Depends(get_current_user)
+async def create_submission_live(
+    submission_image: UploadFile,
+    student_id: int = Form(...),
+    test_id: str = Form(...)
+    ): #, user=Depends(get_current_user)
     '''
+    #IN TESTING - MAKE TODO CHANGES BELOW FOR PROD
     # TODO add a check to make sure the given student is actually in the course associated with the test
     # TODO make sure the student has not already submitted to the test
     # TODO add a check to make sure that the test is actually "Live"
@@ -33,42 +38,47 @@ def create_submission_live(submission: CreateSubmission):#, user=Depends(get_cur
     the Test being submitted to must be "Live". i.e the time must be in between
     the set start and end datetimes. 
     '''
-    test = session.query(Test).get(submission.test_id)
+    test = session.query(Test).get(test_id)
     test_key = json.loads(test.answers)
+    image_data = await submission_image.read()
 
     print(f"{test.name} Key: {test_key}")
+    print(f"image_name: {submission_image.filename}")
+    print(f"image_data: {image_data[0:10]}")
 
     if not test:
         raise HTTPException(404, detail="test was not found. please refresh")
-
+    print("here 1")
     grader = OMRGrader(
         num_choices=test.num_choices, 
         num_questions=test.num_questions
     )
-    grade, graded, choices = grader.run(bytes_obj=submission.submission_image, key=test_key)
+    print("here 2")
 
+    grade, graded, choices = grader.run(bytes_obj=image_data, key=test_key)
+    graded_image_bytes = OMRGrader.convert_image_to_bytes(grader.image)
     print(f"grade: {grade}\ngraded: {graded}\nchoices: {len(choices)}")
+    print("here 3")
 
     new_submission = Submission(
-        submission_image=submission.submission_image,
-        graded_image=grader.image.__bytes__, 
+        submission_image=image_data,
+        graded_image=graded_image_bytes, 
         answers=json.dumps({
             question_num: (choices[question_num][2], graded[question_num])
             for question_num in graded
         }), # {1: ("A", True), 2: ("F", False)}  -->  answers (JSON str)
         grade=grade,
-        student_id=submission.student_id,
+        student_id=student_id,
         test_id=test.id
     )
+    print("here 4")
 
     print(f"NEW SUBMISSION: {new_submission}")
+    print("here 5")
 
     session.add(new_submission)
     session.commit()
-
-
-    
-
+    print("here 6")
 
 
 @router.delete("/{submission_id}")
@@ -103,7 +113,7 @@ def get_submissions_for_test(test_id: str):
 
 
 @router.get("/image/{submission_id}")
-def get_submission_image(submission_id: int):
+def get_submission_original_image(submission_id: int):
     submission = session.query(Submission).get(submission_id)
 
     if not submission:

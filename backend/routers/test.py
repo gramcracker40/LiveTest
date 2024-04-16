@@ -14,12 +14,10 @@ from models.test import (
     GetTests,
 )
 from answer_sheets.main import Pictron
-from answer_sheets.find_perfect import find_best_config
 from tables import Test, Course
 from db import session
 import base64
 from time import sleep
-# from core.TestProcessor import TestProcessor
 
 router = APIRouter(
     prefix="/test",
@@ -47,7 +45,7 @@ def create_test_live(test: CreateTest):
     new_test = Test(**test.model_dump())
 
     # find the best template for the given number of questions and choices. 
-    answer_sheet_config = find_best_config(test.num_questions, test.num_choices)
+    answer_sheet_config = Pictron.find_best_config(test.num_questions, test.num_choices)
     answer_sheet = Pictron(**answer_sheet_config)
     
     # generate and save the blank version image of the test

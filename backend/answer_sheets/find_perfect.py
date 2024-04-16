@@ -49,8 +49,7 @@ def find_best_config(num_questions:int, num_choices:int=5) -> dict:
     for temp in templates:
         if int(temp['num_questions']) == template:
             return temp | primary_config
-
-
+        
 
 if __name__ == "__main__":
     for count in range(15):

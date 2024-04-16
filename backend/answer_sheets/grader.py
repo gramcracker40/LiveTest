@@ -7,6 +7,14 @@ class OMRGrader:
         self.num_choices = num_choices
         self.num_questions = num_questions
 
+    @classmethod
+    def convert_image_to_bytes(self, image: np.ndarray) -> bytes:
+        if image is not None and image.size > 0:
+            success, encoded_image = cv2.imencode('.png', image)
+            if success:
+                return encoded_image.tobytes()
+        return None
+
     def show_image(self, title: str, matlike, w=600, h=700):
         temp = cv2.resize(matlike, (w, h))
         cv2.imshow(title, temp)
@@ -14,24 +22,30 @@ class OMRGrader:
         cv2.destroyAllWindows()
 
     def is_circle(self, contour, threshold=0.9):
+        '''
+        given a contour determine if it is a circle
+        '''
         area = cv2.contourArea(contour)
         
-        # Calculate the bounding circle
+        # bounding circle
         (x, y), radius = cv2.minEnclosingCircle(contour)
         circle_area = np.pi * (radius ** 2)
         
-        # Calculate the circularity ratio
+        # circularity ratio
         circularity = area / circle_area
         
-        # Return if the contour is a circle based on the threshold
+        # return if the contour is a circle
         return circularity > threshold
     
     def get_answer_bubbles(self, file_path:str=None, bytes_obj:bytes=None):
         if file_path is not None:
+            print("file path ran")
             self.image = cv2.imread(file_path)
         elif bytes_obj is not None:
+            print("bytes obj eing used")
             nparr = np.frombuffer(bytes_obj, np.uint8)
             self.image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+            print("loaded image!")
         else:
             raise ValueError("Either file_path or bytes_obj must be provided.")
         
@@ -41,12 +55,12 @@ class OMRGrader:
         gray = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
         blurred = cv2.GaussianBlur(gray, (5, 5), 0)
         self.thresh = cv2.threshold(blurred, 0, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
-
+        print("thresholded image!")
         self.show_image("Threshold", self.thresh)
 
         contours, _ = cv2.findContours(self.thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         question_contours = []
-
+        print(f"contours: {len(contours)}")
         for contour in contours:
             x, y, w, h = cv2.boundingRect(contour)
             aspect_ratio = w / float(h)
@@ -106,7 +120,7 @@ class OMRGrader:
 
         return questions
     
-
+    
     def identify_question_choices(self, questions:dict):
         '''
         questions: 
@@ -172,9 +186,7 @@ class OMRGrader:
         return graded, correct/len(choices) * 100
 
 
-
-
-    def run(self, file_path=None, bytes_obj=None, key:dict=None):
+    def run(self, file_path:str=None, bytes_obj:bytes=None, key:dict=None):
         '''
         helper function to execute the full functionality of the OMRGrader class in LiveTest
 
@@ -185,9 +197,13 @@ class OMRGrader:
         '''
         
         bubbles, image = self.get_answer_bubbles(file_path, bytes_obj)
+        print("got bubbles")
         sorted_rows = self.group_bubbles_by_row(bubbles)
+        print("sorted_rows")
         questions = self.sort_rows_to_questions(sorted_rows)
+        print("questions")
         choices = self.identify_question_choices(questions)
+        print("choices")
 
         for question in choices:
             print(f"Question: {question}, Answer: {choices[question][2]}")
@@ -196,7 +212,7 @@ class OMRGrader:
 
         print(f"GRADE: {grade}\nGRADED: {graded}")
         
-        self.show_image("Questions Highlighted", image, w=1100, h=1900)
+        self.show_image("Questions Highlighted", image, w=900, h=800)
         
         return grade, graded, choices
 
