@@ -2,9 +2,34 @@
 This guide shows general setup and usage with docker for this project. 
 I split the different components into their respective docker containers and have an image orchestration process down with docker-compose. I will first show how to install Docker/Docker-Compose and then move on to how to use it with this specific project. 
 
+## Prerequisites
+
+Ensure Docker and Docker Compose are installed on your system. If not, download and install them from [Docker's official website](https://www.docker.com/get-started).
+
+## Basic Commands
+
+### 1. **Create and Start Services**
+
+Create and start services defined in the `docker-compose.yml` file:
+```bash
+docker-compose build -d
+```
+###
+```bash
+docker-compose up -d
+```
+### 2. Stop the services, bring down the api and db
+```bash
+docker-compose down
+```
+
+### 3. Check the status of the various services. 
+```bash
+docker-compose ps
+```
 
 ### Install Docker on WSL Ubuntu using apt-get:
-(may not be entirely accurate, platform dependent)
+(may not be entirely accurate, platform dependent. If you need to install on normal linux distro look up guide.)
 
 1. **Update Package Lists:**
    Open your terminal and run:
@@ -81,32 +106,5 @@ I split the different components into their respective docker containers and hav
 # Docker Compose Quick Reference
 
 Docker Compose is a powerful tool for defining and managing multi-container Docker applications. This quick reference guide provides essential commands for setting up and using `docker-compose.yml` files.
-
-## Prerequisites
-
-Ensure Docker and Docker Compose are installed on your system. If not, download and install them from [Docker's official website](https://www.docker.com/get-started).
-
-## Basic Commands
-
-### 1. **Create and Start Services**
-
-Create and start services defined in the `docker-compose.yml` file:
-```bash
-docker-compose build -d
-```
-###
-```bash
-docker-compose up -d
-```
-### 2. Stop the services, bring down the api and db
-```bash
-docker-compose down
-```
-
-### 3. Check the status of the various services. 
-```bash
-docker-compose ps
-```
-
 
 

@@ -233,6 +233,10 @@ class Pictron:
         except FileNotFoundError as e:
             print(e)
 
+        
+        with open(f"answer_sheets/perfect_configs.json", "r") as conf_file:
+            self.config_templates = json.load(conf_file)
+
         self.logo_size = self.logo_image.size
 
         # Create a blank white image
@@ -241,6 +245,50 @@ class Pictron:
         )
 
         self.draw = ImageDraw.Draw(self.image)
+
+        # default non changing configurations for pictron
+        self.primary_config = {
+            "page_size": (8.5, 11),
+            "img_align_path": "answer_sheets/assets/images/checkerboard_144x_adj_color.jpg",
+            "logo_path": "answer_sheets/assets/images/LiveTestLogo_144x.png",
+            "bubble_shape": "circle",
+            "bubble_ratio": 1,
+            "font_path": "answer_sheets/assets/fonts/RobotoMono-Regular.ttf",
+            "font_bold": "answer_sheets/assets/fonts/RobotoMono-Bold.ttf",
+            "page_margins": (300, 100, 100, 50),
+            "zebra_shading": False,
+            "label_style": None,
+            "que_ident_style": None,
+            "font_alpha": 50,
+            "outPath": "answer_sheets/generatedSheets/perfTEST",
+            "outName": None,
+        }
+
+    @classmethod
+    def find_best_config(self, num_questions:int, num_choices:int):
+        '''
+        class method to help find the best configuration for a range of questions and choices
+          for the best looking version of Pictron from the default template engine. 
+          num_questions: 0-200
+          num_choices: 2-7
+
+          returns: {primary_config | best_fitting_template}
+        '''
+        if num_questions <= 0 or num_questions > 200:
+            return False
+
+        templates = self.config_templates[str(num_choices)]
+        template_counts = (10, 20, 30, 40, 50, 75, 100, 150, 200)
+        template = 0
+
+        for question_count in template_counts:
+            if num_questions <= question_count:
+                template = question_count
+                break
+
+        for temp in templates:
+            if int(temp['num_questions']) == template:
+                return temp | self.primary_config
 
     def pasteImage(self, x, y, img_obj):
         """ """
