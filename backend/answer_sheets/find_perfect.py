@@ -10,22 +10,22 @@ import json
 # default non changing configurations for pictron
 primary_config = {
     "page_size": (8.5, 11),
-    "img_align_path": "answer_sheets/assets/images/checkerboard_144x_adj_color.jpg",
-    "logo_path": "answer_sheets/assets/images/LiveTestLogo_144x.png",
+    "img_align_path": "answers_sheets/assets/images/checkerboard_144x_adj_color.jpg",
+    "logo_path": "answers_sheets/assets/images/LiveTestLogo_144x.png",
     "bubble_shape": "circle",
     "bubble_ratio": 1,
-    "font_path": "answer_sheets/assets/fonts/RobotoMono-Regular.ttf",
-    "font_bold": "answer_sheets/assets/fonts/RobotoMono-Bold.ttf",
+    "font_path": "answers_sheets/assets/fonts/RobotoMono-Regular.ttf",
+    "font_bold": "answers_sheets/assets/fonts/RobotoMono-Bold.ttf",
     "page_margins": (300, 100, 100, 50),
     "zebra_shading": False,
     "label_style": None,
     "que_ident_style": None,
     "font_alpha": 50,
-    "outPath": "answer_sheets/generatedSheets/perfTEST",
+    "outPath": "answers_sheets/generatedSheets/perfTEST",
     "outName": None,
 }
 
-with open(f"answer_sheets/perfect_configs.json", "r") as conf_file:
+with open(f"answers_sheets/perfect_configs.json", "r") as conf_file:
     config_templates = json.load(conf_file)
 
 
@@ -53,26 +53,28 @@ def find_best_config(num_questions:int, num_choices:int=5) -> dict:
 
 
 if __name__ == "__main__":
-    best = find_best_config(38, 6)
-    print(f"BEST: {best}")
+    for count in range(15):
+        best = find_best_config(200, 2)
+        print(f"BEST: {best}")
 
-    # best_config_ex = {
-    #     "font_size": 40,
-    #     "bubble_size": 95,
-    #     "line_spacing": 180,
-    #     "answer_spacing": 45,
-    #     "label_spacing": 40, 
-    #     "column_width": 205,
-    #     "num_ans_options": 2,
-    #     "num_questions": 10,
-    # }
-        
-    pictron = Pictron(**best)
-    pictron.generate(random_filled=True, course_name="Advanced Programming", test_name="Test 1: Syntax vs Semantics")
-    print(os.getcwd())
-    pictron.saveImage()
-    
-
+        # best_config_ex = {
+        #     "font_size": 40,
+        #     "bubble_size": 95,
+        #     "line_spacing": 180,
+        #     "answer_spacing": 45,
+        #     "label_spacing": 40, 
+        #     "column_width": 205,
+        #     "num_ans_options": 2,
+        #     "num_questions": 10,
+        # }
+            
+        pictron = Pictron(**best)
+        pictron.generate(random_filled=True, course_name="Advanced Programming", test_name="Test 1: Syntax vs Semantics")
+        print(os.getcwd())
+        pictron.saveImage(
+            outPath="generatedSheets/fakeTest200-2", 
+            outName=f"submission-{count}"
+        )
 
 
 # {

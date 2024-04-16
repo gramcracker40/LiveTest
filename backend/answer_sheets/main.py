@@ -319,12 +319,13 @@ class Pictron:
             y (int) : starty
 
         """
+        courseTestFont = ImageFont.truetype(self.font_path, fontSizeToPixels(self.dpi, 12))
 
         self.draw.text(
             [x - 300, y],
             f"{course_name} : {test_name}",
             fill=(0, 0, 0),
-            font=self.font_bold,
+            font=courseTestFont,
         )
 
         
@@ -333,7 +334,7 @@ class Pictron:
         signatureLabelFont = ImageFont.truetype(self.font_path, fontSizeToPixels(self.dpi, 10))
         self.draw.text(
             [x, y],
-            "Signature: ",
+            "Full Name: ",
             fill=(0, 0, 0),
             font=signatureLabelFont,
         )
@@ -456,7 +457,7 @@ class Pictron:
             outPath = self.outPath
         if outName is None:
             outName = self.outName
-        self.name = os.path.join(outPath, outName)
+        self.name = outPath + '/' + outName
 
         print(f"{self.name}.png")
         self.image.save(f"{self.name}.png")

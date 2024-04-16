@@ -106,7 +106,7 @@
             "font_size": 24,
             "bubble_size": 58,
             "line_spacing": 30,
-            "column_width": 200,
+            "column_width": 180,
             "answer_spacing": 40,
             "label_spacing": 45, 
             "num_ans_options": 3,
