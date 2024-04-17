@@ -12,7 +12,7 @@ import numpy as np
 from ScantronProcessor import show_image
 
 
-class ScantronExtractionFailedError(Exception):
+class DocumentExtractionFailedError(Exception):
     """
     Exception raised for errors in the Scantron extraction process.
     """

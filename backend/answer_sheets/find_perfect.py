@@ -1,89 +1,101 @@
-'''
-Purpose: to find the best templated configuration possible for the 
-given number of questions and choices in usage with Pictron. 
-'''
-# from main import Pictron
-from answer_sheets.main import Pictron
-import os
-import json
+import cv2
+import numpy as np
 
-# default non changing configurations for pictron
-primary_config = {
-    "page_size": (8.5, 11),
-    "img_align_path": "answers_sheets/assets/images/checkerboard_144x_adj_color.jpg",
-    "logo_path": "answers_sheets/assets/images/LiveTestLogo_144x.png",
-    "bubble_shape": "circle",
-    "bubble_ratio": 1,
-    "font_path": "answers_sheets/assets/fonts/RobotoMono-Regular.ttf",
-    "font_bold": "answers_sheets/assets/fonts/RobotoMono-Bold.ttf",
-    "page_margins": (300, 100, 100, 50),
-    "zebra_shading": False,
-    "label_style": None,
-    "que_ident_style": None,
-    "font_alpha": 50,
-    "outPath": "answers_sheets/generatedSheets/perfTEST",
-    "outName": None,
-}
+class DocumentExtractionFailedError(Exception):
+    pass
 
-with open(f"answers_sheets/perfect_configs.json", "r") as conf_file:
-    config_templates = json.load(conf_file)
+def show_image(title: str, matlike: cv2.Mat_TYPE_MASK, w=600, h=700):
+    """
+    given a title and Matlike image, display it given configured width and height
+    """
+
+    temp = cv2.resize(matlike, (w, h))
+    cv2.imshow(title, temp)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
 
 
-def find_best_config(num_questions:int, num_choices:int=5) -> dict:
+def pre_process(image):
     '''
-    given a number of questions and choices. return the best configuration
-    for the Pictron answer sheet generation possible. 
+    prepares the image for finding contours. 
     '''
-    if num_questions <= 0 or num_questions > 200:
-        return False
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    blur = cv2.GaussianBlur(gray, (5, 5), 0)
+    thresh = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
+    kernel = np.ones((5, 5), np.uint8)
+    dilated = cv2.dilate(thresh, kernel, iterations=2)
 
-    templates = config_templates[str(num_choices)]
-    template_counts = (10, 20, 30, 40, 50, 75, 100, 150, 200)
-    template = 0
+    return dilated
 
-    for question_count in template_counts:
-        if num_questions <= question_count:
-            template = question_count
-            break
+def order_points(pts):
+    # Order points in the order: top-left, top-right, bottom-right, bottom-left
+    rect = np.zeros((4, 2), dtype="float32")
+    s = pts.sum(axis=1)
+    rect[0] = pts[np.argmin(s)]
+    rect[2] = pts[np.argmax(s)]
 
-    for temp in templates:
-        if int(temp['num_questions']) == template:
-            return temp | primary_config
-        
+    diff = np.diff(pts, axis=1)
+    rect[1] = pts[np.argmin(diff)]
+    rect[3] = pts[np.argmax(diff)]
+    return rect
 
-if __name__ == "__main__":
-    for count in range(15):
-        best = find_best_config(200, 2)
-        print(f"BEST: {best}")
+def four_point_transform(image, pts):
+    rect = order_points(pts)
+    (tl, tr, br, bl) = rect
+    maxWidth = max(int(np.linalg.norm(br - bl)), int(np.linalg.norm(tr - tl)))
+    maxHeight = max(int(np.linalg.norm(tr - br)), int(np.linalg.norm(tl - bl)))
 
-        # best_config_ex = {
-        #     "font_size": 40,
-        #     "bubble_size": 95,
-        #     "line_spacing": 180,
-        #     "answer_spacing": 45,
-        #     "label_spacing": 40, 
-        #     "column_width": 205,
-        #     "num_ans_options": 2,
-        #     "num_questions": 10,
-        # }
-            
-        pictron = Pictron(**best)
-        pictron.generate(random_filled=True, course_name="Advanced Programming", test_name="Test 1: Syntax vs Semantics")
-        print(os.getcwd())
-        pictron.saveImage(
-            outPath="generatedSheets/fakeTest200-2", 
-            outName=f"submission-{count}"
-        )
+    dst = np.array([
+        [0, 0],
+        [maxWidth - 1, 0],
+        [maxWidth - 1, maxHeight - 1],
+        [0, maxHeight - 1]],
+        dtype="float32")
 
+    M = cv2.getPerspectiveTransform(rect, dst)
+    warped = cv2.warpPerspective(image, M, (maxWidth, maxHeight))
+    return warped
 
-# {
-    #     "font_size": 25,
-    #     "bubble_size": 60,
-    #     "line_spacing": 30,
-    #     "column_width": 200,
-    #     "answer_spacing": 40,
-    #     "label_spacing": 45, 
-    #     "num_ans_options": 2,
-    #     "num_questions": 20,
-    # },
+def isolate_document(image_path:str=None, image_bytes:bytes=None):
+    if image_path is not None:
+        image = cv2.imread(image_path)
+        print("Image loaded from path.")
+    elif image_bytes is not None:
+        image_array = np.frombuffer(image_bytes, dtype=np.uint8)
+        image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
+        print("Image decoded from bytes.")
+    else:
+        raise DocumentExtractionFailedError("Must provide a valid image")
 
+    image = pre_process(image)
+
+    contours, _ = cv2.findContours(image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contours = sorted(contours, key=cv2.contourArea, reverse=True)[:3]
+    print(f"Found {len(contours)} contours.")
+
+    cv2.drawContours(image, contours, -1, (0,255,0), 6)
+    show_image("contours detected", image)
+
+    # Loop over the contours
+    for i, c in enumerate(contours):
+        peri = cv2.arcLength(c, True)
+        approx = cv2.approxPolyDP(c, 0.02 * peri, True)
+        print(f"Contour #{i + 1}: {len(approx)} vertices.")
+
+        if len(approx) == 4:
+            print("Document found. Performing transformation.")
+            transformed = four_point_transform(image, approx.reshape(4, 2))
+            return transformed
+
+    raise DocumentExtractionFailedError("Document could not be isolated")
+
+# Example usage
+# transformed_image = isolate_document(image_path='path_to_image.jpg')
+# or
+# transformed_image = isolate_document(image_bytes=binary_data_of_image)
+
+# Example usage
+transformed_image = isolate_document(image_path='submissionSheets/100-4/IMG_9338.png')
+show_image("extracted image", transformed_image)
+# or
+# transformed_image = isolate_document(image_bytes=binary_data_of_image)

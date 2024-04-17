@@ -3,13 +3,39 @@ from PIL import Image, ImageDraw, ImageFont
 import numpy as np
 import os
 
+class DocumentExtractionFailedError(Exception):
+    """
+    Exception raised for errors in the Scantron extraction process.
+    """
+    def __init__(self, 
+        message="""Scantron extraction failed, 
+please check the background and ensure 
+there is a consistent background"""):
+        self.message = message
+        super().__init__(self.message)
+
+
 class OMRGrader:
-    def __init__(self, num_choices, num_questions, 
+    '''
+    Handles all functionality surrounding grading LiveTest answer sheets
+    
+    can grade mechanically produced selected answers on LiveTest's answer_sheets module. 
+        examples: ./generatedSheets
+
+    can grade pictures taken of answer sheets filled out by hand as well. 
+        examples: ./submissionSheets
+        - handles all pre processing
+        - handles four point transformation
+        - returns Matlike obj of isolated answer sheets post four point transformation.
+    
+    '''
+    def __init__(self, num_choices, num_questions, mechanical:bool=True, 
                  font_path:str="assets/fonts/RobotoMono-Regular.ttf", font_size:int=90):
         self.font_path = font_path
         self.font_size = font_size
         self.num_choices = num_choices
         self.num_questions = num_questions
+        self.mechanical = mechanical
 
     @classmethod
     def convert_image_to_bytes(self, image: np.ndarray) -> bytes:
@@ -18,6 +44,36 @@ class OMRGrader:
             if success:
                 return encoded_image.tobytes()
         return None
+    
+    def pre_process(image):
+        '''
+        prepares the image for isolating the document
+        '''
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        blur = cv2.GaussianBlur(gray, (5, 5), 0)
+        edged = cv2.Canny(blur, 75, 200)
+        kernel = np.ones((5, 5), np.uint8)
+        dilated = cv2.dilate(edged, kernel, iterations=2)
+
+        return dilated
+    
+    def isolate_document(self, image_path:str=None, image_bytes:bytes=None):
+        if image_path is not None:
+            image = cv2.imread(image_path)
+        elif image_bytes is not None:
+            image_array = np.frombuffer(image, dtype=np.uint8)
+            image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
+        else:
+            raise DocumentExtractionFailedError("Must provide a valid image")
+        
+        dilated = self.pre_process(image)
+
+        # find contours and sort in descending order based off area
+        contours, _ = cv2.findContours(dilated, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+        contours = sorted(contours, key=cv2.contourArea, reverse=True)[:3]
+
+        
+
 
     def show_image(self, title: str, matlike, w=600, h=700):
         temp = cv2.resize(matlike, (w, h))
@@ -51,7 +107,8 @@ class OMRGrader:
             self.image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
             print("loaded image!")
         else:
-            raise ValueError("Either file_path or bytes_obj must be provided.")
+            if not self.image:
+                raise ValueError("Either file_path or bytes_obj must be provided.")
         
         if self.image is None:
             raise ValueError("The image could not be loaded. Check the input data.")
@@ -217,13 +274,17 @@ class OMRGrader:
     def run(self, file_path:str=None, bytes_obj:bytes=None, key:dict=None):
         '''
         helper function to execute the full functionality of the OMRGrader class in LiveTest
+        uses configurations set in the constructor to grade the answer sheet. 
 
         returns:
             grade: int --> ex: 96 or 73
             graded: dict --> {1: False, 2: False, 3: True}
             choices: dict --> {1: (_, contour, chr(j + 65))}
         '''
-        
+        # determine if the run is on a mechanical or a real life image of a submission. 
+        if not self.mechanical: # run the pre-processing method
+            self.isolate_document(file_path, bytes_obj)
+       
         bubbles, image = self.get_answer_bubbles(file_path, bytes_obj)
         # print("got bubbles")
         sorted_rows = self.group_bubbles_by_row(bubbles)
