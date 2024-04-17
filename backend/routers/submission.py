@@ -25,7 +25,8 @@ router = APIRouter(
 async def create_submission_live(
     submission_image: UploadFile,
     student_id: int = Form(...),
-    test_id: str = Form(...)
+    test_id: str = Form(...), 
+    mechanical: bool = False
     ): #, user=Depends(get_current_user)
     '''
     #IN TESTING - MAKE TODO CHANGES BELOW FOR PROD
@@ -46,12 +47,21 @@ async def create_submission_live(
     print(f"image_name: {submission_image.filename}")
     print(f"image_data: {image_data[0:10]}")
 
+    if not mechanical:
+        '''
+        run the image pre processing tehniques to normalize the image. 
+        this will take a picture of an answer sheet and turn it into just the answer sheet
+        '''
+        pass
+
+
     if not test:
         raise HTTPException(404, detail="test was not found. please refresh")
     print("here 1")
     grader = OMRGrader(
         num_choices=test.num_choices, 
-        num_questions=test.num_questions
+        num_questions=test.num_questions, 
+        font_path="answer_sheets/assets/fonts/RobotoMono-Regular.ttf"
     )
     print("here 2")
 

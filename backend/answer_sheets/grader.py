@@ -1,9 +1,13 @@
 import cv2
+from PIL import Image, ImageDraw, ImageFont
 import numpy as np
 import os
 
 class OMRGrader:
-    def __init__(self, num_choices, num_questions):
+    def __init__(self, num_choices, num_questions, 
+                 font_path:str="assets/fonts/RobotoMono-Regular.ttf", font_size:int=90):
+        self.font_path = font_path
+        self.font_size = font_size
         self.num_choices = num_choices
         self.num_questions = num_questions
 
@@ -165,7 +169,7 @@ class OMRGrader:
         return choices
     
 
-    def grade_choices(self, choices:dict, key:dict):
+    def grade_choices(self, choices:dict, key:dict, outline_thickness:int=10):
         '''
         given a key and a dict of choices { 1: (_, contour, 'B'), 2: (_, contour, 'E') } 
         return the grade for the answer sheet, as well as mark whether or not they got it right
@@ -177,13 +181,37 @@ class OMRGrader:
         for question_num in choices:
             if choices[question_num][2] == key[str(question_num)]:
                 graded[question_num] = True
-                cv2.drawContours(self.image, [choices[question_num][1]], -1, (0, 255, 0), -1)
+                # draw green outline
+                cv2.drawContours(self.image, [choices[question_num][1]], -1, (0, 255, 0), outline_thickness)
                 correct += 1
             else:
                 graded[question_num] = False
-                cv2.drawContours(self.image, [choices[question_num][1]], -1, (0, 0, 255), -1)
+                # draw red outline
+                cv2.drawContours(self.image, [choices[question_num][1]], -1, (0, 0, 255), outline_thickness)
 
         return graded, correct/len(choices) * 100
+
+
+    def add_grade(self, image, grade, position:tuple=(1900, 30), color=(0, 0, 0)):
+        '''
+        add the grade to the top right of the graded answer sheet. 
+        '''
+        
+        # convert Matlike to RGB
+        cv_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+
+        # convert the OpenCV image to a PIL image
+        pil_image = Image.fromarray(cv_image)
+
+        # draw grade on PIL image
+        draw = ImageDraw.Draw(pil_image)
+        font = ImageFont.truetype(self.font_path, self.font_size)
+        draw.text(position, f"{grade}%", font=font, fill=color)
+
+        # convert back to OpenCV image
+        cv_image_final = cv2.cvtColor(np.array(pil_image), cv2.COLOR_RGB2BGR)
+
+        return cv_image_final
 
 
     def run(self, file_path:str=None, bytes_obj:bytes=None, key:dict=None):
@@ -197,29 +225,37 @@ class OMRGrader:
         '''
         
         bubbles, image = self.get_answer_bubbles(file_path, bytes_obj)
-        print("got bubbles")
+        # print("got bubbles")
         sorted_rows = self.group_bubbles_by_row(bubbles)
-        print("sorted_rows")
+        # print("sorted_rows")
         questions = self.sort_rows_to_questions(sorted_rows)
-        print("questions")
+        # print("questions")
         choices = self.identify_question_choices(questions)
-        print("choices")
+        # print("choices")
 
-        for question in choices:
-            print(f"Question: {question}, Answer: {choices[question][2]}")
+        # for question in choices:
+        #     print(f"Question: {question}, Answer: {choices[question][2]}")
 
         graded, grade = self.grade_choices(choices, key)
 
-        print(f"GRADE: {grade}\nGRADED: {graded}")
+        # print(f"GRADE: {grade}\nGRADED: {graded}")
+
+        grade_color = (255, 0, 0) if grade < 70 \
+                else (0, 255, 0) if grade >= 85 \
+                else (0, 255, 255) # yellow 70-84
+
+        # add the grade to the image
+        image = self.add_grade(image, grade, color=grade_color)
         
-        self.show_image("Questions Highlighted", image, w=900, h=800)
+        self.show_image("Questions Highlighted", 
+                        image, w=1500, h=1200)
         
         return grade, graded, choices
 
 # usage
 if __name__ == "__main__":
-    num_choices = 6
-    num_questions = 40
+    num_choices = 3
+    num_questions = 20
 
     grader = OMRGrader(
         num_choices=num_choices, 
@@ -227,48 +263,28 @@ if __name__ == "__main__":
     )
     print(os.getcwd())
     grade, graded, choices = grader.run(
-        file_path=f'generatedSheets/perfTEST/{num_questions}-{num_choices}-const.png', 
+        file_path=f'generatedSheets/fakeTest{num_questions}-{num_choices}/submission-2.png', 
         key={
-            "1": "F",
-            "2": "D",
+            "1": "A",
+            "2": "A",
             "3": "A",
-            "4": "E",
-            "5": "A",
-            "6": "A",
-            "7": "D",
-            "8": "D",
-            "9": "C",
-            "10": "F",
-            "11": "B",
-            "12": "F",
-            "13": "D",
+            "4": "A",
+            "5": "B",
+            "6": "B",
+            "7": "C",
+            "8": "A",
+            "9": "B",
+            "10": "B",
+            "11": "C",
+            "12": "B",
+            "13": "B",
             "14": "C",
-            "15": "D",
-            "16": "E",
-            "17": "F",
-            "18": "E",
-            "19": "C",
-            "20": "D",
-            "21": "B",
-            "22": "E",
-            "23": "B",
-            "24": "C",
-            "25": "F",
-            "26": "C",
-            "27": "B",
-            "28": "F",
-            "29": "C",
-            "30": "F",
-            "31": "E",
-            "32": "B",
-            "33": "B",
-            "34": "D",
-            "35": "B",
-            "36": "E",
-            "37": "D",
-            "38": "C",
-            "39": "D",
-            "40": "C",
+            "15": "B", 
+            "16": "A",
+            "17": "A",
+            "18": "B",
+            "19": "B",
+            "20": "A"
         }    
     )
     print(f"grade: {grade}\ngraded: {graded}\nchoices: {len(choices)}")
