@@ -46,21 +46,22 @@ export const CoursePage = () => {
             ...course,
             tests: course.tests || [], // Ensure tests is an array
           }));
-          // Add fake tests here
-          const coursesWithFakeTests = fetchedCourses.map(course => {
-            let test_num = Math.floor(Math.random() * 5);
-            let fakeTests = [];
-            for (let i = 0; i < test_num; i++) {
-              const day = String(Math.floor(Math.random() * 31) + 1).padStart(2, '0')
-              fakeTests.push({
-                "name": "Name of a Longer Test " + (i + 1),
-                "start_t": `2024-03-${day}T10:00:00`,
-                "end_t": `2024-03-${day}T20:00:00`
-              });
-            }
-            return { ...course, tests: [...course.tests, ...fakeTests] };
-          });
-          setCourses(coursesWithFakeTests);
+          // // Add fake tests here (CLEAN OUT)
+          // const coursesWithFakeTests = fetchedCourses.map(course => {
+          //   let test_num = Math.floor(Math.random() * 5);
+          //   let fakeTests = [];
+          //   for (let i = 0; i < test_num; i++) {
+          //     const day = String(Math.floor(Math.random() * 31) + 1).padStart(2, '0')
+          //     fakeTests.push({
+          //       "name": "Name of a Longer Test " + (i + 1),
+          //       "start_t": `2024-03-${day}T10:00:00`,
+          //       "end_t": `2024-03-${day}T20:00:00`
+          //     });
+          //   }
+          //   return { ...course, tests: [...course.tests, ...fakeTests] };
+          // });
+          // setCourses(coursesWithFakeTests);
+          setCourses(fetchedCourses);
         }
         // Handle other status codes appropriately
       } catch (error) {
