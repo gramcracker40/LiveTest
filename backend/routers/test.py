@@ -179,6 +179,27 @@ def get_test_blank_image(test_id: str):
     return StreamingResponse(io.BytesIO(test.answer_key_blank), media_type="image/png")
 
 
+@router.get("/image/blank/{num_questions}/{num_choices}")
+async def get_test_blank_template(num_questions:int, 
+                                  num_choices:int, 
+                                  course_name:str=None,
+                                  test_name:str=None):
+    '''
+    return a templated LiveTest generated answer sheet.
+    '''
+    best_config = Pictron.find_best_config(num_questions, num_choices)
+    obj = Pictron(**best_config)
+    obj.generate(
+        course_name=course_name, 
+        test_name=test_name
+    )
+
+    filled_bytes = io.BytesIO()
+    obj.image.save(filled_bytes, format="PNG")
+
+    return StreamingResponse(io.BytesIO(filled_bytes.getvalue()), media_type="image/png")
+
+
 
 @router.patch("/{test_id}/")
 def update_test(test_id: str, update_data: UpdateTest):

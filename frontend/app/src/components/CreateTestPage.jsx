@@ -140,18 +140,20 @@ export const CreateTestPage = () => {
                             onChange={handleInputChange}
                         />
                     </div>
+
                     <div>
-                        <label htmlFor="answerKey" className="block text-sm font-medium text-gray-700">Answer Key</label>
+                        <label htmlFor="numberOfChoices" className="block text-sm font-medium text-gray-700">Number of Choices</label>
                         <input
-                            id="answerKey"
-                            name="answerKey"
-                            type="file"
+                            id="numberOfChoices"
+                            name="numberOfChoices"
+                            type="number"
                             required
-                            accept="image/jpeg"
-                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm"
-                            onChange={handleFileChange}
+                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500 sm:text-md"
+                            value={testDetails.numberOfChoices}
+                            onChange={handleInputChange}
                         />
                     </div>
+                    
                     <div>
                         <button
                             type="submit"

@@ -17,6 +17,23 @@ import random
 
 console = Console()
 
+PRIMARY_CONFIG = {
+    "page_size": (8.5, 11),
+    "img_align_path": "answer_sheets/assets/images/checkerboard_144x_adj_color.jpg",
+    "logo_path": "answer_sheets/assets/images/LiveTestLogo_144x.png",
+    "bubble_shape": "circle",
+    "bubble_ratio": 1,
+    "font_path": "answer_sheets/assets/fonts/RobotoMono-Regular.ttf",
+    "font_bold": "answer_sheets/assets/fonts/RobotoMono-Bold.ttf",
+    "page_margins": (300, 100, 100, 50),
+    "zebra_shading": False,
+    "label_style": None,
+    "que_ident_style": None,
+    "font_alpha": 50,
+    "outPath": "answer_sheets/generatedSheets/perfTEST",
+    "outName": None,
+}
+
 
 def wrap_with_indent(text, width, indent):
     """
@@ -233,10 +250,6 @@ class Pictron:
         except FileNotFoundError as e:
             print(e)
 
-        
-        with open(f"answer_sheets/perfect_configs.json", "r") as conf_file:
-            self.config_templates = json.load(conf_file)
-
         self.logo_size = self.logo_image.size
 
         # Create a blank white image
@@ -245,24 +258,6 @@ class Pictron:
         )
 
         self.draw = ImageDraw.Draw(self.image)
-
-        # default non changing configurations for pictron
-        self.primary_config = {
-            "page_size": (8.5, 11),
-            "img_align_path": "answer_sheets/assets/images/checkerboard_144x_adj_color.jpg",
-            "logo_path": "answer_sheets/assets/images/LiveTestLogo_144x.png",
-            "bubble_shape": "circle",
-            "bubble_ratio": 1,
-            "font_path": "answer_sheets/assets/fonts/RobotoMono-Regular.ttf",
-            "font_bold": "answer_sheets/assets/fonts/RobotoMono-Bold.ttf",
-            "page_margins": (300, 100, 100, 50),
-            "zebra_shading": False,
-            "label_style": None,
-            "que_ident_style": None,
-            "font_alpha": 50,
-            "outPath": "answer_sheets/generatedSheets/perfTEST",
-            "outName": None,
-        }
 
     @classmethod
     def find_best_config(self, num_questions:int, num_choices:int):
@@ -274,10 +269,13 @@ class Pictron:
 
           returns: {primary_config | best_fitting_template}
         '''
+        with open(f"answer_sheets/perfect_configs.json", "r") as conf_file:
+            config_templates = json.load(conf_file)
+
         if num_questions <= 0 or num_questions > 200:
             return False
 
-        templates = self.config_templates[str(num_choices)]
+        templates = config_templates[str(num_choices)]
         template_counts = (10, 20, 30, 40, 50, 75, 100, 150, 200)
         template = 0
 
@@ -288,7 +286,7 @@ class Pictron:
 
         for temp in templates:
             if int(temp['num_questions']) == template:
-                return temp | self.primary_config
+                return temp | PRIMARY_CONFIG
 
     def pasteImage(self, x, y, img_obj):
         """ """
