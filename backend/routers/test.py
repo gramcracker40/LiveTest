@@ -179,10 +179,10 @@ def get_test_blank_image(test_id: str):
     return StreamingResponse(io.BytesIO(test.answer_key_blank), media_type="image/png")
 
 
-@router.get("/image/blank/{num_questions}/{num_choices}")
+@router.get("/image/blank/{num_questions}/{num_choices}/{course_id}")
 async def get_test_blank_template(num_questions:int, 
                                   num_choices:int, 
-                                  course_id:int=None,
+                                  course_id:int,
                                   test_name:str=None):
     '''
     return a templated LiveTest generated answer sheet.

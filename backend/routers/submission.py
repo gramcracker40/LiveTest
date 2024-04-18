@@ -118,18 +118,30 @@ def get_submissions_for_test(test_id: str):
 
     if test is None:
         raise HTTPException(status_code=404, detail="Test not found")
+
     
     return test.submissions
 
 
-@router.get("/image/{submission_id}")
+@router.get("/image/graded/{submission_id}")
+def get_submission_graded_image(submission_id: int):
+    submission = session.query(Submission).get(submission_id)
+
+    if not submission:
+        raise HTTPException(status_code=404, detail="Test not found")
+    
+    return StreamingResponse(io.BytesIO(submission.graded_image), media_type="image/png")
+
+
+@router.get("/image/original/{submission_id}")
 def get_submission_original_image(submission_id: int):
     submission = session.query(Submission).get(submission_id)
 
     if not submission:
         raise HTTPException(status_code=404, detail="Test not found")
     
-    return StreamingResponse(io.BytesIO(submission.graded_photo), media_type="image/jpg")
+    return StreamingResponse(io.BytesIO(submission.submission_image), media_type="image/png")
+
 
 
 @router.get("/student/{student_id}", response_model=List[GetSubmission])
