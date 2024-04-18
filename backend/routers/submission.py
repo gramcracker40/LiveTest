@@ -163,6 +163,23 @@ def get_submissions_for_student(student_id: int):
     return student.submissions
 
 
+@router.get("/{test_id}/{student_id}", response_model=GetSubmission)
+def get_submission_for_test_for_student(test_id:str, student_id:int):
+    test_sub = session.query(Submission).filter(
+        Submission.student_id==student_id, 
+        Submission.test_id==test_id
+    ).first()
+
+    if test_sub is None:
+        raise HTTPException(404, detail=f"submission with this student and test id not found!")
+
+
+    return {
+        'id': test_sub.id,
+        'student_id': test_sub.student_id,
+        'student_name': test_sub.student.name,
+        'grade': test_sub.grade
+    }
 
 
 
