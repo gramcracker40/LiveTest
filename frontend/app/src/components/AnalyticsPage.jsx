@@ -28,8 +28,57 @@ export const AnalyticsPage = () => {
   const testLow = 50;
 
   useEffect(() => {
+
+    // ------------------------ AUTHENTICATION DETAILS ---------------------------
+
+    // if a user isn't logged in, take them back to the login page
+    if (!authDetails.isLoggedIn) {
+      navigate("/")
+      return
+    }
+
+    // make sure the course has tests
     course.tests.length > 0 ? setAreTests(true) : setAreTests(false);
+
   }, []);
+
+  useEffect(() => {
+    console.log(selectedTest)
+
+    // const fetchTestInfo = async () => {
+
+    //   // TODO: GARRETT NEEDS TO ADD IN THE TEST ID
+    //   const studentTestSubmissionURL = instanceURL + `/submission/test/${selectedTest.id}`
+
+    //   try {
+    //     let req = await EasyRequest(studentTestSubmissionURL, defHeaders, "GET")
+
+    //     if (req.status === 200) {
+    //       req.data
+    //     }
+        
+    //   } catch (error) {
+    //     console.error('Error fetching courses', error);
+    //   }
+
+    //   // if (authDetails.type === "student") {
+    //   //   // TODO: GARRETT NEEDS TO MAKE THE GET FOR THIS
+    //   //   // const studentTestSubmissionURL = instanceURL + `/submission/student/${authDetails.id}`
+    //   //   // gets the students submission for that test
+    //   //   try {
+    //   //     let req = await EasyRequest(studentTestSubmissionURL, defHeaders, "GET")
+
+    //   //     if (req.status === 200) {
+    //   //       req.data
+    //   //     }
+          
+    //   //   } catch (error) {
+    //   //     console.error('Error fetching courses', error);
+    //   //   }
+    //   // }
+      
+    // }
+  }, [selectedTest])
 
   // Array of student grades
   const grades = [
