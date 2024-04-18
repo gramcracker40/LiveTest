@@ -8,11 +8,12 @@ export const CreateTestPage = () => {
         name: '',
         startTime: '',
         endTime: '',
-        numberOfQuestions: '',
-        answerKey: null, 
-        numberOfChoices: ''
+        numberOfQuestions: '', 
+        numberOfChoices: '', 
+        answerKey: {}
     });
     const [templateImage, setTemplateImage] = useState(null);
+    const [visibleQuestions, setVisibleQuestions] = useState(10); // Start by showing 10 questions
 
     const navigate = useNavigate();
     const handleNavigate = (path) => {
@@ -26,7 +27,23 @@ export const CreateTestPage = () => {
         if (testDetails.numberOfChoices) { // Ensure there is a value before fetching
             fetchTestTemplate(testDetails);
         }
+        
     }, [testDetails.numberOfChoices]); // Effect runs when numberOfChoices changes
+
+    useEffect(() => {
+        // Reset answer keys if number of questions or choices changes
+        let newAnswerKey = {};
+        for (let i = 1; i <= parseInt(testDetails.numberOfQuestions); i++) {
+            newAnswerKey[i] = '';
+        }
+        setTestDetails(prev => ({ ...prev, answerKey: newAnswerKey }));
+    }, [testDetails.numberOfQuestions, testDetails.numberOfChoices]);
+    
+    useEffect(() => {
+        console.log(`course ID: ${courseId}`)
+    }, [navigate])
+
+
 
     const handleInputChange = (e) => {
         setTestDetails({ ...testDetails, [e.target.name]: e.target.value });
@@ -34,19 +51,48 @@ export const CreateTestPage = () => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        // Validate input data
+    
+        // Validate all fields are filled
+        if (!testDetails.name || !testDetails.startTime || !testDetails.endTime ||
+            !testDetails.numberOfQuestions || !testDetails.numberOfChoices) {
+            alert("All fields are required. Please ensure all fields are filled.");
+            return;
+        }
+    
+        // Check if end time is after start time
         if (new Date(testDetails.endTime) <= new Date(testDetails.startTime)) {
             alert("End time must be after start time.");
             return;
         }
-
+    
+        // Validate number of questions and choices are greater than zero
+        if (parseInt(testDetails.numberOfQuestions) < 1 || parseInt(testDetails.numberOfChoices) < 1) {
+            alert("Number of questions and choices must be greater than zero.");
+            return;
+        }
+    
+        // Validate that all questions have answers selected
+        const numQuestions = parseInt(testDetails.numberOfQuestions);
+        for (let i = 1; i <= numQuestions; i++) {
+            if (!testDetails.answerKey[i] || testDetails.answerKey[i].trim() === '') {
+                alert(`Please provide an answer for question ${i}.`);
+                return;
+            }
+        }
+    
         createTest();
     };
+    
 
-    useEffect(() => {
-        console.log(`course ID: ${courseId}`)
-    }, [navigate])
-
+    const handleScroll = (e) => {
+        const { scrollTop, clientHeight, scrollHeight } = e.currentTarget;
+    
+        // Check if the user has scrolled to the bottom
+        if (scrollHeight - scrollTop === clientHeight) {
+            setVisibleQuestions((prevVisibleQuestions) => prevVisibleQuestions + 10);
+        }
+    };
+    
 
     const createTest = async () => {
         const body = {
@@ -55,24 +101,24 @@ export const CreateTestPage = () => {
             "end_t": testDetails.endTime,
             "num_questions": testDetails.numberOfQuestions,
             "num_choices": testDetails.numberOfChoices,
-            "course_id": courseId
-        }
-
-        const URL = instanceURL + "/test/"
-
-        console.log(body)
-
+            "course_id": courseId,
+            "answers": testDetails.answerKey
+        };
+    
         try {
-            let req = await EasyRequest(URL, defHeaders, "POST", body)
-
+            let req = await EasyRequest(instanceURL + "/test/", defHeaders, "POST", body);
             if (req.status === 200) {
-                navigate("/course")
+                navigate("/course");
+            } else {
+                console.error('Failed to create test:', req);
+                alert('Failed to create the test. Please try again.');
             }
-        }
-        catch (error) {
+        } catch (error) {
             console.error('Error creating test', error);
+            alert('An error occurred while creating the test.');
         }
-    }
+    };
+    
 
     const fetchTestTemplate = async (tempData) => {
         const url = `${instanceURL}/test/image/blank/${tempData.numberOfQuestions}/${tempData.numberOfChoices}?course_id=${encodeURIComponent(courseId)}&test_name=${encodeURIComponent(tempData.name)}`;
@@ -85,14 +131,68 @@ export const CreateTestPage = () => {
             const imageBlob = await response.blob();
             const imageObjectURL = URL.createObjectURL(imageBlob);
             setTemplateImage(imageObjectURL);
+            window.scrollTo(0, 0);
         } catch (error) {
             console.error('Error fetching test template', error);
         }
     };
 
+    const handleAnswerChange = (questionNumber, choice) => {
+        const newAnswerKey = {
+            ...testDetails.answerKey,
+            [questionNumber]: choice
+        };
+        setTestDetails({ ...testDetails, answerKey: newAnswerKey });
+    };
+    
+
+    const generateAnswerInputs = () => {
+        let inputs = [];
+        const numQuestions = parseInt(testDetails.numberOfQuestions);
+        const numChoices = parseInt(testDetails.numberOfChoices);
+    
+        if (!Number.isInteger(numQuestions) || numQuestions < 1 || !Number.isInteger(numChoices) || numChoices < 1) {
+            return <div>Please enter valid numbers for questions and choices.</div>;
+        }
+    
+        const limit = Math.min(numQuestions, visibleQuestions);
+    
+        for (let i = 1; i <= limit; i++) {
+            inputs.push(
+                <div key={i} style={{ marginBottom: '20px' }}>
+                    <div>#{i}:</div>
+                    <div style={{ display: 'flex', justifyContent: 'space-around' }}>
+                        {[...Array(numChoices).keys()].map(choice => (
+                            <div
+                                key={choice}
+                                style={{
+                                    width: '30px',
+                                    height: '30px',
+                                    borderRadius: '50%',
+                                    backgroundColor: testDetails.answerKey[i] === String.fromCharCode(65 + choice) ? 'lightblue' : 'gray',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    cursor: 'pointer',
+                                    color: 'white'
+                                }}
+                                onClick={() => handleAnswerChange(i, String.fromCharCode(65 + choice))}
+                            >
+                                {String.fromCharCode(65 + choice)}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+        return inputs;
+    };
+    
+
+
     return (
-        <div className="bg-LogoBg w-full h-screen flex flex-col justify-center px-6 py-12 lg:px-8">
-            <div className="sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="bg-LogoBg w-full flex flex-col justify-center px-6 py-12 lg:px-8">
+            <div className="overflow-y-auto sm:mx-auto sm:w-full sm:max-w-md">
                 <h1 className="text-center text-6xl font-bold text-cyan-500">Create Test</h1>
                 <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
                     <div>
@@ -161,6 +261,10 @@ export const CreateTestPage = () => {
 
                     <div>
                         {templateImage && <img src={templateImage} alt="Test Template" />}
+                    </div>
+
+                    <div style={{ height: '600px', overflowY: 'auto' }} onScroll={handleScroll}>
+                        {generateAnswerInputs()}
                     </div>
                     
                     <div>
