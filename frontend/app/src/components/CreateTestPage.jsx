@@ -121,7 +121,7 @@ export const CreateTestPage = () => {
     
 
     const fetchTestTemplate = async (tempData) => {
-        const url = `${instanceURL}/test/image/blank/${tempData.numberOfQuestions}/${tempData.numberOfChoices}?course_id=${encodeURIComponent(courseId)}&test_name=${encodeURIComponent(tempData.name)}`;
+        const url = `${instanceURL}/test/image/blank/${tempData.numberOfQuestions}/${tempData.numberOfChoices}/${encodeURIComponent(courseId)}?test_name=${encodeURIComponent(tempData.name)}`;
 
         try {
             const response = await fetch(url, { method: 'GET' });
@@ -243,6 +243,9 @@ export const CreateTestPage = () => {
                             className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500 sm:text-md"
                             value={testDetails.numberOfQuestions}
                             onChange={handleInputChange}
+                            min={1}
+                            max={200}
+                            placeholder="1-200"
                         />
                     </div>
 
@@ -256,6 +259,9 @@ export const CreateTestPage = () => {
                             className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500 sm:text-md"
                             value={testDetails.numberOfChoices}
                             onChange={handleInputChange}
+                            min="2"
+                            max="7"
+                            placeholder="2-7"
                         />
                     </div>
 

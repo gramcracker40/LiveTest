@@ -119,8 +119,17 @@ def get_submissions_for_test(test_id: str):
     if test is None:
         raise HTTPException(status_code=404, detail="Test not found")
 
+    submissions = [
+        {
+            'id': sub.id,
+            'student_id': sub.student.id,
+            'student_name': sub.student.name,
+            'grade': sub.grade            
+        } 
+        for sub in test.submissions
+    ]
     
-    return test.submissions
+    return submissions
 
 
 @router.get("/image/graded/{submission_id}")

@@ -19,7 +19,7 @@ export const LandingPage = () => {
           LiveTest
         </h2>
         <p className="mt-6 text-lg leading-8 text-gray-300">
-          A modern testing solution
+          A modern in-person testing solution
         </p>
         <div className="mt-10 flex items-center justify-center gap-x-6">
           <button
