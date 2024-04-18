@@ -182,15 +182,20 @@ def get_test_blank_image(test_id: str):
 @router.get("/image/blank/{num_questions}/{num_choices}")
 async def get_test_blank_template(num_questions:int, 
                                   num_choices:int, 
-                                  course_name:str=None,
+                                  course_id:int=None,
                                   test_name:str=None):
     '''
     return a templated LiveTest generated answer sheet.
     '''
     best_config = Pictron.find_best_config(num_questions, num_choices)
     obj = Pictron(**best_config)
+
+    course = session.query(Course).get(course_id)
+    if not course:
+        raise HTTPException(404, detail=f"course does not exist.")
+
     obj.generate(
-        course_name=course_name, 
+        course_name=course.name, 
         test_name=test_name
     )
 

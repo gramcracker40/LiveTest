@@ -9,8 +9,10 @@ export const CreateTestPage = () => {
         startTime: '',
         endTime: '',
         numberOfQuestions: '',
-        answerKey: null
+        answerKey: null, 
+        numberOfChoices: ''
     });
+    const [templateImage, setTemplateImage] = useState(null);
 
     const navigate = useNavigate();
     const handleNavigate = (path) => {
@@ -20,27 +22,14 @@ export const CreateTestPage = () => {
     const location = useLocation();
     const { courseId } = location.state || {};
 
+    useEffect(() => {
+        if (testDetails.numberOfChoices) { // Ensure there is a value before fetching
+            fetchTestTemplate(testDetails);
+        }
+    }, [testDetails.numberOfChoices]); // Effect runs when numberOfChoices changes
+
     const handleInputChange = (e) => {
         setTestDetails({ ...testDetails, [e.target.name]: e.target.value });
-    };
-
-    const handleFileChange = (e) => {
-        // Assuming only the first file is relevant
-        const file = e.target.files[0];
-        if (file) {
-            // Assuming you want to convert the file to a base64 string
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = () => {
-                // Split the result to get only the base64 string
-                const base64String = reader.result.split(',')[1];
-                // Set the base64 string to your state, including other testDetails
-                setTestDetails({ ...testDetails, answerKey: base64String });
-            };
-            reader.onerror = (error) => {
-                console.error('Error converting file to base64:', error);
-            };
-        }
     };
 
     const handleSubmit = (e) => {
@@ -58,14 +47,14 @@ export const CreateTestPage = () => {
         console.log(`course ID: ${courseId}`)
     }, [navigate])
 
+
     const createTest = async () => {
         const body = {
             "name": testDetails.name,
             "start_t": testDetails.startTime,
             "end_t": testDetails.endTime,
             "num_questions": testDetails.numberOfQuestions,
-            "answer_key": testDetails.answerKey,
-            "file_extension": "png",
+            "num_choices": testDetails.numberOfChoices,
             "course_id": courseId
         }
 
@@ -84,6 +73,22 @@ export const CreateTestPage = () => {
             console.error('Error creating test', error);
         }
     }
+
+    const fetchTestTemplate = async (tempData) => {
+        const url = `${instanceURL}/test/image/blank/${tempData.numberOfQuestions}/${tempData.numberOfChoices}?course_id=${encodeURIComponent(courseId)}&test_name=${encodeURIComponent(tempData.name)}`;
+
+        try {
+            const response = await fetch(url, { method: 'GET' });
+            if (!response.ok) {
+                throw new Error(`Failed to fetch the image: ${response.statusText}`);
+            }
+            const imageBlob = await response.blob();
+            const imageObjectURL = URL.createObjectURL(imageBlob);
+            setTemplateImage(imageObjectURL);
+        } catch (error) {
+            console.error('Error fetching test template', error);
+        }
+    };
 
     return (
         <div className="bg-LogoBg w-full h-screen flex flex-col justify-center px-6 py-12 lg:px-8">
@@ -152,6 +157,10 @@ export const CreateTestPage = () => {
                             value={testDetails.numberOfChoices}
                             onChange={handleInputChange}
                         />
+                    </div>
+
+                    <div>
+                        {templateImage && <img src={templateImage} alt="Test Template" />}
                     </div>
                     
                     <div>
