@@ -61,7 +61,8 @@ async def create_submission_live(
     grader = OMRGrader(
         num_choices=test.num_choices, 
         num_questions=test.num_questions, 
-        font_path="answer_sheets/assets/fonts/RobotoMono-Regular.ttf"
+        font_path="answer_sheets/assets/fonts/RobotoMono-Regular.ttf",
+        mechanical=False
     )
     print("here 2")
 

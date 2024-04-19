@@ -320,7 +320,7 @@ class OMRGrader:
 
 
     def add_grade(self, image, grade, 
-                  position:tuple=(3300, 30), 
+                  position:tuple=(3050, 30), 
                   color=(0, 0, 0), 
                   output_size=(1920, 1080)):
         '''
