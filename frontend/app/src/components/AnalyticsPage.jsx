@@ -168,6 +168,10 @@ export const AnalyticsPage = () => {
         {myGrade && selectedTest && authDetails.type === "student" ? (
           < Analytics submissions={testSubmissions} myGrade={myGrade}/>
 
+        ) : !myGrade && selectedTest && authDetails.type === "student" ? (
+          <span className="flex justify-center text-xl">
+            You have not submitted a test
+          </span>
         ) : areSubmissions && selectedTest && authDetails.type === "teacher" ? (
           < Analytics submissions={testSubmissions} />
         ) : !areSubmissions && selectedTest ? (
@@ -203,10 +207,22 @@ export const Analytics = (props) => {
   const [testLow, setTestLow] = useState(0);
   const [testAvg, setTestAvg] = useState(0);
   const [myGrade, setMyGrade] = useState(0);
-  // const [testSubmissions, setTestSubmissions] = useState([])
+  const [testSubmissions, setTestSubmissions] = useState([])
   const { authDetails, updateAuthDetails } = useContext(AuthContext);
 
-  const testSubmissions = props.submissions
+  useEffect(() => {
+    setTestSubmissions(props.submissions)
+  }, [])
+
+  useEffect(() => {
+    if(authDetails.type === 'teacher') {
+      console.log("i ran: ", testAvg)
+      setMyGrade(testAvg)
+    }
+    else if(authDetails.type === 'student') {
+      setMyGrade(props.myGrade)
+    }
+  }, [testAvg])
 
   const crunchNumbers = () => {
     // setTestSubmissions(props.submissions)
@@ -229,6 +245,7 @@ export const Analytics = (props) => {
     setTestHigh(Math.round(high * 100) / 100)
     setTestAvg(Math.round((sum / testSubmissions.length) * 100) / 100)
     if(authDetails.type === 'teacher') {
+      console.log("i ran: ", testAvg)
       setMyGrade(testAvg)
     }
     else if(authDetails.type === 'student') {
