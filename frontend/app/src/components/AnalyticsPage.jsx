@@ -20,12 +20,12 @@ export const AnalyticsPage = () => {
 
   const [selectedTest, setSelectedTest] = useState();
   const [areTests, setAreTests] = useState(false);
+  const [testSubmissions, setTestSubmissions] = useState([]);
+  const [areSubmissions, setAreSubmissions] = useState(false);
+  const [myGrade, setMyGrade] = useState(null);
   const { authDetails, updateAuthDetails } = useContext(AuthContext);
 
-  const testAvg = 90;
-  const myGrade = 82.4356;
-  const testHigh = 100;
-  const testLow = 50;
+  const navigate = useNavigate();
 
   useEffect(() => {
 
@@ -37,72 +37,81 @@ export const AnalyticsPage = () => {
       return
     }
 
+    console.log(course)
+
     // make sure the course has tests
     course.tests.length > 0 ? setAreTests(true) : setAreTests(false);
 
   }, []);
 
   useEffect(() => {
+    if(!areTests) {
+      setAreSubmissions(false)
+    }
+  }, [areTests])
+
+  useEffect(() => {
+    console.log(testSubmissions)
+    if(testSubmissions.length === 0) {
+      setAreSubmissions(false);
+    }
+    else {
+      setAreSubmissions(true);
+    }
+  }, [testSubmissions])
+
+  useEffect(() => {
+    console.log("student g ", myGrade)
+  }, [myGrade])
+
+  useEffect(() => {
     console.log(selectedTest)
 
-    // const fetchTestInfo = async () => {
+    const fetchTestInfo = async () => {
 
-    //   // TODO: GARRETT NEEDS TO ADD IN THE TEST ID
-    //   const studentTestSubmissionURL = instanceURL + `/submission/test/${selectedTest.id}`
+      const testSubmissionsURL = instanceURL + `/submission/test/${selectedTest.id}`
+      const studentTestSubmissionURL = instanceURL + `/submission/${selectedTest.id}/${authDetails.id}`
 
-    //   try {
-    //     let req = await EasyRequest(studentTestSubmissionURL, defHeaders, "GET")
+      try {
+        let req = await EasyRequest(testSubmissionsURL, defHeaders, "GET")
 
-    //     if (req.status === 200) {
-    //       req.data
-    //     }
+        if (req.status === 200) {
+          // get the submissions and set them to the testSubmissions
+          setAreSubmissions(true);
+          let submissions = []
+          req.data.map((submission) => {
+            submissions.push(submission)
+          })
+          setTestSubmissions(submissions);
+        }
+        else if(req.status === 404) {
+          // there are no test submissions
+          setAreSubmissions(false);
+        }
         
-    //   } catch (error) {
-    //     console.error('Error fetching courses', error);
-    //   }
+      } catch (error) {
+        console.error('Error fetching courses', error);
+      }
 
-    //   // if (authDetails.type === "student") {
-    //   //   // TODO: GARRETT NEEDS TO MAKE THE GET FOR THIS
-    //   //   // const studentTestSubmissionURL = instanceURL + `/submission/student/${authDetails.id}`
-    //   //   // gets the students submission for that test
-    //   //   try {
-    //   //     let req = await EasyRequest(studentTestSubmissionURL, defHeaders, "GET")
+      // if a student is logged in we want to keep track of their grade
+      if (authDetails.type === 'student') {
+        try {
+          let req = await EasyRequest(studentTestSubmissionURL, defHeaders, "GET")
+        if (req.status === 200) {
+          console.log("success")
+          setMyGrade(req.data.grade)
+        }
+        
+        
+      } catch (error) {
+        console.error('Error fetching student grade', error);
+        }
+      }
+    }
 
-    //   //     if (req.status === 200) {
-    //   //       req.data
-    //   //     }
-          
-    //   //   } catch (error) {
-    //   //     console.error('Error fetching courses', error);
-    //   //   }
-    //   // }
-      
-    // }
+    fetchTestInfo();
+
   }, [selectedTest])
-
-  // Array of student grades
-  const grades = [
-    84, 81, 75, 92, 67, 73, 84, 86, 80, 83, 89, 72, 86, 79, 73, 76, 81, 68, 83,
-    84, 81, 76, 68, 76, 75, 83, 83, 85, 85, 77, 82, 88, 76, 89, 78, 77, 90, 87,
-    78, 83, 100,
-  ];
-
-  // Histogram buckets
-  const buckets = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
-
-  // Function to count the grades in each bucket
-  const histogramData = buckets.map((bucket, index, array) => {
-    const bucketCount = grades.filter(
-      (grade) =>
-        grade >= bucket &&
-        (index === array.length - 1 || grade < array[index + 1]),
-    ).length;
-
-    return {
-      grade: `${bucket}`,
-      count: bucketCount,
-    };
-  });
 
   const handleTestSelection = (test) => {
     setSelectedTest(test);
@@ -156,23 +165,16 @@ export const AnalyticsPage = () => {
             ))}
           </div>
         </div>
-        {areTests && selectedTest && authDetails.type === "student" ? (
-          <Analytics
-            histogramData={histogramData}
-            grade={myGrade}
-            testAvg={testAvg}
-            testHigh={testHigh}
-            testLow={testLow}
-          />
-        ) : areTests && selectedTest && authDetails.type === "teacher" ? (
-          <Analytics
-            histogramData={histogramData}
-            grade={testAvg}
-            testAvg={testAvg}
-            testHigh={testHigh}
-            testLow={testLow}
-          />
-        ) : areTests && !selectedTest ? (
+        {myGrade && selectedTest && authDetails.type === "student" ? (
+          < Analytics submissions={testSubmissions} myGrade={myGrade}/>
+
+        ) : areSubmissions && selectedTest && authDetails.type === "teacher" ? (
+          < Analytics submissions={testSubmissions} />
+        ) : !areSubmissions && selectedTest ? (
+          <span className="flex justify-center text-xl">
+            This test has no submissions
+          </span>
+        ): areTests && !selectedTest ? (
           <span className="flex justify-center text-xl">
             Please select a test
           </span>
@@ -196,21 +198,73 @@ export const Analytics = (props) => {
   const location = useLocation();
   const course = location.state.course;
 
+  const [grades, setGrades] = useState([])
+  const [testHigh, setTestHigh] = useState(0);
+  const [testLow, setTestLow] = useState(0);
+  const [testAvg, setTestAvg] = useState(0);
+  const [myGrade, setMyGrade] = useState(0);
+  // const [testSubmissions, setTestSubmissions] = useState([])
   const { authDetails, updateAuthDetails } = useContext(AuthContext);
 
-  const testAvg = props.testAvg;
-  const grade = props.grade;
-  const testHigh = props.testHigh;
-  const testLow = props.testLow;
+  const testSubmissions = props.submissions
 
-  const histogramData = props.histogramData;
+  const crunchNumbers = () => {
+    // setTestSubmissions(props.submissions)
+    let sum = 0;
+    let low = 101
+    let high = -1
+    let grades = []
+    testSubmissions.map((submission) => {
+      grades.push(submission.grade)
+      sum += submission.grade;
+      if (submission.grade > high) {
+        high = submission.grade
+      }
+      if (submission.grade < low) {
+        low = submission.grade
+      }
+    })
+    setGrades(grades)
+    setTestLow(Math.round(low * 100) / 100)
+    setTestHigh(Math.round(high * 100) / 100)
+    setTestAvg(Math.round((sum / testSubmissions.length) * 100) / 100)
+    if(authDetails.type === 'teacher') {
+      setMyGrade(testAvg)
+    }
+    else if(authDetails.type === 'student') {
+      setMyGrade(props.myGrade)
+    }
+  }
+  
+  useEffect(() => {
+    crunchNumbers()
+    console.log(myGrade)
+  }, [testSubmissions])
+  
+
+  // Histogram buckets
+  const buckets = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
+
+  // Function to count the grades in each bucket
+  let histogramData = buckets.map((bucket, index, array) => {
+    const bucketCount = grades.filter(
+      (grade) =>
+        grade >= bucket &&
+        (index === array.length - 1 || grade < array[index + 1]),
+    ).length;
+
+    return {
+      grade: `${bucket}`,
+      count: bucketCount,
+    };
+  });
 
   return (
     <>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 ">
         <HistogramChart histogramData={histogramData} />
         <PieChartGrade
-          grade={grade}
+          grade={myGrade}
           testAvg={testAvg}
           testHigh={testHigh}
           testLow={testLow}
@@ -223,14 +277,14 @@ export const Analytics = (props) => {
             Student Test Grades
           </span>
           <ul>
-            {course.students.map((student, studentIndex) => (
+            {testSubmissions.map((submission, submissionIndex) => (
               <li
-                key={studentIndex}
-                className={`Test-${studentIndex} flex justify-between my-2`}
+                key={submissionIndex}
+                className={`Test-${submissionIndex} flex justify-between my-2`}
               >
-                <span className="text-md font-light">{student.name}</span>
+                <span className="text-md font-light">{submission.student_name}</span>
                 <span className="text-md">
-                  {Math.round(Math.random() * 10000) / 100}
+                  {Math.round(submission.grade * 100) / 100}
                 </span>{" "}
                 {/* THIS IS WHERE THE STUDENT GRADE WILL GO */}
               </li>
