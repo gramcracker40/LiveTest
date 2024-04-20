@@ -9,7 +9,7 @@ from typing import List
 import cv2
 from tables import Submission, Student, Test
 from db import session
-from models.submission import CreateSubmission, GetSubmission, UpdateSubmission
+from models.submission import GetStudentSubmission, GetSubmission, UpdateSubmission
 from answer_sheets.grader import OMRGrader
 from routers.auth import get_current_user
 
@@ -154,7 +154,7 @@ def get_submission_original_image(submission_id: int):
 
 
 
-@router.get("/student/{student_id}", response_model=List[GetSubmission])
+@router.get("/student/{student_id}", response_model=List[GetStudentSubmission])
 def get_submissions_for_student(student_id: int):
     student = session.query(Student).get(student_id)
 
