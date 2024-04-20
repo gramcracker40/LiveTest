@@ -100,7 +100,7 @@ class Submission(Base):
 
     submission_image = Column(LargeBinary, nullable=False)
     graded_image = Column(LargeBinary, nullable=False)
-
+    submission_time = Column(DateTime)
     answers = Column(String, nullable=False)  # JSON string produced by
     # grade_answers in SubmissionProcessor
     grade = Column(Float, nullable=False)
@@ -113,7 +113,7 @@ class Submission(Base):
     test = relationship("Test", back_populates="submissions")
 
     __table_args__ = (
-        CheckConstraint("student_id", "test_id"), # ensures single submission
+        UniqueConstraint("student_id", "test_id"), # ensures single submission
     )
 
 
