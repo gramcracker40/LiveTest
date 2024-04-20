@@ -33,7 +33,7 @@ def convert_all_heic_to_png(input_directory, output_directory):
         print(f"Converting --> {heic_file}")
 
 if __name__ == "__main__":
-    input_directory = '../answer_sheets/submissionSheets/100-4'
-    output_directory = '../answer_sheets/submissionSheets/100-4'
+    input_directory = '../answer_sheets/submissionSheets/50-5'
+    output_directory = '../answer_sheets/submissionSheets/50-5'
 
     convert_all_heic_to_png(input_directory, output_directory)
