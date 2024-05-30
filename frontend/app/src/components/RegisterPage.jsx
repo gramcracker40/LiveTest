@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import logo from '../assets/LiveTestLogo.png';
 import { EasyRequest, defHeaders, instanceURL } from '../api/helpers';
 import { BackButton } from './BackButton';
@@ -9,12 +9,12 @@ export const RegisterPage = () => {
   const emailRef = useRef('');
   const passwordRef = useRef('');
   const confirmPasswordRef = useRef('');
-  const [userRole, setUserRole] = useState(""); // State to track the selected role (Teacher/Student)
-  const [formError, setFormError] = useState("");
-  const navigate = useNavigate();
-
+  const [emailExists, setEmailExists] = useState(false);
+  const [userRole, setUserRole] = useState('');
+  const [formError, setFormError] = useState('');
   const [registrationError, setRegistrationError] = useState(false);
   const [passwordMismatchError, setPasswordMismatchError] = useState(false);
+  const navigate = useNavigate();
 
   const handleRoleSelect = (role) => {
     setUserRole(role);
@@ -22,9 +22,9 @@ export const RegisterPage = () => {
 
   const handleNavigate = (path) => {
     navigate(path);
-  }
+  };
 
-  const registerHandler = async (event) => {
+  const registerHandler = (event) => {
     event.preventDefault();
 
     const password = passwordRef.current.value;
@@ -32,57 +32,50 @@ export const RegisterPage = () => {
 
     if (password !== confirmPassword) {
       setPasswordMismatchError(true);
-      setFormError("Passwords do not match, please try again")
-      return; // Stop the registration process
-    } 
-    else if (!userRole) {
+      setFormError('Passwords do not match, please try again');
+      return;
+    }
+
+    if (!userRole) {
       setFormError("Please select either 'Teacher' or 'Student'");
       return;
     }
-    else {
-      setFormError("");
-      setPasswordMismatchError(false);
-      // Continue with registration process
-      // ... Registration logic goes here
-      registerUser();
-      console.log(userRole)
-    }
+
+    setFormError('');
+    setPasswordMismatchError(false);
+    registerUser();
   };
 
   const registerUser = async () => {
+    let userURL = instanceURL + '/users/';
 
-    let userURL = instanceURL + '/users/'
-
-    if(userRole === 'Teacher') {
-      userURL = userURL + 'teachers/'
-    }
-    else if(userRole === 'Student') {
-      userURL = userURL + 'students/'
-    }
-    else {
-      return
+    if (userRole === 'Teacher') {
+      userURL += 'teachers/';
+    } else if (userRole === 'Student') {
+      userURL += 'students/';
+    } else {
+      return;
     }
 
-    let body = {
-      "name": nameRef.current.value,
-      "email": emailRef.current.value,
-      "password": passwordRef.current.value
-    }
-
-    console.log(body)
+    const body = {
+      name: nameRef.current.value,
+      email: emailRef.current.value,
+      password: passwordRef.current.value,
+    };
 
     try {
-      let req = await EasyRequest(userURL, defHeaders, "POST", body);
-      console.log(`req.data --> ${JSON.stringify(req.data)}`)
+      const req = await EasyRequest(userURL, defHeaders, 'POST', body);
       if (req.status === 200) {
-        navigate("/login")
+        navigate('/login');
+      } else if (req.status === 400 && req.data.message === 'Email already exists') {
+        setFormError('Email already exists. Please use a different email.');
+        setEmailExists(true);
+      } else {
+        setRegistrationError(true);
       }
-      else {
-        console.log(`Error code: ${req.status}`)
-      }
-      // Handle other status codes appropriately
     } catch (error) {
       console.error('Error creating user', error);
+      setRegistrationError(true);
     }
   };
 
@@ -92,11 +85,7 @@ export const RegisterPage = () => {
         <h1 className="font-bold text-center mb-4 text-cyan-500 text-6xl lg:text-8xl">
           LiveTest
         </h1>
-        <img
-          className="mx-auto h-52 w-auto"
-          src={logo}
-          alt="LiveTestLogo"
-        />
+        <img className="mx-auto h-52 w-auto" src={logo} alt="LiveTestLogo" />
         <h2 className="mt-10 text-center text-xl font-bold leading-9 tracking-tight text-gray-700">
           Register for an account
         </h2>
@@ -107,13 +96,13 @@ export const RegisterPage = () => {
           <div className="flex items-center space-x-4 justify-center">
             <label
               className={`px-8 py-4 text-sm font-semibold rounded-md shadow-sm cursor-pointer ${userRole === 'Teacher' ? 'bg-cyan-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
-              onClick={() => setUserRole('Teacher')}
+              onClick={() => handleRoleSelect('Teacher')}
             >
               Teacher
             </label>
             <label
               className={`px-8 py-4 text-sm font-semibold rounded-md shadow-sm cursor-pointer ${userRole === 'Student' ? 'bg-cyan-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
-              onClick={() => setUserRole('Student')}
+              onClick={() => handleRoleSelect('Student')}
             >
               Student
             </label>
@@ -185,7 +174,11 @@ export const RegisterPage = () => {
             {formError && <h2 className="text-red-600">{formError}</h2>}
           </div>
 
-          {registrationError && <h2 className="text-red-600">Registration error, please try again</h2>}
+          {registrationError && (
+            <h2 className="text-red-600">
+              Email already exists. <Link to="/reset-password" className="underline text-cyan-500">Reset Password</Link>
+            </h2>
+          )}
 
           <div>
             <button
@@ -197,13 +190,7 @@ export const RegisterPage = () => {
           </div>
         </form>
         <div className="flex justify-center mt-4">
-          {/* <button
-            onClick={() => handleNavigate("/")}
-            className="px-8 py-3 text-sm font-semibold rounded-md shadow-sm bg-cyan-200 text-gray-700 hover:bg-cyan-300"
-          >
-            Back
-          </button> */}
-          < BackButton route="/" className="px-8 py-3 text-sm font-semibold rounded-md shadow-sm bg-cyan-200 text-gray-700 hover:bg-cyan-300" />
+          <BackButton route="/" className="px-8 py-3 text-sm font-semibold rounded-md shadow-sm bg-cyan-200 text-gray-700 hover:bg-cyan-300" />
         </div>
       </div>
     </div>

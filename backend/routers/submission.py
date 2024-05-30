@@ -47,14 +47,6 @@ async def create_submission_live(
     print(f"image_name: {submission_image.filename}")
     print(f"image_data: {image_data[0:10]}")
 
-    if not mechanical:
-        '''
-        run the image pre processing tehniques to normalize the image. 
-        this will take a picture of an answer sheet and turn it into just the answer sheet
-        '''
-        pass
-
-
     if not test:
         raise HTTPException(404, detail="test was not found. please refresh")
     print("here 1")
@@ -62,7 +54,7 @@ async def create_submission_live(
         num_choices=test.num_choices, 
         num_questions=test.num_questions, 
         font_path="answer_sheets/assets/fonts/RobotoMono-Regular.ttf",
-        mechanical=False
+        mechanical=mechanical
     )
     print("here 2")
 
@@ -110,7 +102,16 @@ def get_submission(submission_id: int):
     
     if submission is None:
         raise HTTPException(status_code=404, detail="Submission not found")
-    return submission
+    
+    student = session.query(Student).get(submission.student_id)
+    sub = {
+        'student_name': student.name, 
+        'student_id': submission.student_id, 
+        'grade': submission.grade, 
+        'id': submission_id
+    }
+    
+    return sub
 
 
 @router.get("/test/{test_id}", response_model=List[GetSubmission])
