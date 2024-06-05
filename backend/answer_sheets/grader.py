@@ -407,7 +407,7 @@ if __name__ == "__main__":
     # f'generatedSheets/fakeTest{num_questions}-{num_choices}/submission-2.png'
 
     grade, graded, choices = grader.run(
-        file_path=f"submissionSheets/100-4/IMG_9340.png", 
+        file_path=f"submissionSheets/100-4/IMG_9348.png", 
         key = { 
             '1': 'A',
             '2': 'B',

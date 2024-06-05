@@ -5,7 +5,7 @@ import { RegisterPage } from "./components/RegisterPage";
 import { LoginPage } from "./components/LoginPage";
 import { AboutPage } from "./components/AboutPage";
 import { CoursePage } from "./components/coursePage/coursePage";
-import { SubmissionPage } from "./components/submissionPage/submissionPage";
+import { SubmissionPage } from "./components/submissionPage/SubmissionPage";
 import { CreateTestPage } from "./components/CreateTestPage";
 import { CreateCoursePage } from "./components/CreateCoursePage";
 import { AnalyticsPage } from "./components/AnalyticsPage";

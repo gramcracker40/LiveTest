@@ -4,6 +4,7 @@ import { AuthContext } from '../../context/auth.jsx';
 import { LogoutButton } from '../logoutButton.jsx';
 import { useNavigate } from 'react-router-dom'
 import { AnalyticsPage } from '../AnalyticsPage.jsx';
+import { NavBar } from './navBar.jsx';
 
 export const CoursePage = () => {
   const [courses, setCourses] = useState([]);
@@ -127,6 +128,10 @@ export const CoursePage = () => {
   return (
 
     <div className=" min-h-screen mx-auto w-full bg-cyan-50">
+<<<<<<< HEAD
+      <NavBar></NavBar>
+=======
+>>>>>>> 8c2c5ea7d64b48358f57da745488e34c1271df8e
       <div className='sm:px-28 sm:py-8 px-4 py-4'>
         <div className='grid grid-cols-1 gap-x-8 mb-7 p-4 rounded-lg shadow bg-white'>
           <h1 className='text-3xl text-cyan-800 mb-4 font-bold'>
