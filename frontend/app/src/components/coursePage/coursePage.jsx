@@ -3,11 +3,11 @@ import { EasyRequest, defHeaders, instanceURL } from "../../api/helpers.js";
 import { AuthContext } from '../../context/auth.jsx';
 import { LogoutButton } from '../logoutButton.jsx';
 import { useNavigate } from 'react-router-dom'
-import { AnalyticsPage } from '../AnalyticsPage.jsx';
 import { NavBar } from './navBar.jsx';
 
 export const CoursePage = () => {
   const [courses, setCourses] = useState([]);
+  const [teacherNames, setTeacherNames] = useState({});
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [tests, setTests] = useState([]);
   const [upcomingTests, setUpcomingTests] = useState([]);
@@ -16,77 +16,44 @@ export const CoursePage = () => {
   const navigate = useNavigate();
 
   const handleNavigate = (path, state) => {
-    navigate(path, { state })
-  }
+    navigate(path, { state });
+  };
 
   useEffect(() => {
-
-    // ------------------------ AUTHENTICATION DETAILS ---------------------------
-
-    // if a user isn't logged in, take them back to the login page
     if (!authDetails.isLoggedIn) {
-      navigate("/")
-      return
+      navigate("/");
+      return;
     }
 
-    // ---------------------------- FETCHING COURSES -----------------------------------
+    const courseURL = instanceURL + `/course/${authDetails.type}/${authDetails.id}`;
 
-    // Fetch courses if not in cache
-    const courseURL = instanceURL + `/course/${authDetails.type}/${authDetails.id}`
-
-    // API request to get courses for that teacher
     const fetchCourses = async () => {
       try {
         let req = await EasyRequest(courseURL, defHeaders, "GET");
-        //  THE ACTUAL IF STATEMENT!!!!!
-        // if (req.status === 200) {
-        //   setCourses(req.data);
-        // }
         if (req.status === 200) {
           const fetchedCourses = req.data.map(course => ({
             ...course,
             tests: course.tests || [], // Ensure tests is an array
           }));
-          // // Add fake tests here (CLEAN OUT)
-          // const coursesWithFakeTests = fetchedCourses.map(course => {
-          //   let test_num = Math.floor(Math.random() * 5);
-          //   let fakeTests = [];
-          //   for (let i = 0; i < test_num; i++) {
-          //     const day = String(Math.floor(Math.random() * 31) + 1).padStart(2, '0')
-          //     fakeTests.push({
-          //       "name": "Name of a Longer Test " + (i + 1),
-          //       "start_t": `2024-03-${day}T10:00:00`,
-          //       "end_t": `2024-03-${day}T20:00:00`
-          //     });
-          //   }
-          //   return { ...course, tests: [...course.tests, ...fakeTests] };
-          // });
-          // setCourses(coursesWithFakeTests);
           setCourses(fetchedCourses);
+          fetchTeacherNames(fetchedCourses);
         }
-        // Handle other status codes appropriately
       } catch (error) {
         console.error('Error fetching courses', error);
       }
     };
 
     fetchCourses();
-
   }, [authDetails, navigate]);
 
-  //  ------------------------- GETTING ALL TESTS -----------------------------------
+  useEffect(() => {
+    const allTests = courses.flatMap(course => course.tests || []);
+    setTests(allTests);
+  }, [courses]);
 
   useEffect(() => {
-    const allTests = courses.flatMap(course => course.tests || [])
-    setTests(allTests); // Flatten all tests from each course
-  }, [courses]); // This useEffect depends on the courses state
-
-  //  ------------------------- GETTING UPCOMING TESTS -----------------------------------
-
-  useEffect(() => {
-    // Calculate upcoming tests only when courses data is updated
     const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()); // Today at 12 AM
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const oneWeekLater = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 7);
 
     const filteredTests = tests.filter(test => {
@@ -95,8 +62,28 @@ export const CoursePage = () => {
     }).sort((a, b) => new Date(a.start_t) - new Date(b.start_t));
 
     setUpcomingTests(filteredTests);
-  }, [tests])
+  }, [tests]);
 
+  const fetchTeacherNames = async (courses) => {
+    const teacherIds = [...new Set(courses.map(course => course.teacher_id))];
+    const fetchedTeacherNames = {};
+
+    await Promise.all(
+      teacherIds.map(async (teacherId) => {
+        try {
+          const req = await EasyRequest(`${instanceURL}/users/teachers/${teacherId}`, defHeaders, "GET");
+          if (req.status === 200) {
+            fetchedTeacherNames[teacherId] = req.data.name;
+          }
+        } catch (error) {
+          console.error('Error fetching teacher details', error);
+          fetchedTeacherNames[teacherId] = 'Unknown';
+        }
+      })
+    );
+
+    setTeacherNames(fetchedTeacherNames);
+  };
 
   const handleDateFormatting = (start, end) => {
     const testStart = new Date(start);
@@ -104,34 +91,24 @@ export const CoursePage = () => {
     const now = new Date();
 
     if (now >= testStart && now <= testEnd) {
-      // Test is currently live
       return "LIVE";
-    }
-    // Check if the test date is the same as today's date
-    else if (testStart.toDateString() === now.toDateString()) {
-      // Format as "Today at HH:MM AM/PM"
+    } else if (testStart.toDateString() === now.toDateString()) {
       return `Today at ${testStart.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`;
-    }
-    else {
-      // Format as "MM-DD-YY"
-      const day = String(testStart.getDate())//.padStart(2, '0');
-      const month = String(testStart.getMonth() + 1)//.padStart(2, '0');
+    } else {
+      const day = String(testStart.getDate());
+      const month = String(testStart.getMonth() + 1);
       const year = String(testStart.getFullYear()).slice(2);
       return `${month}-${day}-${year}`;
     }
-  }
+  };
 
   const handleCourseSelect = (courseId) => {
     setSelectedCourse(courseId);
   };
 
   return (
-
-    <div className=" min-h-screen mx-auto w-full bg-cyan-50">
-<<<<<<< HEAD
-      <NavBar></NavBar>
-=======
->>>>>>> 8c2c5ea7d64b48358f57da745488e34c1271df8e
+    <div className="min-h-screen mx-auto w-full bg-cyan-50">
+      <NavBar />
       <div className='sm:px-28 sm:py-8 px-4 py-4'>
         <div className='grid grid-cols-1 gap-x-8 mb-7 p-4 rounded-lg shadow bg-white'>
           <h1 className='text-3xl text-cyan-800 mb-4 font-bold'>
@@ -143,15 +120,11 @@ export const CoursePage = () => {
                 <span>{test.name}</span>
                 {handleDateFormatting(test.start_t, test.end_t) === "LIVE" ? (
                   <>
-                    {authDetails.type === 'student' && <a
+                    {authDetails.type === 'student' || authDetails.type === 'teacher' && <a
                       onClick={() => handleNavigate("/submission", { test })}
                       className="text-md cursor-pointer text-cyan-500 hover:text-cyan-700">
                       LIVE
-                    </a> } 
-                    {authDetails.type === 'teacher' && <a
-                      className='text-md text-cyan-500'>
-                      LIVE
-                    </a>}
+                    </a> }
                   </>
                 ) : (
                   <span>{handleDateFormatting(test.start_t, test.end_t)}</span>
@@ -160,28 +133,16 @@ export const CoursePage = () => {
             ))}
           </ul>
         </div>
-        {authDetails.type === 'teacher' && <div>
-          <button
-            className='bg-cyan-950 text-white text-lg rounded-md mb-4 px-4 py-2 hover:ring-1 hover: ring-bg-grey-500 hover:bg-grey-900'
-            onClick={() => handleNavigate("/create-course")}
-          >
-            Create a Course!
-          </button>
-        </div>}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8 ">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8">
           {courses.map((course, index) => (
             <React.Fragment key={course.id}>
-              <div className="mb-8 p-4 bg-white span rounded-lg shadow transform transition duration-300 hover:text-cyan-700 hover:scale-105  hover:cursor-pointer"
+              <div className="mb-8 p-4 bg-white rounded-lg shadow transform transition duration-300 hover:text-cyan-700 hover:scale-105 hover:cursor-pointer"
                    onClick={() => handleNavigate("/course/analytics", { course })}>
-                <div className={`Course-${index} flex justify-between mb-4`}>
+                <div className={`Course-${index} mb-4`}>
                   <span className="text-xl font-semibold">{course.name}</span>
-                  {authDetails.type === 'teacher' && <button
-                    className='bg-cyan-500 rounded-lg py-1 px-2 text-white hover:bg-cyan-400 hover:ring-2 hover:ring-cyan-300 hover:border-cyan-300'
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleNavigate("/create-test", { courseId: course.id })
-                    }}
-                  >Create Test +</button>}
+                  <div className="text-md font-light">Course Number: {course.course_number}</div>
+                  <div className="text-md font-light">Subject: {course.subject}</div>
+                  <div className="text-md font-light">Instructor: {teacherNames[course.teacher_id]}</div>
                 </div>
                 <div className="Tests">
                   {course.tests.length > 0 ? (
@@ -204,6 +165,5 @@ export const CoursePage = () => {
         <LogoutButton />
       </div>
     </div>
-
   );
 };

@@ -34,7 +34,7 @@ export const CreateCoursePage = () => {
         // ------------------------ AUTHENTICATION DETAILS ---------------------------
 
         // if a user isn't logged in, take them back to the login page
-        if (!authDetails.isLoggedIn && authDetails.type != "teacher") {
+        if (!authDetails.isLoggedIn && authDetails.type !== "teacher") {
             navigate("/login")
             return
         }
@@ -66,9 +66,28 @@ export const CreateCoursePage = () => {
         }
     }
 
+    const getCurrentYear = () => {
+        return new Date().getFullYear();
+    }
+
+    const getYearRange = () => {
+        const currentYear = getCurrentYear();
+        const startYear = currentYear - 5; // Start from 5 years ago
+        const endYear = currentYear + 5; // End 5 years in the future
+        const years = [];
+        for (let year = startYear; year <= endYear; year++) {
+            years.push(year);
+        }
+        return years;
+    }
 
     return (
         <div className="bg-LogoBg w-full h-screen flex flex-col justify-center px-6 py-12 lg:px-8">
+            <div className="relative">
+                <div className="absolute top-4 left-4">
+                    <BackButton className="px-8 py-3 text-sm font-semibold rounded-md shadow-sm bg-cyan-200 text-gray-700 hover:bg-cyan-300" />
+                </div>
+            </div>
             <div className="sm:mx-auto sm:w-full sm:max-w-lg">
                 <h1 className="font-bold text-6xl text-center mb-4 text-cyan-500">
                     Create Course
@@ -121,14 +140,17 @@ export const CreateCoursePage = () => {
 
                     <div className='grid sm:grid-cols-2 gap-y-6 gap-x-4'>
                         <div>
-                            <input
-                                type="text"
+                            <select
                                 required
-                                placeholder="Year"
                                 value={year}
                                 onChange={(e) => setYear(e.target.value)}
-                                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-cyan-500 sm:text-sm"
-                            />
+                                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-cyan-500 sm:text-sm"
+                            >
+                                <option value="">Select Year</option>
+                                {getYearRange().map(year => (
+                                    <option key={year} value={year}>{year}</option>
+                                ))}
+                            </select>
                         </div>
                         <div>
                             <input
@@ -148,9 +170,6 @@ export const CreateCoursePage = () => {
                         Create Course
                     </button>
                 </form>
-            </div>
-            <div className="flex justify-center mt-4">
-                < BackButton className="px-8 py-3 text-sm font-semibold rounded-md shadow-sm bg-cyan-200 text-gray-700 hover:bg-cyan-300" />
             </div>
         </div >
     );
