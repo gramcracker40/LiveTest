@@ -24,9 +24,20 @@ services:
       context: ./frontend
       dockerfile: Dockerfile.prod
     ports:
-      - 8001:8001
+      - 80:80
     depends_on:
       - api
+
+  caddy:
+    image: caddy:2
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+    depends_on:
+      - api
+      - ui
 
 volumes:
   postgres_data:
