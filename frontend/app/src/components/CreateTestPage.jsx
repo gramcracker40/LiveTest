@@ -2,7 +2,7 @@ import React, { useEffect, useState, useContext } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { BackButton } from './BackButton';
 import { EasyRequest, instanceURL, defHeaders } from '../api/helpers';
-import { AuthContext } from '../context/auth.jsx'; // Assuming AuthContext is imported here
+import { AuthContext } from '../context/auth.jsx';
 
 export const CreateTestPage = () => {
   const [testDetails, setTestDetails] = useState({
@@ -12,46 +12,32 @@ export const CreateTestPage = () => {
     numberOfQuestions: '', 
     numberOfChoices: '', 
     answerKey: {},
-    courseId: '' // Add courseId to the state
+    courseId: ''
   });
   const [templateImage, setTemplateImage] = useState(null);
-  const [visibleQuestions, setVisibleQuestions] = useState(10); // Start by showing 10 questions
-  const [courses, setCourses] = useState([]);
+  const [visibleQuestions, setVisibleQuestions] = useState(10);
 
   const { authDetails } = useContext(AuthContext);
   const navigate = useNavigate();
-  const handleNavigate = (path) => {
-    navigate(path);
-  }
-
   const location = useLocation();
   const { courseId } = location.state || {};
 
   useEffect(() => {
-    if (authDetails && authDetails.id && authDetails.type === 'teacher') {
-      // Fetch courses for the specific teacher
-      const fetchCourses = async () => {
-        try {
-          const req = await EasyRequest(`${instanceURL}/course/teacher/${authDetails.id}`, defHeaders, "GET");
-          if (req.status === 200) {
-            setCourses(req.data);
-          }
-        } catch (error) {
-          console.error('Error fetching courses', error);
-        }
-      };
-      fetchCourses();
+    if (courseId) {
+      setTestDetails(prev => ({ ...prev, courseId }));
+    } else {
+      alert("No courseId provided, redirecting to courses page");
+      navigate("/courses");
     }
-  }, [authDetails]);
+  }, [courseId, navigate]);
 
   useEffect(() => {
-    if (testDetails.numberOfChoices) { // Ensure there is a value before fetching
+    if (testDetails.numberOfChoices) {
       fetchTestTemplate(testDetails);
     }
-  }, [testDetails.numberOfChoices]); // Effect runs when numberOfChoices changes
+  }, [testDetails.numberOfChoices]);
 
   useEffect(() => {
-    // Reset answer keys if number of questions or choices changes
     let newAnswerKey = {};
     for (let i = 1; i <= parseInt(testDetails.numberOfQuestions); i++) {
       newAnswerKey[i] = '';
@@ -63,33 +49,25 @@ export const CreateTestPage = () => {
     setTestDetails({ ...testDetails, [e.target.name]: e.target.value });
   };
 
-  const handleCourseChange = (e) => {
-    setTestDetails({ ...testDetails, courseId: e.target.value });
-  };
-
   const handleSubmit = (e) => {
     e.preventDefault();
   
-    // Validate all fields are filled
     if (!testDetails.name || !testDetails.startTime || !testDetails.endTime ||
         !testDetails.numberOfQuestions || !testDetails.numberOfChoices || !testDetails.courseId) {
       alert("All fields are required. Please ensure all fields are filled.");
       return;
     }
   
-    // Check if end time is after start time
     if (new Date(testDetails.endTime) <= new Date(testDetails.startTime)) {
       alert("End time must be after start time.");
       return;
     }
   
-    // Validate number of questions and choices are greater than zero
     if (parseInt(testDetails.numberOfQuestions) < 1 || parseInt(testDetails.numberOfChoices) < 1) {
       alert("Number of questions and choices must be greater than zero.");
       return;
     }
   
-    // Validate that all questions have answers selected
     const numQuestions = parseInt(testDetails.numberOfQuestions);
     for (let i = 1; i <= numQuestions; i++) {
       if (!testDetails.answerKey[i] || testDetails.answerKey[i].trim() === '') {
@@ -103,7 +81,6 @@ export const CreateTestPage = () => {
 
   const handleScroll = (e) => {
     const { scrollTop, clientHeight, scrollHeight } = e.currentTarget;
-    // Check if the user has scrolled to the bottom
     if (scrollHeight - scrollTop === clientHeight) {
       setVisibleQuestions((prevVisibleQuestions) => prevVisibleQuestions + 10);
     }
@@ -123,7 +100,7 @@ export const CreateTestPage = () => {
     try {
       let req = await EasyRequest(instanceURL + "/test/", defHeaders, "POST", body);
       if (req.status === 200) {
-        navigate("/course");
+        navigate(`/course/${testDetails.courseId}`);
       } else {
         console.error('Failed to create test:', req);
         alert('Failed to create the test. Please try again.');
@@ -203,10 +180,8 @@ export const CreateTestPage = () => {
 
   return (
     <div className="bg-LogoBg w-full flex flex-col justify-center px-6 py-12 lg:px-8">
-      <div className="relative">
-        <div className="absolute top-4 left-4">
-          <BackButton className="px-8 py-3 text-sm font-semibold rounded-md shadow-sm bg-cyan-200 text-gray-700 hover:bg-cyan-300" />
-        </div>
+      <div className="absolute top-4 left-4">
+        <BackButton className="px-8 py-3 text-sm font-semibold rounded-md shadow-sm bg-cyan-200 text-gray-700 hover:bg-cyan-300" />
       </div>
       <div className="overflow-y-auto sm:mx-auto sm:w-full sm:max-w-md">
         <h1 className="text-center text-6xl font-bold text-cyan-500">Create Test</h1>
@@ -256,12 +231,10 @@ export const CreateTestPage = () => {
               name="numberOfQuestions"
               type="number"
               required
+              min="1"
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500 sm:text-md"
               value={testDetails.numberOfQuestions}
               onChange={handleInputChange}
-              min={1}
-              max={200}
-              placeholder="1-200"
             />
           </div>
           <div>
@@ -271,34 +244,13 @@ export const CreateTestPage = () => {
               name="numberOfChoices"
               type="number"
               required
+              min="1"
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500 sm:text-md"
               value={testDetails.numberOfChoices}
               onChange={handleInputChange}
-              min="2"
-              max="7"
-              placeholder="2-7"
             />
           </div>
-          <div>
-            <label htmlFor="courseId" className="block text-sm font-medium text-gray-700">Select Course</label>
-            <select
-              id="courseId"
-              name="courseId"
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500 sm:text-md"
-              value={testDetails.courseId}
-              onChange={handleCourseChange}
-              required
-            >
-              <option value="">Select a course</option>
-              {courses.map((course) => (
-                <option key={course.id} value={course.id}>{course.name}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            {templateImage && <img src={templateImage} alt="Test Template" />}
-          </div>
-          <div style={{ height: '600px', overflowY: 'auto' }} onScroll={handleScroll}>
+          <div onScroll={handleScroll} className="max-h-64 overflow-auto">
             {generateAnswerInputs()}
           </div>
           <div>
@@ -310,6 +262,12 @@ export const CreateTestPage = () => {
             </button>
           </div>
         </form>
+        {templateImage && (
+          <div className="mt-6">
+            <h2 className="text-xl font-bold mb-4">Test Template Image</h2>
+            <img src={templateImage} alt="Test Template" />
+          </div>
+        )}
       </div>
     </div>
   );

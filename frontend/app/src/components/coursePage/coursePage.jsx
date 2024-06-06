@@ -1,23 +1,17 @@
+// CoursePage.jsx
 import React, { useEffect, useState, useContext } from 'react';
 import { EasyRequest, defHeaders, instanceURL } from "../../api/helpers.js";
 import { AuthContext } from '../../context/auth.jsx';
-import { LogoutButton } from '../logoutButton.jsx';
-import { useNavigate } from 'react-router-dom'
 import { NavBar } from './navBar.jsx';
+import { useNavigate } from 'react-router-dom';
 
 export const CoursePage = () => {
   const [courses, setCourses] = useState([]);
   const [teacherNames, setTeacherNames] = useState({});
-  const [selectedCourse, setSelectedCourse] = useState(null);
   const [tests, setTests] = useState([]);
   const [upcomingTests, setUpcomingTests] = useState([]);
-  const { authDetails, updateAuthDetails } = useContext(AuthContext);
-
+  const { authDetails } = useContext(AuthContext);
   const navigate = useNavigate();
-
-  const handleNavigate = (path, state) => {
-    navigate(path, { state });
-  };
 
   useEffect(() => {
     if (!authDetails.isLoggedIn) {
@@ -102,8 +96,8 @@ export const CoursePage = () => {
     }
   };
 
-  const handleCourseSelect = (courseId) => {
-    setSelectedCourse(courseId);
+  const handleNavigate = (path, state) => {
+    navigate(path, { state });
   };
 
   return (
@@ -120,11 +114,14 @@ export const CoursePage = () => {
                 <span>{test.name}</span>
                 {handleDateFormatting(test.start_t, test.end_t) === "LIVE" ? (
                   <>
-                    {authDetails.type === 'student' || authDetails.type === 'teacher' && <a
+                  {(authDetails.type === 'student' || authDetails.type === 'teacher') && (
+                    <a
                       onClick={() => handleNavigate("/submission", { test })}
-                      className="text-md cursor-pointer text-cyan-500 hover:text-cyan-700">
+                      className="text-md cursor-pointer text-cyan-500 hover:text-cyan-700"
+                    >
                       LIVE
-                    </a> }
+                    </a>
+                  )}
                   </>
                 ) : (
                   <span>{handleDateFormatting(test.start_t, test.end_t)}</span>
@@ -137,7 +134,7 @@ export const CoursePage = () => {
           {courses.map((course, index) => (
             <React.Fragment key={course.id}>
               <div className="mb-8 p-4 bg-white rounded-lg shadow transform transition duration-300 hover:text-cyan-700 hover:scale-105 hover:cursor-pointer"
-                   onClick={() => handleNavigate("/course/analytics", { course })}>
+                   onClick={() => handleNavigate(`/course/${course.id}`)}>
                 <div className={`Course-${index} mb-4`}>
                   <span className="text-xl font-semibold">{course.name}</span>
                   <div className="text-md font-light">Course Number: {course.course_number}</div>
@@ -160,9 +157,6 @@ export const CoursePage = () => {
             </React.Fragment>
           ))}
         </div>
-      </div>
-      <div className="text-center">
-        <LogoutButton />
       </div>
     </div>
   );

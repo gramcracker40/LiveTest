@@ -83,11 +83,6 @@ export const CreateCoursePage = () => {
 
     return (
         <div className="bg-LogoBg w-full h-screen flex flex-col justify-center px-6 py-12 lg:px-8">
-            <div className="relative">
-                <div className="absolute top-4 left-4">
-                    <BackButton className="px-8 py-3 text-sm font-semibold rounded-md shadow-sm bg-cyan-200 text-gray-700 hover:bg-cyan-300" />
-                </div>
-            </div>
             <div className="sm:mx-auto sm:w-full sm:max-w-lg">
                 <h1 className="font-bold text-6xl text-center mb-4 text-cyan-500">
                     Create Course
@@ -170,6 +165,9 @@ export const CreateCoursePage = () => {
                         Create Course
                     </button>
                 </form>
+                <div className="absolute top-4 left-4">
+                    <BackButton className="px-8 py-3 text-sm font-semibold rounded-md shadow-sm bg-cyan-200 text-gray-700 hover:bg-cyan-300" />
+                </div>
             </div>
         </div >
     );

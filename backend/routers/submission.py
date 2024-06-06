@@ -39,17 +39,28 @@ async def create_submission_live(
     the Test being submitted to must be "Live". i.e the time must be in between
     the set start and end datetimes. 
     '''
+    # query student and test to make sure they exist
+    student = session.query(Student).get(student_id)
     test = session.query(Test).get(test_id)
+    
+    if student is None:
+        raise HTTPException(404, detail="Student not found")
+
+    if test is None:
+        raise HTTPException(404, detail="Test not found")
+
+    # load key needed to grade submission
     test_key = json.loads(test.answers)
+
+    # grab the bytes of whatever image was submitted.
     image_data = await submission_image.read()
 
-    print(f"{test.name} Key: {test_key}")
-    print(f"image_name: {submission_image.filename}")
-    print(f"image_data: {image_data[0:10]}")
+    # print(f"{test.name} Key: {test_key}")
+    # print(f"image_name: {submission_image.filename}")
+    # print(f"image_data: {image_data[0:10]}")
 
-    if not test:
-        raise HTTPException(404, detail="test was not found. please refresh")
-    print("here 1")
+    # print("here 1")
+    # grade the submission
     grader = OMRGrader(
         num_choices=test.num_choices, 
         num_questions=test.num_questions, 
@@ -82,6 +93,8 @@ async def create_submission_live(
     session.add(new_submission)
     session.commit()
     print("here 6")
+
+    return {"Success": True}
 
 
 @router.delete("/{submission_id}")
@@ -163,6 +176,25 @@ def get_submissions_for_student(student_id: int):
         raise HTTPException(status_code=404, detail="Student not found")
     
     return student.submissions
+
+
+@router.get("/student/{student_id}/{course_id}", response_model=List[GetStudentSubmission])
+def get_submissions_for_student_for_course(student_id: int, course_id:int):
+
+    submissions = session.query(Submission).filter(
+        Submission.student_id == student_id
+    ).all()
+
+    submissions = [x for x in submissions if x.test.course_id == course_id]
+
+    print(f"submissions: {submissions}")
+
+    if not submissions:
+        raise HTTPException(status_code=404, detail="No submissions found for this student in this course.")
+
+    print(f"submissions: {submissions}")
+
+    return submissions
 
 
 @router.get("/{test_id}/{student_id}", response_model=GetSubmission)
