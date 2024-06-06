@@ -1,0 +1,5 @@
+  backup-branch                   cb73475 Track large file with Git LFS
+  master                          8c2c5ea added forgotten password and better user validation
+* temporary-branch                80a2aa8 just hacked the frontend in 13 hours
+  remotes/origin/master           8c2c5ea added forgotten password and better user validation
+  remotes/origin/temporary-branch 80a2aa8 just hacked the frontend in 13 hours
