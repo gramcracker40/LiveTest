@@ -26,7 +26,7 @@ export const AppRoutes = () => {
           <Route path="/course" element={<CoursePage />} />
           <Route path="/course/:id" element={<EachCoursePage />} />
           <Route path="/test/:id" element={<TestPage />} />
-          <Route path="/submission" element={<SubmissionPage />} />
+          <Route path="/submission/:testid" element={<SubmissionPage />} />
           <Route path="/create-test" element={<CreateTestPage />} />
           <Route path="/create-course" element={<CreateCoursePage />} />
           <Route path="/reset-password" element={<ResetPassword />} />

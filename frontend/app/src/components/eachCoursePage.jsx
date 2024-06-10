@@ -24,7 +24,8 @@ export const EachCoursePage = () => {
   const [updatedSubject, setUpdatedSubject] = useState("");
   const [showStudentSubmissions, setShowStudentSubmissions] = useState(false);
   const [studentSubmissions, setStudentSubmissions] = useState([]);
-  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [isDeleteCourseConfirmOpen, setIsDeleteCourseConfirmOpen] = useState(false);
+  const [isDeleteStudentConfirmOpen, setIsDeleteStudentConfirmOpen] = useState(false);
   const [showQRCode, setShowQRCode] = useState(false);
   const [studentToRemove, setStudentToRemove] = useState(null);
   const [submissionImages, setSubmissionImages] = useState([]);
@@ -127,7 +128,7 @@ export const EachCoursePage = () => {
 
   const handleRemoveStudent = (studentId) => {
     setStudentToRemove(studentId);
-    setIsDeleteConfirmOpen(true);
+    setIsDeleteStudentConfirmOpen(true);
   };
 
   const confirmRemoveStudent = async () => {
@@ -140,7 +141,7 @@ export const EachCoursePage = () => {
           ...prevCourse,
           students: prevCourse.students.filter((student) => student.id !== studentToRemove),
         }));
-        setIsDeleteConfirmOpen(false);
+        setIsDeleteStudentConfirmOpen(false);
       }
     } catch (error) {
       console.error("Error removing student", error);
@@ -189,8 +190,7 @@ export const EachCoursePage = () => {
     const { protocol, hostname, port } = window.location;
     const instanceURL = `${protocol}//${hostname}${port ? `:${port}` : ''}`;
     return `${instanceURL}/login?courseId=${id}`;
-};
-
+  };
 
   return (
     <div className="min-h-screen mx-auto w-full bg-cyan-50">
@@ -224,7 +224,7 @@ export const EachCoursePage = () => {
                     </div>
                     <div className="group relative flex gap-x-6 rounded-lg p-4 text-sm leading-6 hover:bg-gray-50">
                       <button
-                        onClick={() => setIsDeleteConfirmOpen(true)}
+                        onClick={() => setIsDeleteCourseConfirmOpen(true)}
                         className="w-full text-left"
                       >
                         Delete Course
@@ -262,7 +262,7 @@ export const EachCoursePage = () => {
                     </div>
                     <div className="group relative flex gap-x-6 rounded-lg p-4 text-sm leading-6 hover:bg-gray-50">
                       <button
-                        onClick={() => setIsDeleteConfirmOpen(true)}
+                        onClick={() => setIsDeleteCourseConfirmOpen(true)}
                         className="w-full text-left"
                       >
                         Delete Course
@@ -429,7 +429,7 @@ export const EachCoursePage = () => {
                 <div className="flex items-center justify-center min-h-screen">
                   <div className="fixed inset-0 bg-black opacity-30" aria-hidden="true"></div>
                   <div className="relative bg-white rounded-lg max-w-2xl mx-auto p-6">
-                    <h2 className="text-2xl font-semibold mb-4">Student {}Submissions</h2>
+                    <h2 className="text-2xl font-semibold mb-4">Student Submissions</h2>
                     <ul className="space-y-4">
                       {submissionImages.map((submission) => (
                         <li key={submission.id} className="p-4 rounded shadow bg-white">
@@ -464,7 +464,35 @@ export const EachCoursePage = () => {
         )}
       </div>
 
-      {isDeleteConfirmOpen && (
+      {isDeleteCourseConfirmOpen && (
+        <div className="fixed z-10 inset-0 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="fixed inset-0 bg-black opacity-30" aria-hidden="true"></div>
+            <div className="relative bg-white rounded-lg max-w-sm mx-auto p-6">
+              <h2 className="text-lg font-semibold">Delete Course</h2>
+              <p className="mt-2 text-sm text-gray-600">
+                Are you sure you want to remove this course? This will delete all tests, enrollments, and submissions associated with the course.
+              </p>
+              <div className="mt-4 flex justify-end space-x-4">
+                <button
+                  onClick={() => setIsDeleteCourseConfirmOpen(false)}
+                  className="px-4 py-2 bg-gray-400 text-white rounded-md"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteCourse}
+                  className="px-4 py-2 bg-red-600 text-white rounded-md"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isDeleteStudentConfirmOpen && (
         <div className="fixed z-10 inset-0 overflow-y-auto">
           <div className="flex items-center justify-center min-h-screen">
             <div className="fixed inset-0 bg-black opacity-30" aria-hidden="true"></div>
@@ -475,7 +503,7 @@ export const EachCoursePage = () => {
               </p>
               <div className="mt-4 flex justify-end space-x-4">
                 <button
-                  onClick={() => setIsDeleteConfirmOpen(false)}
+                  onClick={() => setIsDeleteStudentConfirmOpen(false)}
                   className="px-4 py-2 bg-gray-400 text-white rounded-md"
                 >
                   Cancel

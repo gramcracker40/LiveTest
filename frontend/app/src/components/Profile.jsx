@@ -47,17 +47,17 @@ const Profile = () => {
 
   const checkPasswordStrength = (password) => {
     let strength = '';
-    if (password.length >= 8) {
-      strength = 'Weak';
-      if (/[A-Z]/.test(password)) strength = 'Moderate';
-      if (/[0-9]/.test(password) && /[!@#$%^&*]/.test(password)) strength = 'Strong';
-    }
+    if (password.length > 8) strength = 'Moderate';
+    if (/[A-Z]/.test(password) && password.length > 8) strength = 'Moderate';
+    if (/[0-9]/.test(password) && /[!@#$%^&*]/.test(password) && password.length > 8) strength = 'Strong';
+    if (password.length <= 8) strength = 'Weak';
+
     setPasswordStrength(strength);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const updateUrl = `${instanceURL}/users/${authDetails.type}/${authDetails.id}`;
+    const updateUrl = `${instanceURL}/users/${authDetails.type}s/${authDetails.id}`;
     try {
       const req = await EasyRequest(updateUrl, defHeaders, 'PATCH', profile);
       if (req.status === 200) {

@@ -49,14 +49,17 @@ export const CoursePage = () => {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const oneWeekLater = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 7);
-
+  
     const filteredTests = tests.filter(test => {
-      const testDate = new Date(test.start_t);
-      return testDate >= today && testDate <= oneWeekLater;
+      const testStart = new Date(test.start_t);
+      const testEnd = new Date(test.end_t);
+  
+      return (testStart >= today && testStart <= oneWeekLater) || (now >= testStart && now <= testEnd);
     }).sort((a, b) => new Date(a.start_t) - new Date(b.start_t));
-
+  
     setUpcomingTests(filteredTests);
   }, [tests]);
+  
 
   const fetchTeacherNames = async (courses) => {
     const teacherIds = [...new Set(courses.map(course => course.teacher_id))];
@@ -105,30 +108,29 @@ export const CoursePage = () => {
       <NavBar />
       <div className='sm:px-28 sm:py-8 px-4 py-4'>
         <div className='grid grid-cols-1 gap-x-8 mb-7 p-4 rounded-lg shadow bg-white'>
-          <h1 className='text-3xl text-cyan-800 mb-4 font-bold'>
-            Upcoming Tests
-          </h1>
-          <ul>
-            {upcomingTests.map((test, index) => (
-              <li key={index} className='text-lg text-gray-700 flex justify-between'>
-                <span>{test.name}</span>
-                {handleDateFormatting(test.start_t, test.end_t) === "LIVE" ? (
-                  <>
+        <h1 className='text-3xl text-cyan-800 mb-4 font-bold'>Upcoming Tests</h1>
+        <ul>
+          {upcomingTests.map((test, index) => (
+            <li key={index} className='text-lg text-gray-700 flex justify-between'>
+              <span>{test.name}</span>
+              {handleDateFormatting(test.start_t, test.end_t) === "LIVE" ? (
+                <>
                   {(authDetails.type === 'student' || authDetails.type === 'teacher') && (
                     <a
-                      onClick={() => handleNavigate("/submission", { test })}
+                      onClick={() => handleNavigate(`/submission/${test.id}`, { test })}
                       className="text-md cursor-pointer text-cyan-500 hover:text-cyan-700"
                     >
                       LIVE
                     </a>
                   )}
-                  </>
-                ) : (
-                  <span>{handleDateFormatting(test.start_t, test.end_t)}</span>
-                )}
-              </li>
-            ))}
-          </ul>
+                </>
+              ) : (
+                <span>{handleDateFormatting(test.start_t, test.end_t)}</span>
+              )}
+            </li>
+          ))}
+        </ul>
+
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-8">
           {courses.map((course, index) => (

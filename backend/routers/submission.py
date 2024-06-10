@@ -1,7 +1,7 @@
 import json
 import base64
 import io
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from fastapi import HTTPException, APIRouter, Depends, Form, UploadFile
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
@@ -20,82 +20,80 @@ router = APIRouter(
     redirect_slashes=True
 )
 
-
 @router.post("/")
 async def create_submission_live(
     submission_image: UploadFile,
     student_id: int = Form(...),
     test_id: str = Form(...), 
     mechanical: bool = False
-    ): #, user=Depends(get_current_user)
-    '''
-    #IN TESTING - MAKE TODO CHANGES BELOW FOR PROD
-    # TODO add a check to make sure the given student is actually in the course associated with the test
-    # TODO make sure the student has not already submitted to the test
-    # TODO add a check to make sure that the test is actually "Live"
+):
+    try:
+        print("Received request to create submission")
+        # query student and test to make sure they exist
+        student = session.query(Student).get(student_id)
+        test = session.query(Test).get(test_id)
+        
+        if student is None:
+            raise HTTPException(404, detail="Student not found")
 
-    create a submission using the offical LiveTest answer sheets.
+        if test is None:
+            raise HTTPException(404, detail="Test not found")
 
-    the Test being submitted to must be "Live". i.e the time must be in between
-    the set start and end datetimes. 
-    '''
-    # query student and test to make sure they exist
-    student = session.query(Student).get(student_id)
-    test = session.query(Test).get(test_id)
+        # load key needed to grade submission
+        test_key = json.loads(test.answers)
+
+        # grab the bytes of whatever image was submitted
+        image_data = await submission_image.read()
+
+        print(f"{test.name} Key: {test_key}")
+        print(f"image_name: {submission_image.filename}")
+        print(f"image_data: {image_data[0:10]}")
+
+        print("here 1")
+        # grade the submission
+        grader = OMRGrader(
+            num_choices=test.num_choices, 
+            num_questions=test.num_questions, 
+            font_path="answer_sheets/assets/fonts/RobotoMono-Regular.ttf",
+            mechanical=mechanical
+        )
+        print("here 2")
+
+        grade, graded, choices = grader.run(bytes_obj=image_data, key=test_key)
+        graded_image_bytes = OMRGrader.convert_image_to_bytes(grader.image)
+        print(f"grade: {grade}\ngraded: {graded}\nchoices: {len(choices)}")
+        print("here 3")
+
+        new_submission = Submission(
+            submission_image=image_data,
+            graded_image=graded_image_bytes, 
+            answers=json.dumps({
+                question_num: (choices[question_num][2], graded[question_num])
+                for question_num in graded
+            }), # {1: ("A", True), 2: ("F", False)}  -->  answers (JSON str)
+            grade=grade,
+            student_id=student_id,
+            test_id=test.id
+        )
+        print("here 4")
+
+        print(f"NEW SUBMISSION: {new_submission}")
+        print("here 5")
+
+        session.add(new_submission)
+        session.commit()
+        print("here 6")
+
+        return {"success": True, "submission_id": new_submission.id}
     
-    if student is None:
-        raise HTTPException(404, detail="Student not found")
-
-    if test is None:
-        raise HTTPException(404, detail="Test not found")
-
-    # load key needed to grade submission
-    test_key = json.loads(test.answers)
-
-    # grab the bytes of whatever image was submitted.
-    image_data = await submission_image.read()
-
-    # print(f"{test.name} Key: {test_key}")
-    # print(f"image_name: {submission_image.filename}")
-    # print(f"image_data: {image_data[0:10]}")
-
-    # print("here 1")
-    # grade the submission
-    grader = OMRGrader(
-        num_choices=test.num_choices, 
-        num_questions=test.num_questions, 
-        font_path="answer_sheets/assets/fonts/RobotoMono-Regular.ttf",
-        mechanical=mechanical
-    )
-    print("here 2")
-
-    grade, graded, choices = grader.run(bytes_obj=image_data, key=test_key)
-    graded_image_bytes = OMRGrader.convert_image_to_bytes(grader.image)
-    print(f"grade: {grade}\ngraded: {graded}\nchoices: {len(choices)}")
-    print("here 3")
-
-    new_submission = Submission(
-        submission_image=image_data,
-        graded_image=graded_image_bytes, 
-        answers=json.dumps({
-            question_num: (choices[question_num][2], graded[question_num])
-            for question_num in graded
-        }), # {1: ("A", True), 2: ("F", False)}  -->  answers (JSON str)
-        grade=grade,
-        student_id=student_id,
-        test_id=test.id
-    )
-    print("here 4")
-
-    print(f"NEW SUBMISSION: {new_submission}")
-    print("here 5")
-
-    session.add(new_submission)
-    session.commit()
-    print("here 6")
-
-    return {"Success": True}
-
+    except SQLAlchemyError as e:
+        print(f"Database error: {e}")
+        session.rollback()
+        raise HTTPException(status_code=500, detail="Database error occurred")
+    
+    except Exception as e:
+        print(f"Unhandled error: {e}")
+        raise HTTPException(status_code=500, detail="An error occurred")
 
 @router.delete("/{submission_id}")
 def delete_submission(submission_id: int):

@@ -43,6 +43,9 @@ export const TestPage = () => {
   const [updatedTestName, setUpdatedTestName] = useState("");
   const [updatedStartDate, setUpdatedStartDate] = useState("");
   const [updatedEndDate, setUpdatedEndDate] = useState("");
+  const [isDeleteTestConfirmOpen, setIsDeleteTestConfirmOpen] = useState(false);
+  const [isDeleteSubmissionConfirmOpen, setIsDeleteSubmissionConfirmOpen] = useState(false);
+  const [submissionToDelete, setSubmissionToDelete] = useState(null);
 
   useEffect(() => {
     if (!authDetails.isLoggedIn) {
@@ -73,7 +76,7 @@ export const TestPage = () => {
     };
 
     fetchTestData();
-    const interval = setInterval(fetchTestData, 20000);
+    const interval = setInterval(fetchTestData, 60000);
 
     return () => clearInterval(interval);
   }, [authDetails, navigate, id]);
@@ -225,7 +228,7 @@ export const TestPage = () => {
                     </div>
                     <div className="group relative flex gap-x-6 rounded-lg p-4 text-sm leading-6 hover:bg-gray-50">
                       <button
-                        onClick={handleDeleteTest}
+                        onClick={() => setIsDeleteTestConfirmOpen(true)}
                         className="w-full text-left"
                       >
                         Delete Test
@@ -277,7 +280,7 @@ export const TestPage = () => {
                     </div>
                     <div className="group relative flex gap-x-6 rounded-lg p-4 text-sm leading-6 hover:bg-gray-50">
                       <button
-                        onClick={handleDeleteTest}
+                        onClick={() => setIsDeleteTestConfirmOpen(true)}
                         className="w-full text-left"
                       >
                         Delete Test
@@ -312,6 +315,16 @@ export const TestPage = () => {
           <div className={`px-4 py-2 rounded-md text-white text-center ${handleDateFormatting(test.start_t, test.end_t) === 'LIVE' ? 'bg-green-500' : handleDateFormatting(test.start_t, test.end_t) === 'IN WAIT' ? 'bg-yellow-500' : 'bg-gray-500'}`}>
             {handleDateFormatting(test.start_t, test.end_t)}
           </div>
+          {handleDateFormatting(test.start_t, test.end_t) === 'LIVE' && (
+            <div className="mt-4 text-center">
+              <button
+                onClick={() => navigate(`/submission/${id}`, { state: { test } })}
+                className="px-4 py-2 bg-blue-500 text-white rounded-md"
+              >
+                Create a new submission
+              </button>
+            </div>
+          )}
         </div>
       )}
 
@@ -400,7 +413,7 @@ export const TestPage = () => {
                 <li key={submission.id} className="mt-2">
                   {submission.name} - {submission.grade}
                   <button
-                    onClick={() => handleDeleteSubmission(submission.id)}
+                    onClick={() => { setSubmissionToDelete(submission.id); setIsDeleteSubmissionConfirmOpen(true); }}
                     className="ml-4 text-red-500"
                   >
                     Delete
@@ -412,6 +425,62 @@ export const TestPage = () => {
           </div>
         </div>
       </div>
+
+      {isDeleteTestConfirmOpen && (
+        <div className="fixed z-10 inset-0 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="fixed inset-0 bg-black opacity-30" aria-hidden="true"></div>
+            <div className="relative bg-white rounded-lg max-w-sm mx-auto p-6">
+              <h2 className="text-lg font-semibold">Delete Test</h2>
+              <p className="mt-2 text-sm text-gray-600">
+                Are you sure you want to delete this test? This will remove all associated submissions and grades.
+              </p>
+              <div className="mt-4 flex justify-end space-x-4">
+                <button
+                  onClick={() => setIsDeleteTestConfirmOpen(false)}
+                  className="px-4 py-2 bg-gray-400 text-white rounded-md"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteTest}
+                  className="px-4 py-2 bg-red-600 text-white rounded-md"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isDeleteSubmissionConfirmOpen && (
+        <div className="fixed z-10 inset-0 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="fixed inset-0 bg-black opacity-30" aria-hidden="true"></div>
+            <div className="relative bg-white rounded-lg max-w-sm mx-auto p-6">
+              <h2 className="text-lg font-semibold">Delete Submission</h2>
+              <p className="mt-2 text-sm text-gray-600">
+                Are you sure you want to delete this submission? This action cannot be undone.
+              </p>
+              <div className="mt-4 flex justify-end space-x-4">
+                <button
+                  onClick={() => setIsDeleteSubmissionConfirmOpen(false)}
+                  className="px-4 py-2 bg-gray-400 text-white rounded-md"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleDeleteSubmission(submissionToDelete)}
+                  className="px-4 py-2 bg-red-600 text-white rounded-md"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

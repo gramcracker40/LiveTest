@@ -30,6 +30,7 @@ def pre_process(image):
     '''
     prepares the image for finding contours. 
     '''
+    image = equalize_histogram(image) # levels out inconsistent brightness
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     blur = cv2.GaussianBlur(gray, (5, 5), 0)
     thresh = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
@@ -51,6 +52,16 @@ def order_points(pts):
     rect[1] = pts[np.argmin(diff)]
     rect[3] = pts[np.argmax(diff)]
     return rect
+
+
+def equalize_histogram(image):
+    """
+    Applies adaptive histogram equalization to the input image to improve contrast.
+    """
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
+    equalized = clahe.apply(gray)
+    return cv2.cvtColor(equalized, cv2.COLOR_GRAY2BGR)
 
 
 def four_point_transform(image, pts):
@@ -149,13 +160,13 @@ class OMRGrader:
         contours = sorted(contours, key=cv2.contourArea, reverse=True)[:3]
         print(f"Found {len(contours)} contours.")
 
-        cv2.drawContours(image, contours, -1, (0,255,255), 111)
+        #cv2.drawContours(image, contours, -1, (0,255,255), 111)
         show_image("drawContours(image)", image)
 
         # Loop over the contours
         for i, c in enumerate(contours):
             peri = cv2.arcLength(c, True)
-            approx = cv2.approxPolyDP(c, 0.02 * peri, True)
+            approx = cv2.approxPolyDP(c, 0.025 * peri, True)
             print(f"Contour #{i + 1}: {len(approx)} vertices.")
 
             if len(approx) == 4:
@@ -184,10 +195,10 @@ class OMRGrader:
             raise ValueError("The image could not be loaded. Check the input data.")
         show_image("starting answer_bubbles", self.image)
         print("starting bubbles")
-        if len(self.image.shape) == 3: # mechanical
+        if len(self.image.shape) == 3: # rectangle
             gray = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
-            blurred = cv2.GaussianBlur(gray, (5, 5), 0)
-            self.thresh = cv2.threshold(blurred, 0, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
+            #blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+            self.thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
             print("thresholded image!")
         self.show_image("Thresholded image", self.thresh)
 
@@ -199,9 +210,9 @@ class OMRGrader:
             aspect_ratio = w / float(h)
             if self.is_circle(contour) and 0.9 <= aspect_ratio <= 1.1:
                 question_contours.append(contour)
-                # cv2.drawContours(self.image, [contour], -1, (0,255,0), -1) # debugging
+                #cv2.drawContours(self.image, [contour], -1, (0,255,0), 2) # debugging
 
-        self.show_image("Image", self.image)
+        self.show_image("contours highlighted", self.image)
         print(f"#question choices: {len(question_contours)}")
 
         return question_contours, self.image

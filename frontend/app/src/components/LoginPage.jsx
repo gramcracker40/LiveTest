@@ -1,6 +1,6 @@
 import { useRef, useState, useCallback, useContext, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
-import { EasyRequest, defHeaders, loginURL } from "../api/helpers.js";
+import { EasyRequest, defHeaders, instanceURL } from "../api/helpers.js";
 import logo from "../assets/LiveTestLogo.png"
 import { AuthContext } from '../context/auth.jsx';
 
@@ -30,7 +30,7 @@ export const LoginPage = () => {
         password: passwordRef.current.value
       };
 
-      let req = await EasyRequest(loginURL, defHeaders, "POST", body);
+      let req = await EasyRequest(`${instanceURL}/auth/login`, defHeaders, "POST", body);
       setLoginAttempts(loginAttempts++);
 
       // ----------------- FOR DEBUGGING ---------------------
@@ -154,9 +154,21 @@ export const LoginPage = () => {
               </div>
             </div>
             
-            {invalidCredentials && <a className="text-red-600 ">Wrong username/password, please try again</a>}
+            {invalidCredentials && <p className="text-red-600">Wrong username/password, please try again</p>}
             {/* TODO*/}
             {/* {tooManyAttempts && <h2 className="text-red-600">You have attempted to login more than 5 times, please wait 30 seconds and try again.</h2>} */}
+            
+            <div className="text-center text-sm text-gray-500">
+              <p>
+                Don't have an account?{" "}
+                <a
+                  href="/register"
+                  className="font-semibold leading-6 text-cyan-500 hover:text-cyan-300"
+                >
+                  Register here
+                </a>
+              </p>
+            </div>
 
             <div>
               <button
@@ -168,9 +180,9 @@ export const LoginPage = () => {
             </div>
           </form>
 
-          {passwordForgotten && <h2 className="text-red-700">Please contact your instance administrator and notify them of the lockout</h2>}
+          {passwordForgotten && <h2 className="text-red-700 mt-4 text-center">Please contact your instance administrator and notify them of the lockout</h2>}
 
-          { <p className="mt-10 text-center text-sm text-gray-500">
+          {/* { <p className="mt-10 text-center text-sm text-gray-500">
               Not a member?{" "}
               <a
                 href="#" // TODO: create link to registration page and backend configured for such offer
@@ -178,7 +190,7 @@ export const LoginPage = () => {
               >
                 Start a 14 day free trial
               </a>
-            </p> }
+            </p> } */}
         </div>
       </div>
   );

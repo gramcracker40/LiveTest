@@ -13,6 +13,7 @@ from models.test import (
     CreateTestConfirmation,
     GetTests,
 )
+from models.users import GetStudentMinimum
 from answer_sheets.main import Pictron
 from tables import Test, Course
 from db import session
@@ -241,3 +242,21 @@ def delete_test(test_id: str):
     session.commit()
 
     return {"detail": f"Test {name} deleted successfully"}
+
+
+
+@router.get("/students/{test_id}", response_model=List[GetStudentMinimum])
+def get_not_submitted_for_test(test_id: str):
+    '''
+    grabs a list of students that are yet to submit for a particular test
+    '''
+    test = session.query(Test).get(test_id)
+
+    if test is None:
+        raise HTTPException(404, detail="Test not found")
+    
+    submitted = {x.student_id: None for x in test.submissions}
+    not_submitted = [i.__dict__ for i in test.course.students if i.id not in submitted]
+
+    return not_submitted
+

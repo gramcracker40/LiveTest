@@ -1,6 +1,5 @@
 export const defHeaders = { 'Content-Type': 'application/json' };
-export const loginURL = "http://127.0.0.1:8000/auth/login";
-export const instanceURL = "http://127.0.0.1:8000";
+export const instanceURL = `${window.location.protocol}//${window.location.hostname}:8000`;
 
 export async function EasyRequest(url, headers, method, body=null) {
     try {

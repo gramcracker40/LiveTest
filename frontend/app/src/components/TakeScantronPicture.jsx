@@ -59,10 +59,20 @@ export const TakeScantronPicture = ({ onSubmit }) => {
   };
 
   const handlePhotoSubmit = () => {
-    if (onSubmit && typeof onSubmit === 'function') {
-      onSubmit(image.split('base64,')[1]); // Pass the base64 encoded image to the callback
+    if (image) {
+      const byteString = atob(image.split(',')[1]);
+      const mimeString = image.split(',')[0].split(':')[1].split(';')[0];
+      const ab = new ArrayBuffer(byteString.length);
+      const ia = new Uint8Array(ab);
+      for (let i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i);
+      }
+      const blob = new Blob([ab], { type: mimeString });
+      const file = new File([blob], "submission.jpg", { type: mimeString });
+      handleImageSubmit(file);
     }
   };
+  
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-cyan-100 p-4">

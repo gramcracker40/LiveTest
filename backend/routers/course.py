@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.exc import IntegrityError
 from typing import List
 from models.course import CreateCourse, UpdateCourse, GetCourse, GetCourseMinimum
+from models.users import GetStudentMinimum
 from tables import Course, Student, Teacher
 from db import session
 from routers.auth import jwt_token_verification
@@ -58,6 +59,13 @@ def get_course_by_id(course_id: int):
         raise HTTPException(status_code=404, detail="Course not found")
     return course
 
+
+@router.get("/students/{course_id}", response_model=List[GetStudentMinimum])
+def get_students_for_course(course_id: int):
+    course = session.query(Course).get(course_id)
+    if course is None:
+        raise HTTPException(status_code=404, detail="Course not found")
+    return course.students
 
 @router.patch("/{course_id}")
 def update_course(course_id: int, update_data: UpdateCourse):
