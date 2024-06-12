@@ -3,6 +3,7 @@ from PIL import Image, ImageDraw, ImageFont
 import numpy as np
 import os
 
+
 class DocumentExtractionFailedError(Exception):
     """
     Exception raised for errors in the Scantron extraction process.
