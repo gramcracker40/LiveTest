@@ -18,11 +18,11 @@ TEACHER_URL = f"{URL}/users/teachers/"
 HEADERS = {"Content-Type": "application/json", "Accept": "text/plain"}
 
 # constants for fake data creation
-SEMESTER = "Spring"
+SEMESTER = "Fall"
 SCHOOL_DOMAIN = "my.msutexas.edu"
-NUM_STUDENTS = 50
-NUM_TEACHERS = 5
-NUM_COURSES = 20
+NUM_STUDENTS = 20
+NUM_TEACHERS = 4
+NUM_COURSES = 15
 COURSES_PER_STUDENT = 5
 subjects = ["MATH", "CMPS", "ENGL", "HIST", "CH", "SHOP", "TECH"]
 NUM_SUBJECTS = len(subjects)

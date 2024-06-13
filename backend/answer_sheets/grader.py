@@ -1,3 +1,7 @@
+'''
+This module implements the OMRGrader for the LiveTest answer_sheet module
+'''
+
 import cv2
 from PIL import Image, ImageDraw, ImageFont
 import numpy as np
@@ -28,7 +32,21 @@ def show_image(title: str, matlike: cv2.Mat_TYPE_MASK, w=600, h=700):
 
 def pre_process(image):
     '''
-    prepares the image for finding contours. 
+    prepares the image for finding contours.
+    begins with a histogram equalization that will average out overly bright
+    or dull images to help with glare and increases the contrast of the original image. 
+    This significantly increases the identification rate of the answer sheets.
+    
+    We then perform a gaussian blur on the image to smooth it out and better connect the edges
+    
+    A threshold is then taken using OTSU's method, this automatically finds the optimum value. 
+    We also invert the threshold to better identify the edges. 
+    
+    Finally we run Canny edge detection to grab the edges found in the image, this will identify the 
+    edges for the answer sheet and returns an edge highlighted image. 
+    
+    Once we have the edges detected we dilate the image to further bring out the edges into the foreground
+    This helps with splotchy background in removing background noise. 
     '''
     image = equalize_histogram(image) # levels out inconsistent brightness
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -41,7 +59,21 @@ def pre_process(image):
     return dilated
 
 
+def equalize_histogram(image):
+    """
+    Applies adaptive histogram equalization to the input image to improve contrast.
+    """
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
+    equalized = clahe.apply(gray)
+    return cv2.cvtColor(equalized, cv2.COLOR_GRAY2BGR)
+
+
 def order_points(pts):
+    '''
+    helper function for the four point transformation.
+    Identifies the correct order of the vertices
+    '''
     # Order points in the order: top-left, top-right, bottom-right, bottom-left
     rect = np.zeros((4, 2), dtype="float32")
     s = pts.sum(axis=1)
@@ -54,17 +86,11 @@ def order_points(pts):
     return rect
 
 
-def equalize_histogram(image):
-    """
-    Applies adaptive histogram equalization to the input image to improve contrast.
-    """
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
-    equalized = clahe.apply(gray)
-    return cv2.cvtColor(equalized, cv2.COLOR_GRAY2BGR)
-
-
 def four_point_transform(image, pts):
+    '''
+    given four vertices of an identified rectangular contour
+    perform a four point birds eye transformation of the answer sheet
+    '''
     rect = order_points(pts)
     (tl, tr, br, bl) = rect
 
