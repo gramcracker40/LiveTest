@@ -61,16 +61,16 @@ async def create_submission_live(
         )
         grade, graded, choices = grader.run(bytes_obj=image_data, key=test_key)
         if not grade: # check to make sure no errors were raised while trying to grade the submission
-            print(f"error TRUE: {choices}")
-            raise HTTPException(409, detail=f"Error: {choices}") # raise the error
+            print(f"error: {choices}")
+            raise ValueError(choices) # raise the error
         
         # if all went well with grading process, gather the submission data
         graded_image_bytes = OMRGrader.convert_image_to_bytes(grader.image)
         # print(f"grade: {grade}\ngraded: {graded}\nchoices: {len(choices)}") # debug
         new_submission = Submission(
             submission_time=datetime.datetime.now(), 
-            submission_image=compress_data(compress_image(image_data, quality=30)),
-            graded_image=compress_data(compress_image(graded_image_bytes, quality=30)), 
+            submission_image=compress_data(compress_image(image_data, quality=5)),
+            graded_image=compress_data(compress_image(graded_image_bytes, quality=15)), 
             answers=json.dumps({
                 question_num: (choices[question_num][2], graded[question_num])
                 for question_num in graded
@@ -85,8 +85,9 @@ async def create_submission_live(
 
         return {"success": True, "submission_id": new_submission.id}
     
-    except HTTPException as e:
-        print(f"HTTPException error: {e}")
+    # grader failed
+    except ValueError as e:
+        print(f"Could not grade the answer sheet: {e}")
         raise HTTPException(status_code=409, detail=f"An error occurred - {e}")
     
     except SQLAlchemyError as e:
@@ -94,6 +95,8 @@ async def create_submission_live(
         if "UNIQUE" in str(e):
             session.rollback()
             raise HTTPException(status_code=400, detail="This student has already submitted to this test")
+        else:
+            raise HTTPException(status_code=500, detail=f"DB Error - {e}")
 
 @router.delete("/{submission_id}")
 def delete_submission(submission_id: int):

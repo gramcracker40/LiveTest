@@ -1,71 +1,53 @@
-// ./Analytics/QuestionsMissedPercentage.jsx
 import React, { useEffect, useState } from 'react';
-import { BarChart, Bar, Label, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, Label, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { EasyRequest, defHeaders, instanceURL } from '../../api/helpers';
 
 export const QuestionsMissedPercentage = ({ submissions }) => {
   const [data, setData] = useState([]);
 
   useEffect(() => {
-    console.log("useEffect called with submissions:", submissions);
-    if (submissions && submissions.length > 0) {
-      console.log("Fetching answers for each submission...");
-      fetchAnswersForSubmissions(submissions);
-    } else {
-      console.log("No submissions available to process.");
+    if (submissions.length > 0) {
+      calculateMissedQuestionsPercentage(submissions);
     }
   }, [submissions]);
 
-  const fetchAnswersForSubmissions = async (submissions) => {
-    try {
-      const allAnswers = await Promise.all(submissions.map(async (submission) => {
+  const calculateMissedQuestionsPercentage = async (submissions) => {
+    const questionStats = {};
+
+    for (const submission of submissions) {
+      try {
         const answersURL = `${instanceURL}/submission/etc/answers/${submission.id}`;
         const answersReq = await EasyRequest(answersURL, defHeaders, "GET");
+
         if (answersReq.status === 200) {
-          console.log(`Fetched answers for submission ${submission.id}:`, answersReq.data.answers);
-          return answersReq.data.answers;
+          const answers = answersReq.data.answers;
+
+          Object.keys(answers).forEach(questionId => {
+            const answer = answers[questionId];
+            if (!questionStats[questionId]) {
+              questionStats[questionId] = { total: 0, missed: 0 };
+            }
+            questionStats[questionId].total += 1;
+            if (!answer.correct) {
+              questionStats[questionId].missed += 1;
+            }
+          });
         } else {
-          console.error(`Failed to fetch answers for submission ${submission.id}:`, answersReq.statusText);
-          return null;
+          console.error(`Failed to fetch answers for submission ${submission.id}: ${answersReq.statusText}`);
         }
-      }));
-      console.log("All fetched answers:", allAnswers);
-      calculateMissedQuestionsPercentage(allAnswers.filter(Boolean));
-    } catch (error) {
-      console.error("Error fetching answers for submissions:", error);
+      } catch (error) {
+        console.error(`Error fetching answers for submission ${submission.id}:`, error);
+      }
     }
-  };
-
-  const calculateMissedQuestionsPercentage = (answersList) => {
-    const questionStats = {};
-    console.log("Starting calculation for answersList:", answersList);
-
-    answersList.forEach((answers, index) => {
-      console.log(`Processing answers for submission ${index + 1}:`, answers);
-      Object.keys(answers).forEach(questionId => {
-        const answer = answers[questionId];
-        console.log(`Processing question ${questionId}:`, answer);
-        if (!questionStats[questionId]) {
-          questionStats[questionId] = { total: 0, missed: 0 };
-        }
-        questionStats[questionId].total += 1;
-        if (!answer.correct) {
-          questionStats[questionId].missed += 1;
-        }
-      });
-    });
 
     const chartData = Object.keys(questionStats).map(questionId => {
       const stat = questionStats[questionId];
-      const percentage = (stat.missed / stat.total) * 100;
-      console.log(`Question ${questionId}: ${stat.missed} missed out of ${stat.total}, percentage: ${percentage}%`);
       return {
         question: questionId,
-        percentage: percentage
+        percentage: parseFloat(((stat.missed / stat.total) * 100).toFixed(2)) // Convert to percentage
       };
     });
 
-    console.log("Final chart data:", chartData);
     setData(chartData);
   };
 
@@ -77,7 +59,10 @@ export const QuestionsMissedPercentage = ({ submissions }) => {
           <XAxis dataKey="question">
             <Label value="Questions" offset={0} position="insideBottom" />
           </XAxis>
-          <Tooltip />
+          <YAxis tickFormatter={(tick) => `${tick}%`} domain={[0, 100]}>
+            <Label value="Percentage Missed" angle={-90} position="insideLeft" />
+          </YAxis>
+          <Tooltip formatter={(value) => `${value}%`} />
           <Bar dataKey="percentage" fill="#8884d8" />
         </BarChart>
       </ResponsiveContainer>

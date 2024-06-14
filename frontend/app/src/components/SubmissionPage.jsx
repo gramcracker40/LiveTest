@@ -74,7 +74,7 @@ export const SubmissionPage = () => {
         fetchGradedImage(submissionId);
       } else {
         console.error("Error submitting scantron: ", response.status);
-        setErrorMessage(`Error: ${response.status}`);
+        setErrorMessage(`${req.detail}`);
         setImage(null);
       }
     } catch (error) {
@@ -87,16 +87,24 @@ export const SubmissionPage = () => {
   const fetchGradedImage = async (submissionId) => {
     const gradedImageURL = `${instanceURL}/submission/image/graded/${submissionId}`;
     try {
-      let req = await EasyRequest(gradedImageURL, defHeaders, "GET");
-      if (req.status === 200) {
-        setGradedImage(req.data.image_url); // assuming the response contains the image URL
-      } else {
-        console.error("Error fetching graded image: ", req.status);
-        setErrorMessage(`Error fetching graded image: ${req.status}`);
+      const response = await fetch(gradedImageURL, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${authDetails.accessToken}`,
+          ...defHeaders,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error fetching graded image: ${response.statusText}`);
       }
+
+      const imageData = await response.blob();
+      const imageObjectURL = URL.createObjectURL(imageData);
+      setGradedImage(imageObjectURL);
     } catch (error) {
-      console.error("API error", error);
-      setErrorMessage(`API error: ${error.message}`);
+      console.error("Error fetching graded image: ", error);
+      setErrorMessage(`Error fetching graded image: ${error.message}`);
     }
   };
 

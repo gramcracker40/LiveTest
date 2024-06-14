@@ -23,10 +23,11 @@ take the time to level out the brightness levels."""):
 
 class AnswerBubbleIdentificationFailedError(Exception):
     def __init__(self, 
-        message="""Question Choice Identification Failed, 
+        message="""Question Choice Identification Failed,
 This usually means we are able to isolate the document, 
-but there are inconsistent backgrounds obstructing our 
-strict normalization process. Please refer to the guide
+but there are inconsistent backgrounds (brightness, non-solid) obstructing our 
+strict normalization process. It could also mean that you are using the incorrect
+template for this specific test. Please refer to the guide
 on how to properly submit student answer sheets."""):
         self.message = message
         super().__init__(self.message)
@@ -264,11 +265,11 @@ class OMRGrader:
         print("starting bubbles")
         if len(self.image.shape) == 3: # rectangle
             gray = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
-            self.show_image("gray image", gray)
+            # self.show_image("gray image", gray)
             #blurred = cv2.GaussianBlur(gray, (5, 5), 0)
             self.thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
             print("thresholded image!")
-        self.show_image("Thresholded image", self.thresh)
+        # self.show_image("Thresholded image", self.thresh)
 
         contours, _ = cv2.findContours(self.thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         question_contours = []
@@ -280,11 +281,11 @@ class OMRGrader:
                 question_contours.append(contour)
                 # cv2.drawContours(self.image, [contour], -1, (0,255,0), 2) # debugging
 
-        self.show_image("contours highlighted", self.image)
+        # self.show_image("contours highlighted", self.image)
         print(f"#question choices: {len(question_contours)}")
-
+        print(f"len(question_contours)/self.num_choices): {len(question_contours)/self.num_choices}")
         # perform validation check to make sure you have the right number of questions
-        if (len(question_contours)/self.num_choices) != self.num_questions:
+        if (len(question_contours)/self.num_choices) < self.num_questions:
             raise AnswerBubbleIdentificationFailedError()
 
         return question_contours, self.image
@@ -479,30 +480,25 @@ class OMRGrader:
         except AnswerBubbleIdentificationFailedError as err:
             return (False, False, err)
         
+        # start by grouping the question choices by rows
         sorted_rows = self.group_bubbles_by_row(bubbles)
-        # print("sorted_rows")
+        # once you have your rows, organize the rows into questions
         questions = self.sort_rows_to_questions(sorted_rows)
-        # print("questions")
+        # determine which of the answer choices were selected using OMR
         choices = self.identify_question_choices(questions)
-        # print("choices")
-
-        # for question in choices:
-        #     print(f"Question: {question}, Answer: {choices[question][2]}")
-
+        # using the provided key, grade the selected choices
+        # marking wrong choices red and right choices green
         graded, grade = self.grade_choices(choices, key)
 
         # print(f"GRADE: {grade}\nGRADED: {graded}")
-
-        grade_color = (255, 0, 0) if grade < 70 \
+        # place a grade on the image that will change color based on their performance
+        grade_color = (255, 0, 0) if grade < 66 \
                 else (0, 255, 0) if grade >= 85 \
                 else (0, 255, 255) # yellow 70-84
 
         # add the grade to the image
-        image = self.add_grade(image, grade, color=grade_color)
-        
-        self.show_image("Questions Highlighted", 
-                        image, w=1500, h=1200)
-        
+        self.image = self.add_grade(image, grade, color=grade_color)
+
         return grade, graded, choices
 
 # usage

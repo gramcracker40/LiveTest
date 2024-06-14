@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
+import pako from 'pako';
 import { useNavigate, useParams } from "react-router-dom";
 import { AuthContext } from "../context/auth";
 import { EasyRequest, defHeaders, instanceURL } from "../api/helpers";
