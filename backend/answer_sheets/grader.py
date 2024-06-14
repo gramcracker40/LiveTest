@@ -10,12 +10,24 @@ import os
 
 class DocumentExtractionFailedError(Exception):
     """
-    Exception raised for errors in the Scantron extraction process.
+    Exception raised for errors in the AnswerSheet extraction process.
     """
     def __init__(self, 
-        message="""Scantron extraction failed, 
-please check the background and ensure 
-there is a consistent background"""):
+        message="""AnswerSheet extraction failed, 
+please check the image and make sure that the Answer Sheet
+is the main focus and takes up a majority of the screen. Also
+take the time to level out the brightness levels."""):
+        self.message = message
+        super().__init__(self.message)
+
+
+class AnswerBubbleIdentificationFailedError(Exception):
+    def __init__(self, 
+        message="""Question Choice Identification Failed, 
+This usually means we are able to isolate the document, 
+but there are inconsistent backgrounds obstructing our 
+strict normalization process. Please refer to the guide
+on how to properly submit student answer sheets."""):
         self.message = message
         super().__init__(self.message)
 
@@ -49,7 +61,7 @@ def pre_process(image):
     Once we have the edges detected we dilate the image to further bring out the edges into the foreground
     This helps with splotchy background in removing background noise. 
     '''
-    image = equalize_histogram(image) # levels out inconsistent brightness
+    #image = equalize_histogram(image) # levels out inconsistent brightness
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     blur = cv2.GaussianBlur(gray, (5, 5), 0)
     thresh = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
@@ -63,10 +75,23 @@ def pre_process(image):
 def equalize_histogram(image):
     """
     Applies adaptive histogram equalization to the input image to improve contrast.
+    
+    Parameters:
+    image (numpy.ndarray): Input image in BGR format.
+    
+    Returns:
+    numpy.ndarray: Image after applying CLAHE.
     """
+    # Convert the image to grayscale
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
+    
+    # Create a CLAHE object with a clip limit of 2.0 and a tile grid size of 8x8
+    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+    
+    # Apply CLAHE to the grayscale image
     equalized = clahe.apply(gray)
+    
+    # Convert the equalized grayscale image back to BGR format
     return cv2.cvtColor(equalized, cv2.COLOR_GRAY2BGR)
 
 
@@ -131,7 +156,7 @@ class OMRGrader:
     
     '''
     def __init__(self, num_choices, num_questions, mechanical:bool=True, 
-                 font_path:str="assets/fonts/RobotoMono-Regular.ttf", font_size:int=180):
+                 font_path:str="assets/fonts/RobotoMono-Regular.ttf", font_size:int=120):
         self.font_path = font_path
         self.font_size = font_size
         self.num_choices = num_choices
@@ -152,21 +177,36 @@ class OMRGrader:
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
-    def is_circle(self, contour, threshold=0.9):
+    def is_circle(self, contour, threshold=0.875, epsilon_factor=0.01):
         '''
-        given a contour determine if it is a circle
+        Given a contour, determine if it is a circle using contour approximation and circularity ratio.
         '''
+        # Approximate the contour
+        epsilon = epsilon_factor * cv2.arcLength(contour, True)
+        approx = cv2.approxPolyDP(contour, epsilon, True)
+
+        # Debugging: print the number of vertices of the approximated contour
+        print(f"Approximated contour has {len(approx)} vertices")
+
+        # Check if the approximated contour has enough vertices to be considered a circle
+        if len(approx) < 8:
+            return False
+
         area = cv2.contourArea(contour)
-        
-        # bounding circle
+
+        # Bounding circle
         (x, y), radius = cv2.minEnclosingCircle(contour)
         circle_area = np.pi * (radius ** 2)
-        
-        # circularity ratio
+
+        # Circularity ratio
         circularity = area / circle_area
-        
-        # return if the contour is a circle
+
+        # Debugging: print the area, circle area, and circularity
+        print(f"Contour area: {area}, Circle area: {circle_area}, Circularity: {circularity}")
+
+        # Return if the contour is a circle
         return circularity > threshold
+
     
 
     def isolate_document(self, image_path:str=None, image_bytes:bytes=None):
@@ -224,6 +264,7 @@ class OMRGrader:
         print("starting bubbles")
         if len(self.image.shape) == 3: # rectangle
             gray = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
+            self.show_image("gray image", gray)
             #blurred = cv2.GaussianBlur(gray, (5, 5), 0)
             self.thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
             print("thresholded image!")
@@ -237,10 +278,14 @@ class OMRGrader:
             aspect_ratio = w / float(h)
             if self.is_circle(contour) and 0.9 <= aspect_ratio <= 1.1:
                 question_contours.append(contour)
-                #cv2.drawContours(self.image, [contour], -1, (0,255,0), 2) # debugging
+                # cv2.drawContours(self.image, [contour], -1, (0,255,0), 2) # debugging
 
         self.show_image("contours highlighted", self.image)
         print(f"#question choices: {len(question_contours)}")
+
+        # perform validation check to make sure you have the right number of questions
+        if (len(question_contours)/self.num_choices) != self.num_questions:
+            raise AnswerBubbleIdentificationFailedError()
 
         return question_contours, self.image
 
@@ -307,6 +352,10 @@ class OMRGrader:
 
         How it works: counting the number of non-zero pixels (foreground pixels) in each bubble region
                         this function determines which bubble was circled in out of the number of choices. 
+        
+        To determine where the blank markings are located, we keep track of the average
+        non zero counts of each answer choice. So long as they mark the first few questions
+        it works but it needs a more surefire solution. We could measure this value at blank-test-creation.
 
         returns --> answer-sheets recorded results. 
         {}
@@ -354,41 +403,60 @@ class OMRGrader:
                 # draw red outline
                 cv2.drawContours(self.image, [choices[question_num][1]], -1, (0, 0, 255), outline_thickness)
 
-        return graded, correct/len(choices) * 100
+        return graded, round(correct/len(choices) * 100, 2)
 
 
     def add_grade(self, image, grade, 
-                  position:tuple=(3050, 30), 
-                  color=(0, 0, 0), 
-                  output_size=(1920, 1080)):
+                color=(0, 0, 0), 
+                output_size=(1920, 1080)):
         '''
-        add the grade to the top right of the graded answer sheet. 
+        Add the grade to the top right of the graded answer sheet.
         '''
         
-        # convert Matlike to RGB
+        # Convert Matlike to RGB
         cv_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
-        # convert the OpenCV image to a PIL image
+        # Convert the OpenCV image to a PIL image
         pil_image = Image.fromarray(cv_image)
-        pil_image.resize(output_size)
+        
+        # Resize the image
+        pil_image = pil_image.resize(output_size)
 
-        # draw grade on PIL image
+        # Draw grade on PIL image
         draw = ImageDraw.Draw(pil_image)
         font = ImageFont.truetype(self.font_path, self.font_size)
+        
+        # Calculate the width and height of the text to be drawn
+        text = f"{round(grade, 2)}%"
+        text_bbox = draw.textbbox((0, 0), text, font=font)
+        text_width = text_bbox[2] - text_bbox[0]
+        text_height = text_bbox[3] - text_bbox[1]
+
+        # Calculate the position to anchor the text at the top-right corner
+        image_width, image_height = pil_image.size
+        position = (image_width - text_width - 10, 10)  # 10 pixels padding from the edges
+
+        # Draw the text on the image
         draw.text(
             xy=position,
-            text=f"{grade}%", 
-            font=font, 
+            text=text,
+            font=font,
             fill=color,
         )
 
-        # convert back to OpenCV image
+        # Convert back to OpenCV image
         cv_image_final = cv2.cvtColor(np.array(pil_image), cv2.COLOR_RGB2BGR)
 
         return cv_image_final
 
 
-    def run(self, file_path:str=None, bytes_obj:bytes=None, key:dict=None):
+    def run(
+            self, 
+            file_path:str=None, 
+            bytes_obj:bytes=None, 
+            key:dict=None
+            ) \
+            -> tuple[float, dict, dict] | tuple[bool, bool, str]:
         '''
         helper function to execute the full functionality of the OMRGrader class in LiveTest
         uses configurations set in the constructor to grade the answer sheet. 
@@ -398,13 +466,19 @@ class OMRGrader:
             graded: dict --> {1: False, 2: False, 3: True}
             choices: dict --> {1: (_, contour, chr(j + 65))}
         '''
-        # determine if the run is on a mechanical or a real life image of a submission. 
-        if not self.mechanical: # run the pre-processing method
-            self.image = self.isolate_document(file_path, bytes_obj)
-            bubbles, image = self.get_answer_bubbles()
-        else:
-            bubbles, image = self.get_answer_bubbles(file_path, bytes_obj)
-        # print("got bubbles")
+        try:
+            # determine if the run is on a mechanical or a real life image of a submission. 
+            if not self.mechanical: # run the pre-processing method
+                self.image = self.isolate_document(file_path, bytes_obj)
+                bubbles, image = self.get_answer_bubbles()
+            else:
+                bubbles, image = self.get_answer_bubbles(file_path, bytes_obj)
+            # print("got bubbles")
+        except DocumentExtractionFailedError as err:
+            return (False, False, err)
+        except AnswerBubbleIdentificationFailedError as err:
+            return (False, False, err)
+        
         sorted_rows = self.group_bubbles_by_row(bubbles)
         # print("sorted_rows")
         questions = self.sort_rows_to_questions(sorted_rows)

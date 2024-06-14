@@ -101,9 +101,8 @@ export const CreateTestPage = () => {
       let req = await EasyRequest(instanceURL + "/test/", defHeaders, "POST", body);
       if (req.status === 200) {
         navigate(`/course/${testDetails.courseId}`);
-      } else {
-        console.error('Failed to create test:', req);
-        alert('Failed to create the test. Please try again.');
+      } else if (req.status === 409) {
+        alert('This same exact test already exists. Please name it differently.');
       }
     } catch (error) {
       console.error('Error creating test', error);

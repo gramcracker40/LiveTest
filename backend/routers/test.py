@@ -16,7 +16,7 @@ from models.test import (
 from models.users import GetStudentMinimum
 from answer_sheets.main import Pictron
 from tables import Test, Course
-from db import session
+from db import session, compress_data, compress_image
 import base64
 from time import sleep
 
@@ -49,23 +49,23 @@ def create_test_live(test: CreateTest):
     answer_sheet_config = Pictron.find_best_config(test.num_questions, test.num_choices)
     answer_sheet = Pictron(**answer_sheet_config)
     
-    # generate and save the blank version image of the test
+    # generate, compress, and save the blank version image of the test
     answer_sheet.generate(course_name=course.name, test_name=test.name)
-    #answer_sheet.image.show(title=f"Blank test: {test.name}")
+    # answer_sheet.image.show(title=f"Blank test: {test.name}") # debug
     blank_bytes = io.BytesIO()
-    answer_sheet.image.save(blank_bytes, format="PNG")
-    new_test.answer_key_blank = blank_bytes.getvalue()
+    answer_sheet.image.save(blank_bytes, format="JPEG")
+    new_test.answer_key_blank = compress_data(compress_image(blank_bytes.getvalue(), quality=30))
    
-    # generate and save the filled in key version of the test
+    # generate and save the compressed, filled in key version of the test
     answer_sheet.generate(
         answers={int(question_num): answer for question_num, answer in test.answers.items()}, 
         course_name=course.name, 
         test_name=test.name
     )
-    #answer_sheet.image.show(title=f"Test Key: {test.name}")
+    #answer_sheet.image.show(title=f"Test Key: {test.name}") # debug
     filled_bytes = io.BytesIO()
-    answer_sheet.image.save(filled_bytes, format="PNG")
-    new_test.answer_key_filled = filled_bytes.getvalue()
+    answer_sheet.image.save(filled_bytes, format="JPEG")
+    new_test.answer_key_filled = compress_data(compress_image(filled_bytes.getvalue(), quality=30))
 
     # stringify the answers that were passed for storage in the database
     new_test.answers = json.dumps(test.answers)

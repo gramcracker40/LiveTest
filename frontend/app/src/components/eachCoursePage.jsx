@@ -12,6 +12,7 @@ import {
 } from "@headlessui/react";
 import { ChevronDownIcon, Bars3Icon } from "@heroicons/react/24/outline";
 import QRCode from "qrcode.react";
+import pako from 'pako';
 
 export const EachCoursePage = () => {
   const { id } = useParams();
@@ -29,6 +30,7 @@ export const EachCoursePage = () => {
   const [showQRCode, setShowQRCode] = useState(false);
   const [studentToRemove, setStudentToRemove] = useState(null);
   const [submissionImages, setSubmissionImages] = useState([]);
+  const [selectedStudentName, setSelectedStudentName] = useState("");
 
   useEffect(() => {
     if (!authDetails.isLoggedIn) {
@@ -148,34 +150,54 @@ export const EachCoursePage = () => {
     }
   };
 
-  const handleShowSubmissions = async (studentId) => {
+  const handleShowSubmissions = async (studentId, studentName) => {
     try {
       const submissionsURL = `${instanceURL}/submission/student/${studentId}`;
       let req = await EasyRequest(submissionsURL, defHeaders, "GET");
-
+      setSelectedStudentName(studentName);
+  
       if (req.status === 200) {
         const submissions = req.data;
         setStudentSubmissions(submissions);
         setShowStudentSubmissions(true);
-
+  
         const images = await Promise.all(
           submissions.map(async (submission) => {
             const gradedImageURL = `${instanceURL}/submission/image/graded/${submission.id}`;
             const originalImageURL = `${instanceURL}/submission/image/original/${submission.id}`;
-            const [gradedImage, originalImage] = await Promise.all([
-              fetch(gradedImageURL).then((res) => res.blob()),
-              fetch(originalImageURL).then((res) => res.blob()),
+            const [gradedImageRes, originalImageRes] = await Promise.all([
+              fetch(gradedImageURL),
+              fetch(originalImageURL),
             ]);
+  
+            if (!gradedImageRes.ok || !originalImageRes.ok) {
+              throw new Error('Failed to fetch images');
+            }
+  
+            const [gradedImageArrayBuffer, originalImageArrayBuffer] = await Promise.all([
+              gradedImageRes.arrayBuffer(),
+              originalImageRes.arrayBuffer(),
+            ]);
+  
+            const gradedImageData = pako.inflate(new Uint8Array(gradedImageArrayBuffer));
+            const originalImageData = pako.inflate(new Uint8Array(originalImageArrayBuffer));
+  
+            const gradedImageBlob = new Blob([gradedImageData], { type: 'image/jpeg' });
+            const originalImageBlob = new Blob([originalImageData], { type: 'image/jpeg' });
+  
             return {
               id: submission.id,
-              gradedImage: URL.createObjectURL(gradedImage),
-              originalImage: URL.createObjectURL(originalImage),
+              gradedImage: URL.createObjectURL(gradedImageBlob),
+              originalImage: URL.createObjectURL(originalImageBlob),
               grade: submission.grade,
+              testName: submission.test_name,
             };
           })
         );
-
+  
         setSubmissionImages(images);
+      } else {
+        console.error(`Failed to fetch submissions: ${req.statusText}`);
       }
     } catch (error) {
       console.error("Error fetching student submissions", error);
@@ -411,7 +433,7 @@ export const EachCoursePage = () => {
                         </button>
                         <button
                           className="px-4 py-2 bg-cyan-500 text-white rounded"
-                          onClick={() => handleShowSubmissions(student.id)}
+                          onClick={() => handleShowSubmissions(student.id, student.name)}
                         >
                           Show Submissions
                         </button>
@@ -429,11 +451,11 @@ export const EachCoursePage = () => {
                 <div className="flex items-center justify-center min-h-screen">
                   <div className="fixed inset-0 bg-black opacity-30" aria-hidden="true"></div>
                   <div className="relative bg-white rounded-lg max-w-2xl mx-auto p-6">
-                    <h2 className="text-2xl font-semibold mb-4">Student Submissions</h2>
+                    <h2 className="text-2xl font-semibold mb-4">{selectedStudentName}'s Submissions</h2>
                     <ul className="space-y-4">
                       {submissionImages.map((submission) => (
                         <li key={submission.id} className="p-4 rounded shadow bg-white">
-                          <h3 className="font-medium text-gray-900">Submission ID: {submission.id}</h3>
+                          <h3 className="font-medium text-gray-900">Test Name: {submission.testName}</h3>
                           <p className="text-gray-500">Grade: {submission.grade}</p>
                           <div className="flex space-x-4">
                             <div>

@@ -1,11 +1,10 @@
-# Core functionality of LiveTest
+# Originally intended core functionality of LiveTest
 
 ## Includes
 
-Process for grading Scantron form 882Es
+Processing techniques for grading Scantron form 882Es
 
-Process for grading LiveTest purpose built answer sheets
-
+Started off trying to process these, figured why not just make custom answer sheets that fit our purpose later on. 
 
 ### Grading Scantron form 882Es
 
@@ -13,6 +12,3 @@ Process for grading LiveTest purpose built answer sheets
   Step 2: Crop the scantron consistently to the answers after a four point transformation. 
     draw vertical partitions between A, B, C, D, E and then detect the shaded in regions for
     each answer
-
-  
-Lit review - find all similar research - take notes of everything

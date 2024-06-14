@@ -1,44 +1,25 @@
 import React, { useState, useEffect, useContext } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { BackButton } from "./BackButton";
 import { AuthContext } from "../context/auth";
 import { EasyRequest, defHeaders, instanceURL } from "../api/helpers";
-import {
-  BarChart,
-  Bar,
-  Label,
-  XAxis,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
-import {
-  Dialog,
-  DialogPanel,
-  Popover,
-  PopoverButton,
-  PopoverGroup,
-  PopoverPanel,
-  Transition,
-} from "@headlessui/react";
-import { Bars3Icon, XMarkIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
-
-function formatDateTime(datetime) {
-  const date = new Date(datetime);
-  const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
-  return date.toLocaleString(undefined, options);
-}
+import { TestPageHeader } from "./TestPageHeader";
+import { GradeDistribution } from "./Analytics/GradeDistribution";
+import { SubmissionsList } from "./SubmissionsList";
+import { EditTestForm } from "./EditTestForm";
+import { DeleteConfirmation } from "./DeleteConfirmation";
+import { QuestionsMissedPercentage } from "./Analytics/QuestionsMissedPercentage"; // Add this line
+import { formatDateTime } from "../utils";
 
 export const TestPage = () => {
+  const navigate = useNavigate();
   const { id } = useParams();
+  const { authDetails } = useContext(AuthContext);
   const [test, setTest] = useState(null);
   const [submissions, setSubmissions] = useState([]);
   const [grades, setGrades] = useState([]);
   const [testHigh, setTestHigh] = useState(0);
   const [testLow, setTestLow] = useState(0);
   const [testAvg, setTestAvg] = useState(0);
-  const { authDetails } = useContext(AuthContext);
-  const navigate = useNavigate();
-
   const [editMode, setEditMode] = useState(false);
   const [updatedTestName, setUpdatedTestName] = useState("");
   const [updatedStartDate, setUpdatedStartDate] = useState("");
@@ -76,7 +57,7 @@ export const TestPage = () => {
     };
 
     fetchTestData();
-    const interval = setInterval(fetchTestData, 60000);
+    const interval = setInterval(fetchTestData, 180000); // update page every 3 minutes
 
     return () => clearInterval(interval);
   }, [authDetails, navigate, id]);
@@ -132,24 +113,25 @@ export const TestPage = () => {
   };
 
   const handleDeleteSubmission = async (submissionId) => {
+    setIsDeleteSubmissionConfirmOpen(true);
+    setSubmissionToDelete(submissionId);
+  };
+
+  const confirmDeleteSubmission = async () => {
     try {
-      const deleteURL = `${instanceURL}/submission/${submissionId}`;
+      const deleteURL = `${instanceURL}/submission/${submissionToDelete}`;
       let req = await EasyRequest(deleteURL, defHeaders, "DELETE");
 
       if (req.status === 200) {
         setSubmissions((prevSubmissions) =>
-          prevSubmissions.filter((submission) => submission.id !== submissionId)
+          prevSubmissions.filter((submission) => submission.id !== submissionToDelete)
         );
-        processGrades(submissions.filter((submission) => submission.id !== submissionId));
+        processGrades(submissions.filter((submission) => submission.id !== submissionToDelete));
+        setIsDeleteSubmissionConfirmOpen(false);
       }
     } catch (error) {
       console.error("Error deleting submission", error);
     }
-  };
-
-  const handleDownload = async (type) => {
-    const url = `${instanceURL}/test/image/${type}/${id}/`;
-    window.open(url, "_blank");
   };
 
   const handleUpdateTest = async () => {
@@ -180,136 +162,43 @@ export const TestPage = () => {
     }
   };
 
-  const buckets = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
-  const histogramData = buckets.map((bucket, index, array) => {
-    const bucketCount = grades.filter(
-      (grade) =>
-        grade >= bucket &&
-        (index === array.length - 1 || grade < array[index + 1])
-    ).length;
+  const handleDownload = async (type) => {
+    try {
+      const url = `${instanceURL}/test/image/${type}/${id}/`;
+      const response = await fetch(url);
 
-    return {
-      grade: `${bucket}`,
-      count: bucketCount,
-    };
-  });
+      if (!response.ok) {
+        throw new Error('Failed to fetch image');
+      }
+
+      const compressedArrayBuffer = await response.arrayBuffer();
+      const decompressedData = pako.inflate(new Uint8Array(compressedArrayBuffer));
+      const blob = new Blob([decompressedData], { type: 'image/jpeg' });
+      const downloadUrl = URL.createObjectURL(blob);
+
+      // Open the image in a new tab
+      window.open(downloadUrl, "_blank");
+
+      // Optionally revoke the object URL after a short delay to allow the image to load
+      setTimeout(() => {
+        URL.revokeObjectURL(downloadUrl);
+      }, 10000); // 10 seconds delay
+    } catch (error) {
+      console.error('Error downloading image', error);
+    }
+  };
 
   return (
     <div className="min-h-screen mx-auto w-full bg-cyan-50">
-      <header className="bg-white">
-        <nav className="mx-auto flex max-w-7xl items-center justify-between p-6 lg:px-8" aria-label="Global">
-          <div className="flex items-center gap-x-12">
-            <BackButton className="px-8 py-3 text-sm font-semibold rounded-md shadow-sm bg-cyan-200 text-gray-700 hover:bg-cyan-300" />
-          </div>
-          <PopoverGroup className="hidden lg:flex lg:gap-x-12">
-            <Popover className="relative">
-              <PopoverButton className="flex items-center gap-x-1 text-sm font-semibold leading-6 text-gray-900">
-                Test Options
-                <ChevronDownIcon className="h-5 w-5 flex-none text-gray-400" aria-hidden="true" />
-              </PopoverButton>
-
-              <Transition
-                enter="transition ease-out duration-200"
-                enterFrom="opacity-0 translate-y-1"
-                enterTo="opacity-100 translate-y-0"
-                leave="transition ease-in duration-150"
-                leaveFrom="opacity-100 translate-y-0"
-                leaveTo="opacity-0 translate-y-1"
-              >
-                <PopoverPanel className="absolute z-10 mt-3 w-48 max-w-md overflow-hidden rounded-3xl bg-white shadow-lg ring-1 ring-gray-900/5">
-                  <div className="p-4">
-                    <div className="group relative flex gap-x-6 rounded-lg p-4 text-sm leading-6 hover:bg-gray-50">
-                      <button
-                        onClick={() => setEditMode(true)}
-                        className="w-full text-left"
-                      >
-                        Edit Test
-                      </button>
-                    </div>
-                    <div className="group relative flex gap-x-6 rounded-lg p-4 text-sm leading-6 hover:bg-gray-50">
-                      <button
-                        onClick={() => setIsDeleteTestConfirmOpen(true)}
-                        className="w-full text-left"
-                      >
-                        Delete Test
-                      </button>
-                    </div>
-                    <div className="group relative flex gap-x-6 rounded-lg p-4 text-sm leading-6 hover:bg-gray-50">
-                      <button
-                        onClick={() => handleDownload("blank")}
-                        className="w-full text-left"
-                      >
-                        Download Blank Answer Sheet
-                      </button>
-                    </div>
-                    <div className="group relative flex gap-x-6 rounded-lg p-4 text-sm leading-6 hover:bg-gray-50">
-                      <button
-                        onClick={() => handleDownload("key")}
-                        className="w-full text-left"
-                      >
-                        Download Key Answer Sheet
-                      </button>
-                    </div>
-                  </div>
-                </PopoverPanel>
-              </Transition>
-            </Popover>
-          </PopoverGroup>
-          <div className="lg:hidden">
-            <Popover className="relative">
-              <PopoverButton className="inline-flex items-center justify-center p-2 text-gray-700">
-                <Bars3Icon className="h-6 w-6" aria-hidden="true" />
-              </PopoverButton>
-              <Transition
-                enter="transition ease-out duration-200"
-                enterFrom="opacity-0 translate-y-1"
-                enterTo="opacity-100 translate-y-0"
-                leave="transition ease-in duration-150"
-                leaveFrom="opacity-100 translate-y-0"
-                leaveTo="opacity-0 translate-y-1"
-              >
-                <PopoverPanel className="absolute right-0 z-10 mt-3 w-48 max-w-md overflow-hidden rounded-3xl bg-white shadow-lg ring-1 ring-gray-900/5">
-                  <div className="p-4">
-                    <div className="group relative flex gap-x-6 rounded-lg p-4 text-sm leading-6 hover:bg-gray-50">
-                      <button
-                        onClick={() => setEditMode(true)}
-                        className="w-full text-left"
-                      >
-                        Edit Test
-                      </button>
-                    </div>
-                    <div className="group relative flex gap-x-6 rounded-lg p-4 text-sm leading-6 hover:bg-gray-50">
-                      <button
-                        onClick={() => setIsDeleteTestConfirmOpen(true)}
-                        className="w-full text-left"
-                      >
-                        Delete Test
-                      </button>
-                    </div>
-                    <div className="group relative flex gap-x-6 rounded-lg p-4 text-sm leading-6 hover:bg-gray-50">
-                      <button
-                        onClick={() => handleDownload("blank")}
-                        className="w-full text-left"
-                      >
-                        Download Blank Answer Sheet
-                      </button>
-                    </div>
-                    <div className="group relative flex gap-x-6 rounded-lg p-4 text-sm leading-6 hover:bg-gray-50">
-                      <button
-                        onClick={() => handleDownload("key")}
-                        className="w-full text-left"
-                      >
-                        Download Key Answer Sheet
-                      </button>
-                    </div>
-                  </div>
-                </PopoverPanel>
-              </Transition>
-            </Popover>
-          </div>
-        </nav>
-      </header>
-
+      <TestPageHeader
+        handleDateFormatting={handleDateFormatting}
+        test={test}
+        setEditMode={setEditMode}
+        setIsDeleteTestConfirmOpen={setIsDeleteTestConfirmOpen}
+        handleDownload={handleDownload}
+        id={id}
+        navigate={navigate}
+      />
       {test && (
         <div className="mx-auto max-w-7xl px-6 lg:px-8 mt-4">
           <div className={`px-4 py-2 rounded-md text-white text-center ${handleDateFormatting(test.start_t, test.end_t) === 'LIVE' ? 'bg-green-500' : handleDateFormatting(test.start_t, test.end_t) === 'IN WAIT' ? 'bg-yellow-500' : 'bg-gray-500'}`}>
@@ -327,7 +216,6 @@ export const TestPage = () => {
           )}
         </div>
       )}
-
       <div className="py-10">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <h1 className="text-3xl font-bold tracking-tight text-gray-900">{test && test.name}</h1>
@@ -346,141 +234,43 @@ export const TestPage = () => {
             </div>
           )}
           {editMode && (
-            <div className="mt-6">
-              <input
-                type="text"
-                value={updatedTestName}
-                onChange={(e) => setUpdatedTestName(e.target.value)}
-                className="block w-full border-gray-300 rounded-md"
-                placeholder="Test Name"
-              />
-              <input
-                type="datetime-local"
-                value={updatedStartDate}
-                onChange={(e) => setUpdatedStartDate(e.target.value)}
-                className="block w-full border-gray-300 rounded-md mt-4"
-                placeholder="Start Date"
-              />
-              <input
-                type="datetime-local"
-                value={updatedEndDate}
-                onChange={(e) => setUpdatedEndDate(e.target.value)}
-                className="block w-full border-gray-300 rounded-md mt-4"
-                placeholder="End Date"
-              />
-              <button
-                onClick={handleUpdateTest}
-                className="block w-full bg-blue-500 text-white rounded-md mt-4 py-2"
-              >
-                Update Test
-              </button>
-            </div>
+            <EditTestForm
+              updatedTestName={updatedTestName}
+              setUpdatedTestName={setUpdatedTestName}
+              updatedStartDate={updatedStartDate}
+              setUpdatedStartDate={setUpdatedStartDate}
+              updatedEndDate={updatedEndDate}
+              setUpdatedEndDate={setUpdatedEndDate}
+              handleUpdateTest={handleUpdateTest}
+            />
           )}
-          
-          <div className="mt-6"> 
-            <h2 className="text-xl font-semibold">Grade Distribution</h2>
-            <div className="mt-6">
-              <div className="flex justify-between mt-4">
-                <div className="text-left">
-                  <p className="font-semibold">Low</p>
-                  <p>{testLow}</p>
-                </div>
-
-                <div className="text-center">
-                  <p className="font-semibold">Average</p>
-                  <p>{testAvg}</p>
-                </div>
-
-                <div className="text-right">
-                  <p className="font-semibold">High</p>
-                  <p>{testHigh}</p>
-                </div>
-              </div>
-            </div>
-            <ResponsiveContainer width="100%" height={400}>
-              <BarChart data={histogramData}>
-                <XAxis dataKey="grade">
-                  <Label value="Grades" offset={0} position="insideBottom" />
-                </XAxis>
-                <Tooltip />
-                <Bar dataKey="count" fill="#8884d8" />
-              </BarChart>
-            </ResponsiveContainer>
-            <div className="mt-6">
-            <h2 className="text-xl font-semibold">Submissions</h2>
-            <ul>
-              {submissions.map((submission) => (
-                <li key={submission.id} className="mt-2">
-                  {submission.name} - {submission.grade}
-                  <button
-                    onClick={() => { setSubmissionToDelete(submission.id); setIsDeleteSubmissionConfirmOpen(true); }}
-                    className="ml-4 text-red-500"
-                  >
-                    Delete
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-          </div>
+          <GradeDistribution
+            testLow={testLow}
+            testHigh={testHigh}
+            testAvg={testAvg}
+            grades={grades}
+          />
+          <QuestionsMissedPercentage submissions={submissions} />
+          <SubmissionsList
+            submissions={submissions}
+            onDeleteSubmission={handleDeleteSubmission}
+          />
         </div>
       </div>
-
-      {isDeleteTestConfirmOpen && (
-        <div className="fixed z-10 inset-0 overflow-y-auto">
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="fixed inset-0 bg-black opacity-30" aria-hidden="true"></div>
-            <div className="relative bg-white rounded-lg max-w-sm mx-auto p-6">
-              <h2 className="text-lg font-semibold">Delete Test</h2>
-              <p className="mt-2 text-sm text-gray-600">
-                Are you sure you want to delete this test? This will remove all associated submissions and grades.
-              </p>
-              <div className="mt-4 flex justify-end space-x-4">
-                <button
-                  onClick={() => setIsDeleteTestConfirmOpen(false)}
-                  className="px-4 py-2 bg-gray-400 text-white rounded-md"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleDeleteTest}
-                  className="px-4 py-2 bg-red-600 text-white rounded-md"
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {isDeleteSubmissionConfirmOpen && (
-        <div className="fixed z-10 inset-0 overflow-y-auto">
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="fixed inset-0 bg-black opacity-30" aria-hidden="true"></div>
-            <div className="relative bg-white rounded-lg max-w-sm mx-auto p-6">
-              <h2 className="text-lg font-semibold">Delete Submission</h2>
-              <p className="mt-2 text-sm text-gray-600">
-                Are you sure you want to delete this submission? This action cannot be undone.
-              </p>
-              <div className="mt-4 flex justify-end space-x-4">
-                <button
-                  onClick={() => setIsDeleteSubmissionConfirmOpen(false)}
-                  className="px-4 py-2 bg-gray-400 text-white rounded-md"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => handleDeleteSubmission(submissionToDelete)}
-                  className="px-4 py-2 bg-red-600 text-white rounded-md"
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <DeleteConfirmation
+        isOpen={isDeleteTestConfirmOpen}
+        onClose={() => setIsDeleteTestConfirmOpen(false)}
+        onDelete={handleDeleteTest}
+        title="Delete Test"
+        message="Are you sure you want to delete this test? This will remove all associated submissions and grades."
+      />
+      <DeleteConfirmation
+        isOpen={isDeleteSubmissionConfirmOpen}
+        onClose={() => setIsDeleteSubmissionConfirmOpen(false)}
+        onDelete={confirmDeleteSubmission}
+        title="Delete Submission"
+        message="Are you sure you want to delete this submission? This action cannot be undone."
+      />
     </div>
   );
 };
