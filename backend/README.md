@@ -8,12 +8,15 @@
   go to 'http://127.0.0.1:8000/docs'
   for more info on the various routes that the API implements. Such as the required parameters for the route, what the route does, etc. The API aims to be RESTful. 
 
-## API.py
-  builds the fastapi application using a factory pattern.
 
-## core/ 
-  core functionality of the application, includes the modules that perform
-  the grading of answer sheets, creation of analytics, test processing, etc
+# answer_sheets
+
+
+## API.py
+  builds the fastapi application
+
+## core_test/ 
+  The original testing and research that took place to allow for the production of /answer_sheets
 
 ## models/
   pydantic models that handle data verification through the fastapi routers

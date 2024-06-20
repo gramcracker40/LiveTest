@@ -1,5 +1,11 @@
 '''
-This module implements the OMRGrader for the LiveTest answer_sheet module
+This module implements the OMRGrader for the 
+LiveTest answer_sheet module. So long as the answer
+sheet stays within the below restrictions it will be able
+to be graded. 
+
+If you need an intro try running python grader.py
+there is an example in the __main__ func below.
 '''
 
 import cv2
@@ -155,6 +161,7 @@ class OMRGrader:
         - handles four point transformation
         - returns Matlike obj of isolated answer sheets post four point transformation.
     
+    See run() for the put together process
     '''
     def __init__(self, num_choices, num_questions, mechanical:bool=True, 
                  font_path:str="assets/fonts/RobotoMono-Regular.ttf", font_size:int=120):
@@ -492,12 +499,12 @@ class OMRGrader:
 
         # print(f"GRADE: {grade}\nGRADED: {graded}")
         # place a grade on the image that will change color based on their performance
-        grade_color = (255, 0, 0) if grade < 66 \
-                else (0, 255, 0) if grade >= 85 \
-                else (0, 255, 255) # yellow 70-84
+        #grade_color = (255, 0, 0) if grade < 66 \
+                #else (0, 255, 0) if grade >= 85 \
+                #else (0, 255, 255) # yellow 70-84
 
         # add the grade to the image
-        self.image = self.add_grade(image, grade, color=grade_color)
+        #self.image = self.add_grade(image, grade, color=grade_color)
 
         return grade, graded, choices
 
