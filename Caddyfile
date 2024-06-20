@@ -1,9 +1,0 @@
-# Caddyfile
-{
-    auto_https on
-}
-
-http://livetest.us {
-    reverse_proxy /api/* api:8000
-    reverse_proxy /* ui:80
-}

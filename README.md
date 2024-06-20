@@ -1,9 +1,10 @@
-frontend/   vite/react/tailwind
+# LiveTest ![LiveTest Logo](frontend/app/src/assets/LiveTestLogo.png)
 
+Mission statement: Provide a free, easy, consistent process for server based dynamic OMR grading/scanning using highly customizable answer sheets that can be integrated with any school easily. 
 
-backend/    fastapi/sqlalchemy/postgresql
-
-
-# Production commands
-  sudo docker build -t live-test-prod .
-  sudo docker run --rm -it -p 8001:80 live-test-prod
+# /backend 
+  python app built using 
+    fastapi/    ASGI server
+    sqlalchemy/ SQL Database
+    opencv2/    Image Processing for OMRGrader module found in backend/answer_sheets/grader.py
+    pillow/     Building the custom answer_sheets compatible with the LiveTest OMRGrader
