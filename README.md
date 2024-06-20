@@ -1,5 +1,5 @@
-# LiveTest ![LiveTest Logo](frontend/app/src/assets/LiveTestLogo.png)
-<img src="frontend/app/src/assets/LiveTestLogo.png" alt="Alt text" width="50" height="50">
+# LiveTest
+<img src="frontend/app/src/assets/LiveTestLogo.png" alt="LiveTestLogo" width="50" height="50">
 Mission statement: Provide a free, easy, consistent process for server based dynamic OMR grading/scanning using highly customizable answer sheets that can be integrated with any school easily. 
 
 # /backend 
