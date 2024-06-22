@@ -203,7 +203,7 @@ class Pictron:
         self.answer_spacing = kwargs.get("answer_spacing", 5)
         self.label_spacing = kwargs.get("label_spacing", 5)
         self.line_spacing = kwargs.get("line_spacing", 25)
-        self.line_thickness = kwargs.get("line_thickness", 10)
+        self.line_thickness = kwargs.get("line_thickness", 8)
 
         self.page_margins = kwargs.get("page_margins", (50, 50, 50, 50))
 

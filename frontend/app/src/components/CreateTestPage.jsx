@@ -9,7 +9,7 @@ export const CreateTestPage = () => {
     name: '',
     startTime: '',
     endTime: '',
-    numberOfQuestions: '', 
+    numberOfQuestions: '',
     numberOfChoices: '', 
     answerKey: {},
     courseId: ''
@@ -44,38 +44,45 @@ export const CreateTestPage = () => {
     }
     setTestDetails(prev => ({ ...prev, answerKey: newAnswerKey }));
   }, [testDetails.numberOfQuestions, testDetails.numberOfChoices]);
-  
+
   const handleInputChange = (e) => {
     setTestDetails({ ...testDetails, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-  
+
     if (!testDetails.name || !testDetails.startTime || !testDetails.endTime ||
         !testDetails.numberOfQuestions || !testDetails.numberOfChoices || !testDetails.courseId) {
       alert("All fields are required. Please ensure all fields are filled.");
       return;
     }
-  
+
     if (new Date(testDetails.endTime) <= new Date(testDetails.startTime)) {
       alert("End time must be after start time.");
       return;
     }
-  
-    if (parseInt(testDetails.numberOfQuestions) < 1 || parseInt(testDetails.numberOfChoices) < 1) {
-      alert("Number of questions and choices must be greater than zero.");
+
+    const numQuestions = parseInt(testDetails.numberOfQuestions);
+    const numChoices = parseInt(testDetails.numberOfChoices);
+
+    if (numQuestions < 1 || numQuestions > 200) {
+      alert("Number of questions must be between 1 and 200.");
       return;
     }
-  
-    const numQuestions = parseInt(testDetails.numberOfQuestions);
+
+    if (numChoices < 2 || numChoices > 7) {
+      alert("Number of choices must be between 2 and 7.");
+      return;
+    }
+
     for (let i = 1; i <= numQuestions; i++) {
       if (!testDetails.answerKey[i] || testDetails.answerKey[i].trim() === '') {
         alert(`Please provide an answer for question ${i}.`);
         return;
       }
     }
-  
+
     createTest();
   };
 
@@ -96,7 +103,7 @@ export const CreateTestPage = () => {
       "course_id": testDetails.courseId,
       "answers": testDetails.answerKey
     };
-  
+
     try {
       let req = await EasyRequest(instanceURL + "/test/", defHeaders, "POST", body);
       if (req.status === 200) {
@@ -139,13 +146,13 @@ export const CreateTestPage = () => {
     let inputs = [];
     const numQuestions = parseInt(testDetails.numberOfQuestions);
     const numChoices = parseInt(testDetails.numberOfChoices);
-  
+
     if (!Number.isInteger(numQuestions) || numQuestions < 1 || !Number.isInteger(numChoices) || numChoices < 1) {
       return <div>Please enter valid numbers for questions and choices.</div>;
     }
-  
+
     const limit = Math.min(numQuestions, visibleQuestions);
-  
+
     for (let i = 1; i <= limit; i++) {
       inputs.push(
         <div key={i} style={{ marginBottom: '20px' }}>
@@ -178,7 +185,7 @@ export const CreateTestPage = () => {
   };
 
   return (
-    <div className="bg-LogoBg w-full flex flex-col justify-center px-6 py-12 lg:px-8">
+    <div className="bg-LogoBg min-h-screen w-full flex flex-col justify-center px-6 py-12 lg:px-8">
       <div className="absolute top-4 left-4">
         <BackButton className="px-8 py-3 text-sm font-semibold rounded-md shadow-sm bg-cyan-200 text-gray-700 hover:bg-cyan-300" />
       </div>
@@ -231,6 +238,7 @@ export const CreateTestPage = () => {
               type="number"
               required
               min="1"
+              max="200"
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500 sm:text-md"
               value={testDetails.numberOfQuestions}
               onChange={handleInputChange}
@@ -243,7 +251,8 @@ export const CreateTestPage = () => {
               name="numberOfChoices"
               type="number"
               required
-              min="1"
+              min="2"
+              max="7"
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500 sm:text-md"
               value={testDetails.numberOfChoices}
               onChange={handleInputChange}
