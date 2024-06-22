@@ -32,21 +32,27 @@ export const CreateTestPage = () => {
   }, [courseId, navigate]);
 
   useEffect(() => {
-    if (testDetails.numberOfChoices) {
+    if (testDetails.numberOfQuestions && testDetails.numberOfChoices) {
+      let newAnswerKey = {};
+      for (let i = 1; i <= parseInt(testDetails.numberOfQuestions); i++) {
+        newAnswerKey[i] = '';
+      }
+      setTestDetails(prev => ({ ...prev, answerKey: newAnswerKey }));
       fetchTestTemplate(testDetails);
     }
-  }, [testDetails.numberOfChoices]);
-
-  useEffect(() => {
-    let newAnswerKey = {};
-    for (let i = 1; i <= parseInt(testDetails.numberOfQuestions); i++) {
-      newAnswerKey[i] = '';
-    }
-    setTestDetails(prev => ({ ...prev, answerKey: newAnswerKey }));
   }, [testDetails.numberOfQuestions, testDetails.numberOfChoices]);
 
   const handleInputChange = (e) => {
-    setTestDetails({ ...testDetails, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    let newValue = value;
+
+    if (name === 'numberOfQuestions') {
+      newValue = Math.max(1, Math.min(200, Number(value)));
+    } else if (name === 'numberOfChoices') {
+      newValue = Math.max(2, Math.min(7, Number(value)));
+    }
+
+    setTestDetails({ ...testDetails, [name]: newValue });
   };
 
   const handleSubmit = (e) => {
@@ -128,7 +134,6 @@ export const CreateTestPage = () => {
       const imageBlob = await response.blob();
       const imageObjectURL = await URL.createObjectURL(imageBlob);
       setTemplateImage(imageObjectURL);
-      window.scrollTo(0, 0);
     } catch (error) {
       console.error('Error fetching test template', error);
     }
