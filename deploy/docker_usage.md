@@ -1,6 +1,6 @@
 # Docker Usage
 This guide shows general setup and usage with docker for this project. 
-I split the different components into their respective docker containers and have an image orchestration process down with docker-compose. I will first show how to install Docker/Docker-Compose and then move on to how to use it with this specific project. see [deploy_steps.md](deploy_steps.md) for more info on the deployment commands if you already have docker and docker-compose on your system. 
+I split the different sections (frontend/backend) into their respective docker containers and have an image orchestration process down with docker-compose that uses a postgres image for the db in production. I will first show how to install Docker/Docker-Compose and then move on to how to use it with this specific project in deploy_steps.md. see [deploy_steps.md](deploy_steps.md) for more info on the deployment commands if you already have docker and docker-compose on your system. 
 
 ## Prerequisites
 
