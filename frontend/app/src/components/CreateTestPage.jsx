@@ -48,10 +48,8 @@ export const CreateTestPage = () => {
 
     if (name === 'numberOfQuestions') {
       newValue = Math.max(1, Math.min(200, Number(value)));
-    } else if (name === 'numberOfChoices') {
-      newValue = Math.max(2, Math.min(7, Number(value)));
+      setVisibleQuestions(10);  // Reset visible questions when the number changes
     }
-
     setTestDetails({ ...testDetails, [name]: newValue });
   };
 
@@ -95,7 +93,7 @@ export const CreateTestPage = () => {
   const handleScroll = (e) => {
     const { scrollTop, clientHeight, scrollHeight } = e.currentTarget;
     if (scrollHeight - scrollTop === clientHeight) {
-      setVisibleQuestions((prevVisibleQuestions) => prevVisibleQuestions + 10);
+      setVisibleQuestions((prevVisibleQuestions) => Math.min(prevVisibleQuestions + 10, parseInt(testDetails.numberOfQuestions)));
     }
   };
 
@@ -194,7 +192,7 @@ export const CreateTestPage = () => {
       <div className="absolute top-4 left-4">
         <BackButton className="px-8 py-3 text-sm font-semibold rounded-md shadow-sm bg-cyan-200 text-gray-700 hover:bg-cyan-300" />
       </div>
-      <div className="overflow-y-auto sm:mx-auto sm:w-full sm:max-w-md">
+      <div className="overflow-y-auto sm:mx-auto sm:w-full sm:max-w-md h-full">
         <h1 className="text-center text-6xl font-bold text-cyan-500">Create Test</h1>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div>
@@ -242,7 +240,7 @@ export const CreateTestPage = () => {
               name="numberOfQuestions"
               type="number"
               required
-              min="1"
+              min="0"
               max="200"
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500 sm:text-md"
               value={testDetails.numberOfQuestions}
@@ -263,7 +261,7 @@ export const CreateTestPage = () => {
               onChange={handleInputChange}
             />
           </div>
-          <div onScroll={handleScroll} className="max-h-64 overflow-auto">
+          <div className="overflow-y-auto max-h-64" onScroll={handleScroll}>
             {generateAnswerInputs()}
           </div>
           <div>

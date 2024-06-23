@@ -1,5 +1,5 @@
 import React from 'react';
-import { BarChart, Bar, Label, XAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { BarChart, Bar, Label, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
 export const GradeDistribution = ({ testLow, testHigh, testAvg, grades }) => {
   const buckets = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
@@ -42,6 +42,9 @@ export const GradeDistribution = ({ testLow, testHigh, testAvg, grades }) => {
           <XAxis dataKey="grade">
             <Label value="Grades" offset={0} position="insideBottom" />
           </XAxis>
+          <YAxis dataKey="count">
+            <Label value="Count" offset={0} position="insideLeft" />
+          </YAxis>
           <Tooltip />
           <Bar dataKey="count" fill="#8884d8" />
         </BarChart>

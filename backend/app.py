@@ -12,7 +12,7 @@ def get_api() -> FastAPI:
     '''
     app = FastAPI(
         title="LiveTest",
-        description="backend for test scanning app",
+        description="backend app for LiveTest",
         version="1.1",
         contact={
             "name": "Garrett Mathers",

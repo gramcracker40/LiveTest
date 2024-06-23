@@ -1,4 +1,6 @@
-# Originally intended core functionality of LiveTest
+# Original research functionality of LiveTest
+
+  NONE of this code is tested and I simply left it in here for context to what was tried earlier on in my research. 
 
 ## Includes
 

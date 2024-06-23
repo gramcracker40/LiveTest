@@ -35,10 +35,9 @@ load_dotenv()
 os.environ["DATABASE_URL"] = build_db_string(".env")
 
 # checks to see if the docker is not being used. 
-# will defer to default to sqlite instead for local dev
+# will defer to sqlite instead for local dev
 if not int(os.environ["DOCKER"]):
     os.environ["DATABASE_URL"] = "sqlite:///scantron-hacker.db"
-
 
 secret_key = os.getenv("SECRET_KEY")
 database_url = os.getenv("DATABASE_URL")

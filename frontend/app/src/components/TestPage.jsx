@@ -219,7 +219,12 @@ export const TestPage = () => {
       )}
       <div className="py-10">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900">{test && test.name}</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+            {test && test.name} 
+            {submissions.length > 0 && (
+              <span className="ml-2 text-sm text-gray-600">({submissions.length} submissions)</span>
+            )}
+          </h1>
           {test && (
             <div className="mt-6">
               <div className="flex justify-between mt-4">

@@ -41,7 +41,6 @@ def compress_data(data):
     compressed_data = zlib.compress(data, level=9)
     return compressed_data
 
-
 def decompress_data(compressed_data):
     return zlib.decompress(compressed_data)
 

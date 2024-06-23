@@ -1,6 +1,7 @@
 """
-A common print resolution is 300 DPI, so for an 8.5 x 11-inch paper, the pixel dimensions would be 2550 x 3300 
-pixels (8.5 inches * 300 DPI by 11 inches * 300 DPI).
+LiveTest /answer_sheets/main.py
+
+Implements a highly customizable 
 """
 
 from PIL import Image, ImageDraw, ImageFont
@@ -44,12 +45,7 @@ def wrap_with_indent(text, width, indent):
     :param indent: The number of spaces to indent lines after the first one.
     :return: The wrapped text with indentation.
     """
-    # Wrap the text
     wrapped_text = textwrap.fill(text, width=width)
-
-    # print(wrapped_text)
-
-    # Indent lines after the first one
     lines = wrapped_text.split("\n")
     indented_lines = [lines[0]] + [f"{' ' * indent}{line}" for line in lines[1:]]
 
@@ -152,6 +148,7 @@ def generateName(num_questions, num_ans_options):
 class Pictron:
     def __init__(self, **kwargs):
         """
+        define all configurable kwargs
         info = {
             "page_size": (8.5, 11),
             "img_align_path": "target_144x.png",
@@ -176,11 +173,32 @@ class Pictron:
             "outPath":'./generatedSheets',
             "outName":None
         }
-        """
-        console.print(kwargs)
 
-        # "label_style": None,
-        # "que_ident_style": None,
+        info = {
+            "page_size": (8.5, 11),
+            "img_align_path": "answer_sheets/assets/images/checkerboard_144x_adj_color.jpg",
+            "logo_path": "answer_sheets/assets/images/LiveTestLogo_144x.png",
+            "bubble_shape": "circle",
+            "bubble_ratio": 1,
+            "font_path": "answer_sheets/assets/fonts/RobotoMono-Regular.ttf",
+            "font_bold": "answer_sheets/assets/fonts/RobotoMono-Bold.ttf",
+            "page_margins": (300, 100, 100, 50),
+            "zebra_shading": False,
+            "label_style": None,
+            "que_ident_style": None,
+            "font_alpha": 50,
+            "outPath": "answer_sheets/generatedSheets/perfTEST",
+            "outName": None,
+            "font_size": 7.5,
+            "bubble_size": 18,
+            "line_spacing": 30,
+            "column_width": 65,
+            "answer_spacing": 20,
+            "label_spacing": 20, 
+            "num_ans_options": 2,
+            "num_questions": 50
+        }
+        """
 
         self.dpi = kwargs.get("dpi", 288)
         self.page_size = kwargs.get("page_size", (8.5, 11))
@@ -188,29 +206,21 @@ class Pictron:
         self.bubble_ratio = kwargs.get("bubble_ratio", 1)
         self.bubble_shape = kwargs.get("bubble_shape", "circle")
         self.column_width = kwargs.get("column_width", 85)
-
         self.font_size = kwargs.get("font_size", 14)
         self.font_path = kwargs.get("font_path", None)
         self.font_bold = kwargs.get("font_bold", None)
         self.font_alpha = kwargs.get("font_alpha", 0)
-
         self.img_align_path = kwargs.get("img_align_path", None)
         self.logo_path = kwargs.get("logo_path", None)
-
         self.num_ans_options = kwargs.get("num_ans_options", 5)
         self.num_questions = kwargs.get("num_questions", 25)
-
         self.answer_spacing = kwargs.get("answer_spacing", 5)
         self.label_spacing = kwargs.get("label_spacing", 5)
         self.line_spacing = kwargs.get("line_spacing", 25)
         self.line_thickness = kwargs.get("line_thickness", 8)
-
         self.page_margins = kwargs.get("page_margins", (50, 50, 50, 50))
-
         self.zebra_shading = kwargs.get("zebra_shading", False)
-
         self.outPath = kwargs.get("outPath", "./generatedSheets")
-
         self.outName = kwargs.get("outName", None)
 
         if self.outName is None:
@@ -232,12 +242,6 @@ class Pictron:
         if self.font_bold:
             self.font_bold = ImageFont.truetype(self.font_bold, self.font_size_adj)
 
-        # try:
-        #     self.alignment_image = open_image(self.img_align_path)
-        #     # Proceed with your operations on the image
-        # except FileNotFoundError as e:
-        #     print(e)
-
         try:
             self.alignment_image = open_image(self.img_align_path)
             # Proceed with your operations on the image
@@ -252,7 +256,7 @@ class Pictron:
 
         self.logo_size = self.logo_image.size
 
-        # Create a blank white image
+        # initialize blank white image
         self.image = Image.new(
             "RGB", (self.img_width, self.img_height), (255, 255, 255)
         )
@@ -389,20 +393,15 @@ class Pictron:
 
     def addAnswerBubbles(self, start_x, start_y, randomize_filled:bool=False, answers:dict=None):
         '''
-            build the answer sheets answer bubbles with the given settings set in the constructor. 
-            
-            start_x(int), start_y(int) = starting coordinates in pixels to start placing bubbles
-            
-            randomize_filled: bool --> we can also make the answer sheets in a way to have one of the answer 
-            bubbles filled out already and a json file produced that records the 
-            choice that was made. 
+        build the answer sheets answer bubbles with the given settings set in the constructor. 
+        
+        start_x(int), start_y(int) = starting coordinates in pixels to start placing bubbles
+        
+        randomize_filled: bool --> we can also make the answer sheets in a way to have one of the answer 
+        bubbles filled out already and a json file produced that records the 
+        choice that was made. 
 
-            answers: dict --> {1: 'A', 2:'E', 3:'C'}. For building a Test that has an established answer key. 
-
-        TODO: add horizontal check for last column. 
-            change bubble_size, column_width dynamically to ensure a fit for number 
-            of questions requested by params. 
-            currently being placed outside of bound of paper.
+        answers: dict --> {1: 'A', 2:'E', 3:'C'}. For building a Test that has an established answer key. 
 
         '''
         x = start_x
@@ -411,10 +410,6 @@ class Pictron:
         i = 0  # Overall count for number of answer choices placed
         n = 1  # Question number
 
-        # if self.zebra_shading:
-        #     self.drawZebraLines(x, y)
-
-        # 
         option_set_width = (self.bubble_width + self.answer_spacing) \
                 * self.num_ans_options + self.column_width
 
@@ -516,41 +511,6 @@ class Pictron:
         #         json.dump(self.random_choices, fp, indent=True)
 
 
-def usage():
-    """
-    Usage function for the custom scantron generator.
-
-    [bold]Required Arguments[/bold]:
-        questions=int          Number of questions (25, 50, 100, 200; default=50).
-        options=int            Number of lettered options per question (default=7).
-
-    [bold]Optional Arguments[/bold]:
-        signature=bool         Include a signature line (default=True).
-        test_id=bool           Include test ID boxes (default=True).
-        info_location=str      Location for student info (top, left, right; default=top).
-        border_size=float      Size of the checkerboard border in inches (.5 inches).
-        check_size=float       Size of individual checks in the checkerboard in inches (default value recommended).
-        logo_path=str          Path to an optional logo image file.
-        header=str             Custom header text for the scantron.
-
-    [bold]Example[/bold]:
-        python script.py questions=100 options=5 signature=False test_id=True info_location=left border_size=0.5 check_size=0.1 logo_path=/path/to/logo.png header="Exam 101"
-
-    Note: Boolean values can be passed as True/False.
-    """
-    wrapped = wrap_docstring(usage)
-    console.print(wrapped)
-
-
-def main():
-    if len(sys.argv) < 2 or "-h" in sys.argv or "--help" in sys.argv:
-        usage()
-        sys.exit()
-
-    # Your existing logic to parse arguments using MyKwargs or similar
-
-    args, kwargs = MyKwargs(sys.argv)
-
 
 def create_blank_image_with_overlay():
     # Create a blank white image of size 2550x3300
@@ -574,31 +534,32 @@ def create_blank_image_with_overlay():
     blank_image.save("blank.png")
 
 
-if __name__ == "__main__":
-    # console.print(get_params(fname="docs.json"))
-    # sys.exit()
+if __name__ == "__main__":  
     """
-    1 Inch = 72px
-    Params:
-        page_size           (tuple): (int,int) (width,height) e.g. (8.5,11)
-        img_align_path      (str): String path to alignment images for doc corners
-        logo_path           (str): String path to the app logo
-        num_ans_options     (int): Number of answer bubbles (A-?)
-        num_questions       (int): Number of questions
-        dpi                 (int): dots per inch used to convert fonts and inches to pixels
-        font_size           (int): font size based on standard 72pt = inch
-        bubble_shape        (str): [circle,ellipse,square,rectangle]
-        bubble_size         (int): similar to font_size but gives options to adjust size within the class
-        bubble_ratio        (float): Value to choose the width of a bubble if its an ellipse or rectangle (e.g 1.5 = 150% of height)
-        font_path           (str): path to txt font
-        font_bold           (str): path to bold txt font if any
-        page_margins        (list): pixel size of any additional padding for [top,right,bottom,left]
-        line_spacing        (int): pixel padding between lines of answers
-        answer_spacing      (int): pixel padding between answer bubbles
-        label_spacing       (int): pixel padding between label and bubble
-        zebra_shading       (bool): Shade behind alternating lines? True / False
-        label_style         (str): Style string for the A B C .... (tbd)
-        que_ident_style     (str): Style string for the 1. 2. 3. .... (tbd)
+    {
+        "page_size": (8.5, 11),
+        "img_align_path": "answer_sheets/assets/images/checkerboard_144x_adj_color.jpg",
+        "logo_path": "answer_sheets/assets/images/LiveTestLogo_144x.png",
+        "bubble_shape": "circle",
+        "bubble_ratio": 1,
+        "font_path": "answer_sheets/assets/fonts/RobotoMono-Regular.ttf",
+        "font_bold": "answer_sheets/assets/fonts/RobotoMono-Bold.ttf",
+        "page_margins": (300, 100, 100, 50),
+        "zebra_shading": False,
+        "label_style": None,
+        "que_ident_style": None,
+        "font_alpha": 50,
+        "outPath": "answer_sheets/generatedSheets/perfTEST",
+        "outName": None,
+        "font_size": 7.5,
+        "bubble_size": 18,
+        "line_spacing": 30,
+        "column_width": 65,
+        "answer_spacing": 20,
+        "label_spacing": 20, 
+        "num_ans_options": 2,
+        "num_questions": 50
+    }
     """
     question_counts = [150, 20, 50, 75]
 
