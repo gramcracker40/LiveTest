@@ -10,7 +10,7 @@ services:
 
   api:
     build:
-      context: ./backend
+      context: ../backend/deploy
       dockerfile: Dockerfile.prod
     ports:
       - 8000:8000
@@ -21,7 +21,7 @@ services:
 
   ui:
     build:
-      context: ./frontend
+      context: ../frontend/deploy
       dockerfile: Dockerfile.prod
     ports:
       - 8001:8001

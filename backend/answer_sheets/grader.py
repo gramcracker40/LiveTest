@@ -144,7 +144,7 @@ def four_point_transform(image, pts):
 
     M = cv2.getPerspectiveTransform(rect, dst)
     warped = cv2.warpPerspective(image, M, (maxWidth, maxHeight), borderMode=cv2.BORDER_REPLICATE)
-    show_image("warped", warped)
+    # show_image("warped", warped)
     return warped
 
 
@@ -228,15 +228,15 @@ class OMRGrader:
         else:
             raise DocumentExtractionFailedError("Must provide a valid image")
         self.image = image
-        show_image("prepre_process(image)", image)
+        # show_image("prepre_process(image)", image)
         image_proc = pre_process(image)
-        show_image("pre_process(image)", image_proc)
+        # show_image("pre_process(image)", image_proc)
         contours, _ = cv2.findContours(image_proc, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         contours = sorted(contours, key=cv2.contourArea, reverse=True)[:3]
         print(f"Found {len(contours)} contours.")
 
         #cv2.drawContours(image, contours, -1, (0,255,255), 111)
-        show_image("drawContours(image)", image)
+        # show_image("drawContours(image)", image)
 
         # Loop over the contours
         for i, c in enumerate(contours):
@@ -247,7 +247,7 @@ class OMRGrader:
             if len(approx) == 4:
                 print("Document found. Performing transformation.")
                 transformed = four_point_transform(image, approx.reshape(4, 2))
-                show_image("transformed!", transformed)
+                # show_image("transformed!", transformed)
                 return transformed
 
         raise DocumentExtractionFailedError("Document could not be isolated")
@@ -268,7 +268,7 @@ class OMRGrader:
         
         if self.image is None:
             raise ValueError("The image could not be loaded. Check the input data.")
-        show_image("starting answer_bubbles", self.image)
+        # show_image("starting answer_bubbles", self.image)
         print("starting bubbles")
         if len(self.image.shape) == 3: # rectangle
             gray = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)

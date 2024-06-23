@@ -8,7 +8,7 @@ services:
     env_file:
       - ../backend/.env
   api:
-    build: ../backend
+    build: ../backend/deploy
     ports:
       - 8000:8000
     env_file:
@@ -16,7 +16,7 @@ services:
     depends_on:
       - db
   ui:
-    build: ../frontend
+    build: ../frontend/deploy
     ports:
       - 8001:8001
     depends_on:
