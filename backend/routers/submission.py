@@ -89,7 +89,12 @@ async def create_submission_live(
     except ValueError as e:
         print(f"Could not grade the answer sheet: {e}")
         raise HTTPException(status_code=409, detail=f"An error occurred - {e}")
-    
+    # 
+    except IndexError as e:
+        print(f"Could not grade the answer sheet: {e}")
+        raise HTTPException(status_code=409, detail=f"""Error: Unable to extract the 
+answer sheet. Make sure the answer sheet is the focus of the image. Ensure the 
+background is a solid color and there is no irregular brightness across the image.""")
     except SQLAlchemyError as e:
         print(f"Database error: {e}")
         if "UNIQUE" in str(e):

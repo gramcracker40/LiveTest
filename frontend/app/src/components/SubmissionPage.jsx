@@ -4,6 +4,9 @@ import { EasyRequest, defHeaders } from '../api/helpers';
 import { AuthContext } from '../context/auth';
 import { BackButton } from './BackButton';
 import { usePhotoGallery } from '../hooks/usePhotoGallery';
+import badAnswersImage from '../assets/bad_answers.png';
+import goodAnswersImage from '../assets/good_answers.png';
+import pako from 'pako';
 
 export const SubmissionPage = () => {
   const { testid } = useParams();
@@ -99,8 +102,10 @@ export const SubmissionPage = () => {
         throw new Error(`Error fetching graded image: ${response.statusText}`);
       }
 
-      const imageData = await response.blob();
-      const imageObjectURL = URL.createObjectURL(imageData);
+      const compressedArrayBuffer = await response.arrayBuffer();
+      const decompressedData = pako.inflate(new Uint8Array(compressedArrayBuffer));
+      const blob = new Blob([decompressedData], { type: 'image/jpeg' });
+      const imageObjectURL = URL.createObjectURL(blob);
       setGradedImage(imageObjectURL);
     } catch (error) {
       console.error("Error fetching graded image: ", error);
@@ -135,6 +140,18 @@ export const SubmissionPage = () => {
         <BackButton className="px-8 py-3 text-sm font-semibold rounded-md shadow-sm bg-cyan-200 text-gray-700 hover:bg-cyan-300"></BackButton>
       </div>
       <h1 className="text-3xl font-bold mb-4">Submit to Test: {test.name}</h1>
+      <div className="flex flex-col items-center mb-6">
+        <div className="flex mb-4">
+          <div className="flex flex-col items-center mr-4">
+            <img src={badAnswersImage} alt="Bad Answers" className="w-64 h-64 object-cover rounded-lg shadow-md" />
+            <p className="text-red-500 font-bold mt-2">Bad Answers (Rejected)</p>
+          </div>
+          <div className="flex flex-col items-center">
+            <img src={goodAnswersImage} alt="Good Answers" className="w-64 h-64 object-cover rounded-lg shadow-md" />
+            <p className="text-green-500 font-bold mt-2">Good Answers (Accepted)</p>
+          </div>
+        </div>
+      </div>
       {authDetails.type === 'teacher' && (
         <div className="mb-4">
           <label htmlFor="student" className="block text-sm font-medium text-gray-700">Select Student</label>

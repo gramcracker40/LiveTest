@@ -2,11 +2,23 @@
 
   Create your school's custom answer sheets and grade them in the browser!
 
-
-
   free, easy, consistent process for server based dynamic OMR grading/scanning using highly customizable answer sheets that can be integrated with any school easily. 
 
+![Courses Page](frontend\app\dist\assets\CoursesPage.png)
 
+![Course Page](frontend\app\dist\assets\CoursePage.png)
+
+![Student Enrollment Page](frontend\app\dist\assets\StudentEnrollment.png)
+
+![Teacher Course List Page](frontend\app\dist\assets\TeacherCourseList.png)
+
+![Create Course Page](frontend\app\dist\assets\CreateCoursePage.png)
+
+![Create Test Page](image.png)
+
+![LIVE Test Page](frontend\app\dist\assets\LIVETestPage.png)
+
+![SubmissionPage](frontend\app\dist\assets\SubmissionPage.png)
 
 <img src="frontend/app/src/assets/LiveTestLogo.png" alt="LiveTestLogo" width="700" height="900">
 
@@ -20,14 +32,8 @@
         
         
 # /frontend 
-  demo app built using Vite React JavaScript to showcase the abilities of the backend. 
+  implements the demo app built using Vite React JavaScript to showcase the abilities of the backend. 
 
-### Docker development
-  docker build -f backend/deploy/Dockerfile -t livetest_api .
-  docker run -p 8000:8000 livetest_api
-
-  docker build -f frontend/deploy/Dockerfile -t livetest .
-  docker run livetest
 
 ### Docker production
-  docker-compose 
+  docker-compose

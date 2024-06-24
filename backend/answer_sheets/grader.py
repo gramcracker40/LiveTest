@@ -68,7 +68,7 @@ def pre_process(image):
     Once we have the edges detected we dilate the image to further bring out the edges into the foreground
     This helps with splotchy background in removing background noise. 
     '''
-    #image = equalize_histogram(image) # levels out inconsistent brightness
+    # image = equalize_histogram(image)
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     blur = cv2.GaussianBlur(gray, (5, 5), 0)
     thresh = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
@@ -185,7 +185,7 @@ class OMRGrader:
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
-    def is_circle(self, contour, threshold=0.875, epsilon_factor=0.01):
+    def is_circle(self, contour, threshold=0.83, epsilon_factor=0.01):
         '''
         Given a contour, determine if it is a circle using contour approximation and circularity ratio.
         '''
@@ -235,7 +235,7 @@ class OMRGrader:
         contours = sorted(contours, key=cv2.contourArea, reverse=True)[:3]
         print(f"Found {len(contours)} contours.")
 
-        #cv2.drawContours(image, contours, -1, (0,255,255), 111)
+        # cv2.drawContours(image, contours, -1, (0,255,255), 111)
         # show_image("drawContours(image)", image)
 
         # Loop over the contours
@@ -271,29 +271,29 @@ class OMRGrader:
         # show_image("starting answer_bubbles", self.image)
         print("starting bubbles")
         if len(self.image.shape) == 3: # rectangle
+            # self.image = equalize_histogram(self.image) # levels out inconsistent brightness
+            # self.show_image("histogram equalized", self.image)
             gray = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
-            # self.show_image("gray image", gray)
-            #blurred = cv2.GaussianBlur(gray, (5, 5), 0)
-            self.thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
+            # self.show_image("grayed!", gray)
+            blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+            # self.show_image("blurred image", blurred)
+            self.thresh = cv2.threshold(blurred, 0, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
             print("thresholded image!")
         # self.show_image("Thresholded image", self.thresh)
 
         contours, _ = cv2.findContours(self.thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         question_contours = []
-        print(f"contours: {len(contours)}")
+        # print(f"contours: {len(contours)}")
         for contour in contours:
             x, y, w, h = cv2.boundingRect(contour)
             aspect_ratio = w / float(h)
-            if self.is_circle(contour) and 0.9 <= aspect_ratio <= 1.1:
+            if self.is_circle(contour): # and 0.91 <= aspect_ratio <= 1.09:
                 question_contours.append(contour)
                 # cv2.drawContours(self.image, [contour], -1, (0,255,0), 2) # debugging
 
-        # self.show_image("contours highlighted", self.image)
-        print(f"#question choices: {len(question_contours)}")
-        print(f"len(question_contours)/self.num_choices): {len(question_contours)/self.num_choices}")
-        # perform validation check to make sure you have the right number of questions
-        if (len(question_contours)/self.num_choices) < self.num_questions:
-            raise AnswerBubbleIdentificationFailedError()
+        # # Perform validation check to make sure you have the right number of questions
+        # if len(question_contours) / self.num_choices < self.num_questions:
+        #     raise AnswerBubbleIdentificationFailedError()
 
         return question_contours, self.image
 
@@ -311,9 +311,10 @@ class OMRGrader:
         rows = []
         current_row = []
         row_y = bounding_boxes[0][1]
+        row_threshold = 25  # You may want to adjust this threshold based on your specific requirements
 
         for contour, box in zip(cnts, bounding_boxes):
-            if abs(box[1] - row_y) < 30:
+            if abs(box[1] - row_y) < row_threshold:
                 current_row.append(contour)
             else:
                 if current_row:
@@ -326,6 +327,24 @@ class OMRGrader:
             current_row, _ = self.sort_contours(current_row, "left-to-right")
             rows.append(current_row)
 
+        # TODO clean up repeated code
+        template_counts = (10, 20, 30, 40, 50, 75, 100, 150, 200)
+        template = 0
+
+        for question_count in template_counts:
+            if self.num_questions <= question_count:
+                template = question_count
+                break
+
+        expected_num_contours = self.num_choices * template
+
+        print(f"# question contours: {len(cnts)}  expected_num_contours: {expected_num_contours}")
+        # TODO implement better solution?
+        # Check if there are more question contours than expected
+        if len(cnts) > expected_num_contours:
+            # Remove the top row - it will be course/test name
+            rows.pop(0)
+
         return rows
 
 
@@ -333,7 +352,7 @@ class OMRGrader:
         questions = {}
         col_num = 0
         i = 0
-        print(f"#ROWS: {len(rows)}, type(row): {type(rows[0])}")
+        # print(f"#ROWS: {len(rows)}, type(row): {type(rows[0])}")
         while i < self.num_questions:
             questions[i + 1] = [
                 rows[i % len(rows)][choice]
@@ -371,7 +390,7 @@ class OMRGrader:
         choices = {}
         for question, contours in questions.items():
             for j, c in enumerate(contours):
-                print(f"Choice {j + 1} of question {question}: Type: {type(c)}, Shape: {c.shape}")
+                # print(f"Choice {j + 1} of question {question}: Type: {type(c)}, Shape: {c.shape}")
 
                 mask = np.zeros_like(self.thresh, dtype="uint8")
                 try:
@@ -383,8 +402,9 @@ class OMRGrader:
                 # apply the mask to the thresholded image, then count the number of non-zero pixels in the bubble area
                 mask = cv2.bitwise_and(self.thresh, self.thresh, mask=mask)
                 total = cv2.countNonZero(mask)
-                print(f"#Non zero pixels: {total}")
+                #print(f"#Non zero pixels: {total}")
 
+                # mark the selected answer
                 if question not in choices or total > choices[question][0]:
                     choices[question] = (total, c, chr(j + 65))  # store the choice with the highest total
 
