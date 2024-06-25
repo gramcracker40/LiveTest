@@ -382,7 +382,7 @@ export const EachCoursePage = () => {
                 className="px-4 py-2 bg-cyan-500 text-white rounded"
                 onClick={handleAddTest}
               >
-                Add a Test
+                Create Test
               </button>
             </div>
 

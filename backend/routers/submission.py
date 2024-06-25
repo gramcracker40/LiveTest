@@ -57,7 +57,8 @@ async def create_submission_live(
             num_choices=test.num_choices, 
             num_questions=test.num_questions, 
             font_path="answer_sheets/assets/fonts/RobotoMono-Regular.ttf",
-            mechanical=mechanical
+            mechanical=mechanical, 
+            show_process=True
         )
         grade, graded, choices = grader.run(bytes_obj=image_data, key=test_key)
         if not grade: # check to make sure no errors were raised while trying to grade the submission

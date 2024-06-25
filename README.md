@@ -14,7 +14,7 @@
 
 ![Create Course Page](frontend\app\dist\assets\CreateCoursePage.png)
 
-![Create Test Page](image.png)
+![Create Test Page](frontend\app\dist\assets\CreateTestPage.png)
 
 ![LIVE Test Page](frontend\app\dist\assets\LIVETestPage.png)
 

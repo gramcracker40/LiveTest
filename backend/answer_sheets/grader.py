@@ -164,12 +164,14 @@ class OMRGrader:
     See run() for the put together process
     '''
     def __init__(self, num_choices, num_questions, mechanical:bool=True, 
-                 font_path:str="assets/fonts/RobotoMono-Regular.ttf", font_size:int=120):
+                 font_path:str="assets/fonts/RobotoMono-Regular.ttf", 
+                 font_size:int=120, show_process:bool=False):
         self.font_path = font_path
         self.font_size = font_size
         self.num_choices = num_choices
         self.num_questions = num_questions
         self.mechanical = mechanical
+        self.show_process = show_process
 
     @classmethod
     def convert_image_to_bytes(self, image: np.ndarray) -> bytes:
@@ -185,7 +187,7 @@ class OMRGrader:
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
-    def is_circle(self, contour, threshold=0.83, epsilon_factor=0.01):
+    def is_circle(self, contour, threshold=0.825, epsilon_factor=0.01):
         '''
         Given a contour, determine if it is a circle using contour approximation and circularity ratio.
         '''
@@ -228,9 +230,9 @@ class OMRGrader:
         else:
             raise DocumentExtractionFailedError("Must provide a valid image")
         self.image = image
-        # show_image("prepre_process(image)", image)
+        show_image("original", image) if self.show_process else None
         image_proc = pre_process(image)
-        # show_image("pre_process(image)", image_proc)
+        show_image("pre_process", image_proc) if self.show_process else None
         contours, _ = cv2.findContours(image_proc, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         contours = sorted(contours, key=cv2.contourArea, reverse=True)[:3]
         print(f"Found {len(contours)} contours.")
@@ -247,7 +249,7 @@ class OMRGrader:
             if len(approx) == 4:
                 print("Document found. Performing transformation.")
                 transformed = four_point_transform(image, approx.reshape(4, 2))
-                # show_image("transformed!", transformed)
+                show_image("transformed", transformed) if self.show_process else None
                 return transformed
 
         raise DocumentExtractionFailedError("Document could not be isolated")
@@ -268,18 +270,17 @@ class OMRGrader:
         
         if self.image is None:
             raise ValueError("The image could not be loaded. Check the input data.")
-        # show_image("starting answer_bubbles", self.image)
         print("starting bubbles")
         if len(self.image.shape) == 3: # rectangle
-            # self.image = equalize_histogram(self.image) # levels out inconsistent brightness
-            # self.show_image("histogram equalized", self.image)
+            self.image = equalize_histogram(self.image) # levels out inconsistent brightness
+            self.show_image("histogram equalized", self.image)
             gray = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
-            # self.show_image("grayed!", gray)
+            self.show_image("grayed!", gray) if self.show_process else None
             blurred = cv2.GaussianBlur(gray, (5, 5), 0)
-            # self.show_image("blurred image", blurred)
+            self.show_image("blurred image", blurred) if self.show_process else None
             self.thresh = cv2.threshold(blurred, 0, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
             print("thresholded image!")
-        # self.show_image("Thresholded image", self.thresh)
+        self.show_image("Thresholded image", self.thresh) if self.show_process else None
 
         contours, _ = cv2.findContours(self.thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         question_contours = []
@@ -525,7 +526,7 @@ class OMRGrader:
 
         # add the grade to the image
         #self.image = self.add_grade(image, grade, color=grade_color)
-
+        show_image("graded", self.image) if self.show_process else None
         return grade, graded, choices
 
 # usage
