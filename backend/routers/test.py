@@ -14,7 +14,7 @@ from models.test import (
     GetTests,
 )
 from models.users import GetStudentMinimum
-from answer_sheets.main import Pictron
+from answer_sheets import Pictron
 from tables import Test, Course
 from db import session, compress_data, compress_image
 import base64
@@ -46,7 +46,7 @@ def create_test_live(test: CreateTest):
     new_test = Test(**test.model_dump())
 
     # find the best template for the given number of questions and choices. 
-    answer_sheet_config = Pictron.find_best_config(test.num_questions, test.num_choices)
+    answer_sheet_config = Pictron.find_best_config(test.num_questions, test.num_choices, api=True)
     answer_sheet = Pictron(**answer_sheet_config)
     
     # generate, compress, and save the blank version image of the test

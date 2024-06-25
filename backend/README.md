@@ -2,7 +2,7 @@
 
 This directory is the core of my research. 
 
-  - /answer_sheets  highly customizable answer sheets with a dynamic, server-based, OMR grader
+  - /answer_sheets  highly customizable answer sheets with a dynamic OMR grader
   - app.py   builds the database and runs the LiveTest server. 
 
 ### get to development / try out the app!
