@@ -1,7 +1,7 @@
 """
 LiveTest /answer_sheets/main.py
 
-Implements a highly customizable 
+Implements a highly configurable answer sheet creation module 
 """
 
 from PIL import Image, ImageDraw, ImageFont
@@ -12,21 +12,22 @@ import datetime
 import json
 import random
 
+
+# TODO clean this up
 console = Console()
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
+# LiveTest's default configurations for Pictron
 PRIMARY_CONFIG = {
-    "page_size": (8.5, 11),
+    "page_size": (8.5, 11), # only tested page size
     "img_align_path": os.path.join(BASE_DIR, "assets/images/checkerboard_144x_adj_color.jpg"),
     "logo_path": os.path.join(BASE_DIR, "assets/images/LiveTestLogo_144x.png"),
     "bubble_shape": "circle",
     "bubble_ratio": 1,
     "font_path": os.path.join(BASE_DIR, "assets/fonts/RobotoMono-Regular.ttf"),
     "font_bold": os.path.join(BASE_DIR, "assets/fonts/RobotoMono-Bold.ttf"),
-    "page_margins": (300, 100, 100, 50),
+    "page_margins": (300, 100, 100, 50), # only tested page margins
     "zebra_shading": False,
-    "label_style": None,
-    "que_ident_style": None,
     "font_alpha": 50,
     "outPath": os.path.join(BASE_DIR, "generatedSheets/perfTEST"),
     "outName": None,
@@ -41,14 +42,10 @@ PRIMARY_CONFIG_API = {
     "font_path": os.path.join(BASE_DIR, "answer_sheets/assets/fonts/RobotoMono-Regular.ttf"),
     "font_bold": os.path.join(BASE_DIR, "answer_sheets/assets/fonts/RobotoMono-Bold.ttf"),
     "page_margins": (300, 100, 100, 50),
-    "zebra_shading": False,
-    "label_style": None,
-    "que_ident_style": None,
     "font_alpha": 50,
     "outPath": os.path.join(BASE_DIR, "answer_sheets/generatedSheets/perfTEST"),
     "outName": None,
 }
-
 
 
 def wrap_with_indent(text, width, indent):
@@ -172,7 +169,7 @@ class Pictron:
             "num_questions": 25,
             "dpi": 288,
             "font_size": 14,
-            "bubble_shape": "square",
+            "bubble_shape": "square",  # TODO OMR grader for square not configured yet. Need to make contour detection specific to that answer sheets bubble_shape
             "bubble_size": 12,
             "font_path": "./fonts/RobotoMono-Regular.ttf",
             "font_bold":"./fonts/RobotoMono-Bold.ttf",
@@ -185,8 +182,6 @@ class Pictron:
             "label_style": None,
             "que_ident_style": None,
             "font_alpha": 50,
-            "outPath":'./generatedSheets',
-            "outName":None
         }
 
         info = {
@@ -202,8 +197,6 @@ class Pictron:
             "label_style": None,
             "que_ident_style": None,
             "font_alpha": 50,
-            "outPath": "answer_sheets/generatedSheets/perfTEST",
-            "outName": None,
             "font_size": 7.5,
             "bubble_size": 18,
             "line_spacing": 30,
@@ -240,7 +233,6 @@ class Pictron:
 
         if self.outName is None:
             self.outName = generateName(self.num_questions, self.num_ans_options)
-        print(self.outName)
 
         self.img_width = inchesToPixels(self.dpi, self.page_size[0])
         self.img_height = inchesToPixels(self.dpi, self.page_size[1])
@@ -267,7 +259,7 @@ class Pictron:
             self.logo_image = open_image(self.logo_path)
             # Proceed with your operations on the image
         except FileNotFoundError as e:
-            print(e)
+            print("logo file not found", e)
 
         self.logo_size = self.logo_image.size
 
@@ -275,14 +267,14 @@ class Pictron:
         self.image = Image.new(
             "RGB", (self.img_width, self.img_height), (255, 255, 255)
         )
-
+        # allows for marking on the new blank white image with shapes, text, etc
         self.draw = ImageDraw.Draw(self.image)
 
     @classmethod
     def find_best_config(cls, num_questions: int, num_choices: int, api: bool = False):
         """
         Class method to help find the best configuration for a range of questions and choices.
-        Returns the best fitting template configuration.
+        Returns the best fitting template configuration from perfect_configs.json
         """
         with open(os.path.join(BASE_DIR, "perfect_configs.json"), "r") as conf_file:
             config_templates = json.load(conf_file)
@@ -541,9 +533,11 @@ if __name__ == "__main__":
         perfTest = f"generatedSheets/perfTEST2/{choice}-choices"
         
         for index, count in enumerate(question_counts):
-
+            # combine the primary config with the templated one 
+            # from perfect_configs to create the given answer sheet.
             info = PRIMARY_CONFIG | perf_configs[str(choice)][index]
+            print(json.dumps(info, indent=2))
 
             pictron = Pictron(**info)
-            pictron.generate(course_name="Perf --> ", test_name="TEST") #random_filled=True)
+            pictron.generate(course_name="Perf Course", test_name="TEST") #random_filled=True)
             pictron.saveImage(outPath=perfTest, outName=f"{choice}-{count}")
