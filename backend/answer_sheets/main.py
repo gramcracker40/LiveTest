@@ -6,34 +6,49 @@ Implements a highly customizable
 
 from PIL import Image, ImageDraw, ImageFont
 import os
-# from myKwargs import MyKwargs
-from answer_sheets.myKwargs import MyKwargs
-
 from rich.console import Console
 import textwrap
-import sys
 import datetime
 import json
 import random
 
 console = Console()
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
 PRIMARY_CONFIG = {
     "page_size": (8.5, 11),
-    "img_align_path": "answer_sheets/assets/images/checkerboard_144x_adj_color.jpg",
-    "logo_path": "answer_sheets/assets/images/LiveTestLogo_144x.png",
+    "img_align_path": os.path.join(BASE_DIR, "assets/images/checkerboard_144x_adj_color.jpg"),
+    "logo_path": os.path.join(BASE_DIR, "assets/images/LiveTestLogo_144x.png"),
     "bubble_shape": "circle",
     "bubble_ratio": 1,
-    "font_path": "answer_sheets/assets/fonts/RobotoMono-Regular.ttf",
-    "font_bold": "answer_sheets/assets/fonts/RobotoMono-Bold.ttf",
+    "font_path": os.path.join(BASE_DIR, "assets/fonts/RobotoMono-Regular.ttf"),
+    "font_bold": os.path.join(BASE_DIR, "assets/fonts/RobotoMono-Bold.ttf"),
     "page_margins": (300, 100, 100, 50),
     "zebra_shading": False,
     "label_style": None,
     "que_ident_style": None,
     "font_alpha": 50,
-    "outPath": "answer_sheets/generatedSheets/perfTEST",
+    "outPath": os.path.join(BASE_DIR, "generatedSheets/perfTEST"),
     "outName": None,
 }
+
+PRIMARY_CONFIG_API = {
+    "page_size": (8.5, 11),
+    "img_align_path": os.path.join(BASE_DIR, "answer_sheets/assets/images/checkerboard_144x_adj_color.jpg"),
+    "logo_path": os.path.join(BASE_DIR, "answer_sheets/assets/images/LiveTestLogo_144x.png"),
+    "bubble_shape": "circle",
+    "bubble_ratio": 1,
+    "font_path": os.path.join(BASE_DIR, "answer_sheets/assets/fonts/RobotoMono-Regular.ttf"),
+    "font_bold": os.path.join(BASE_DIR, "answer_sheets/assets/fonts/RobotoMono-Bold.ttf"),
+    "page_margins": (300, 100, 100, 50),
+    "zebra_shading": False,
+    "label_style": None,
+    "que_ident_style": None,
+    "font_alpha": 50,
+    "outPath": os.path.join(BASE_DIR, "answer_sheets/generatedSheets/perfTEST"),
+    "outName": None,
+}
+
 
 
 def wrap_with_indent(text, width, indent):
@@ -264,16 +279,12 @@ class Pictron:
         self.draw = ImageDraw.Draw(self.image)
 
     @classmethod
-    def find_best_config(self, num_questions:int, num_choices:int):
-        '''
-        class method to help find the best configuration for a range of questions and choices
-          for the best looking version of Pictron from the default template engine. 
-          num_questions: 0-200
-          num_choices: 2-7
-
-          returns: {primary_config | best_fitting_template}
-        '''
-        with open(f"answer_sheets/perfect_configs.json", "r") as conf_file:
+    def find_best_config(cls, num_questions: int, num_choices: int, api: bool = False):
+        """
+        Class method to help find the best configuration for a range of questions and choices.
+        Returns the best fitting template configuration.
+        """
+        with open(os.path.join(BASE_DIR, "perfect_configs.json"), "r") as conf_file:
             config_templates = json.load(conf_file)
 
         if num_questions <= 0 or num_questions > 200:
@@ -290,7 +301,7 @@ class Pictron:
 
         for temp in templates:
             if int(temp['num_questions']) == template:
-                return temp | PRIMARY_CONFIG
+                return temp | PRIMARY_CONFIG if not api else temp | PRIMARY_CONFIG_API
 
     def pasteImage(self, x, y, img_obj):
         """ """
@@ -502,97 +513,37 @@ class Pictron:
 
         print(f"{self.name}.png")
         self.image.save(f"{self.name}.png")
-        
-        #self.image.save(f"{name}.pdf")
-        # self.image.show()
-
-        # if self.random_choices != {}:
-        #     with open(f"generatedSheets/answersJSON/{os.path.split(self.name)[-1]}.json", "w") as fp:
-        #         json.dump(self.random_choices, fp, indent=True)
-
 
 
 def create_blank_image_with_overlay():
-    # Create a blank white image of size 2550x3300
     blank_image = Image.new("RGB", (2550, 3300), "white")
-
-    # Open the overlay image
     overlay_image = Image.open("checkerboard.png")
-
-    # Calculate the position for the overlay image to be centered on the blank image
     overlay_size = overlay_image.size
     blank_size = blank_image.size
     position = (
         (blank_size[0] - overlay_size[0]) // 2,
         (blank_size[1] - overlay_size[1]) // 2,
     )
-
-    # Paste the overlay image onto the blank image at the calculated position
     blank_image.paste(overlay_image, position, overlay_image)
-
-    # Save the result as 'blank_with_overlay.png'
     blank_image.save("blank.png")
 
 
+# demo out Pictron - small example script below to generate answer sheets 
+# using configs found in perfect_configs.json
 if __name__ == "__main__":  
-    """
-    {
-        "page_size": (8.5, 11),
-        "img_align_path": "answer_sheets/assets/images/checkerboard_144x_adj_color.jpg",
-        "logo_path": "answer_sheets/assets/images/LiveTestLogo_144x.png",
-        "bubble_shape": "circle",
-        "bubble_ratio": 1,
-        "font_path": "answer_sheets/assets/fonts/RobotoMono-Regular.ttf",
-        "font_bold": "answer_sheets/assets/fonts/RobotoMono-Bold.ttf",
-        "page_margins": (300, 100, 100, 50),
-        "zebra_shading": False,
-        "label_style": None,
-        "que_ident_style": None,
-        "font_alpha": 50,
-        "outPath": "answer_sheets/generatedSheets/perfTEST",
-        "outName": None,
-        "font_size": 7.5,
-        "bubble_size": 18,
-        "line_spacing": 30,
-        "column_width": 65,
-        "answer_spacing": 20,
-        "label_spacing": 20, 
-        "num_ans_options": 2,
-        "num_questions": 50
-    }
-    """
-    question_counts = [150, 20, 50, 75]
+    # load the perfect configs for each count/choice combination
+    perf_configs = json.load(open("perfect_configs.json", "r"))
+    question_counts = [10,20,30,40,50,75,100,150,200]
+    question_choices = [2,3,4,5,6,7]
+    
+    
+    for choice in question_choices:
+        perfTest = f"generatedSheets/perfTEST2/{choice}-choices"
+        
+        for index, count in enumerate(question_counts):
 
-    # perfTestCount = 1
-    # perfTest = f"/generatedSheets/perfTEST/{perfTestCount}-choices"
-    for count in question_counts:
-        console.print(get_params("docs.json"))
+            info = PRIMARY_CONFIG | perf_configs[str(choice)][index]
 
-        info = {
-            "page_size": (8.5, 11),
-            "img_align_path": "./assets/images/checkerboard_144x_adj_color.jpg",
-            "logo_path": "./assets/images/LiveTestLogo_144x.png",
-            "num_ans_options": 5,
-            "num_questions": count,
-            "font_size": 10,
-            "bubble_shape": "circle",
-            "bubble_size": 22,
-            "bubble_ratio": 1,
-            "font_path": "./assets/fonts/RobotoMono-Regular.ttf",
-            "font_bold": "./assets/fonts/RobotoMono-Bold.ttf",
-            "page_margins": (300, 100, 100, 50),
-            "line_spacing": 20,
-            "column_width": 70,
-            "answer_spacing": 15,
-            "label_spacing": 25,
-            "zebra_shading": True,
-            "label_style": None,
-            "que_ident_style": None,
-            "font_alpha": 50,
-            "outPath": "./generatedSheets",
-            "outName": None,
-        }
-
-        pictron = Pictron(**info)
-        pictron.generate(random_filled=True)
-        pictron.saveImage()
+            pictron = Pictron(**info)
+            pictron.generate(course_name="Perf --> ", test_name="TEST") #random_filled=True)
+            pictron.saveImage(outPath=perfTest, outName=f"{choice}-{count}")
