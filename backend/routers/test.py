@@ -46,7 +46,7 @@ def create_test_live(test: CreateTest):
     new_test = Test(**test.model_dump())
 
     # find the best template for the given number of questions and choices. 
-    answer_sheet_config = Pictron.find_best_config(test.num_questions, test.num_choices, api=True)
+    answer_sheet_config = Pictron.find_best_config(test.num_questions, test.num_choices)
     answer_sheet = Pictron(**answer_sheet_config)
     
     # generate, compress, and save the blank version image of the test

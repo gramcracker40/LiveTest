@@ -1,20 +1,26 @@
+# Stage 1: Build the application
 FROM node:18-alpine AS builder
 
-COPY app/package*.json .
+WORKDIR /app
+
+COPY ../app/package*.json .
 RUN npm install
 
-COPY ./app .
+COPY ../app .
 RUN npm run build
 
-# setup the Nginx server for production
+# Stage 2: Serve the application with Nginx
 FROM nginx:alpine
-# change working directory within the image
-WORKDIR /usr/share/nginx/html
-# remove default nginx static assets
-RUN rm -rf ./*
-# copy the built application from the builder stage
-COPY --from=builder ./app .
 
-# start Nginx server
+# Change working directory within the image
+WORKDIR /usr/share/nginx/html
+
+# Remove default Nginx static assets
+RUN rm -rf ./*
+
+# Copy the built application from the builder stage
+COPY --from=builder /app/dist .
+
+# Start Nginx server
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]

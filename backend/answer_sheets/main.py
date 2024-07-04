@@ -2,19 +2,20 @@
 LiveTest /answer_sheets/main.py
 
 Implements a highly configurable answer sheet creation module 
+
+Authors:
+Garrett Mathers
+Terry Griffin
 """
 
 from PIL import Image, ImageDraw, ImageFont
 import os
-from rich.console import Console
 import textwrap
 import datetime
 import json
 import random
 
-
-# TODO clean this up
-console = Console()
+# this line is to facilitate usage of Pictron in backend/routers/submission.py
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
 # LiveTest's default configurations for Pictron
@@ -30,20 +31,6 @@ PRIMARY_CONFIG = {
     "zebra_shading": False,
     "font_alpha": 50,
     "outPath": os.path.join(BASE_DIR, "generatedSheets/perfTEST"),
-    "outName": None,
-}
-
-PRIMARY_CONFIG_API = {
-    "page_size": (8.5, 11),
-    "img_align_path": os.path.join(BASE_DIR, "answer_sheets/assets/images/checkerboard_144x_adj_color.jpg"),
-    "logo_path": os.path.join(BASE_DIR, "answer_sheets/assets/images/LiveTestLogo_144x.png"),
-    "bubble_shape": "circle",
-    "bubble_ratio": 1,
-    "font_path": os.path.join(BASE_DIR, "answer_sheets/assets/fonts/RobotoMono-Regular.ttf"),
-    "font_bold": os.path.join(BASE_DIR, "answer_sheets/assets/fonts/RobotoMono-Bold.ttf"),
-    "page_margins": (300, 100, 100, 50),
-    "font_alpha": 50,
-    "outPath": os.path.join(BASE_DIR, "answer_sheets/generatedSheets/perfTEST"),
     "outName": None,
 }
 
@@ -271,7 +258,7 @@ class Pictron:
         self.draw = ImageDraw.Draw(self.image)
 
     @classmethod
-    def find_best_config(cls, num_questions: int, num_choices: int, api: bool = False):
+    def find_best_config(cls, num_questions: int, num_choices: int):
         """
         Class method to help find the best configuration for a range of questions and choices.
         Returns the best fitting template configuration from perfect_configs.json
@@ -293,7 +280,7 @@ class Pictron:
 
         for temp in templates:
             if int(temp['num_questions']) == template:
-                return temp | PRIMARY_CONFIG if not api else temp | PRIMARY_CONFIG_API
+                return temp | PRIMARY_CONFIG
 
     def pasteImage(self, x, y, img_obj):
         """ """
@@ -407,16 +394,14 @@ class Pictron:
         answers: dict --> {1: 'A', 2:'E', 3:'C'}. For building a Test that has an established answer key. 
 
         '''
+        self.random_choices = {}
+    
         x = start_x
         y = start_y
-
         i = 0  # Overall count for number of answer choices placed
         n = 1  # Question number
-
         option_set_width = (self.bubble_width + self.answer_spacing) \
                 * self.num_ans_options + self.column_width
-
-        self.random_choices = {}
 
         # begin outputting answer choices
         while n <= self.num_questions:
@@ -427,7 +412,6 @@ class Pictron:
                     start_x += option_set_width + self.label_spacing  # Shift to next column
                     x = start_x
                     y = start_y
-
                 question_label = f"{n:>3}"
 
                 # if we are randomizing filled circles, choose the answer for this question here, save to random_choices
@@ -451,7 +435,8 @@ class Pictron:
 
             # add answer choice - determine if it will be filled or not
             answer_label = chr((i % self.num_ans_options) + 65)  # A, B, C, etc.
-            self.addBubble(x, y, filled=(i % self.num_ans_options) == fill_answer, line_thickness=self.line_thickness)
+            self.addBubble(x, y, filled=(i % self.num_ans_options) == fill_answer, 
+                           line_thickness=self.line_thickness)
             self.addBubbleLabel(x, y, answer_label, (200, 200, 200)) \
                 if (i % self.num_ans_options) != fill_answer else None
             
@@ -523,6 +508,33 @@ def create_blank_image_with_overlay():
 # demo out Pictron - small example script below to generate answer sheets 
 # using configs found in perfect_configs.json
 if __name__ == "__main__":  
+    # info = {
+    #     "page_size": (8.5, 11), # only tested page size
+    #     "img_align_path": os.path.join(BASE_DIR, "assets/images/checkerboard_144x_adj_color.jpg"),
+    #     "logo_path": os.path.join(BASE_DIR, "assets/images/LiveTestLogo_144x.png"),
+    #     "bubble_shape": "circle",
+    #     "bubble_ratio": 1,
+    #     "font_path": os.path.join(BASE_DIR, "assets/fonts/RobotoMono-Regular.ttf"),
+    #     "font_bold": os.path.join(BASE_DIR, "assets/fonts/RobotoMono-Bold.ttf"),
+    #     "page_margins": (300, 100, 100, 50), # only tested page margins
+    #     "zebra_shading": False,
+    #     "font_alpha": 50,
+    #     "outPath": os.path.join(BASE_DIR, "generatedSheets/perfTEST"),
+    #     "outName": None,
+    #     "font_size": 7.5,
+    #     "bubble_size": 17,
+    #     "line_spacing": 20,
+    #     "column_width": 70,
+    #     "answer_spacing": 20,
+    #     "label_spacing": 20, 
+    #     "num_ans_options": 26,
+    #     "num_questions": 30
+    # }
+    # pictron = Pictron(**info)
+    # pictron.generate(course_name="Perf Course", test_name="TEST")
+    # pictron.saveImage(outPath="generatedSheets/", outName=f"{26}-{30}")
+    
+    
     # load the perfect configs for each count/choice combination
     perf_configs = json.load(open("perfect_configs.json", "r"))
     question_counts = [10,20,30,40,50,75,100,150,200]
@@ -533,11 +545,13 @@ if __name__ == "__main__":
         perfTest = f"generatedSheets/perfTEST2/{choice}-choices"
         
         for index, count in enumerate(question_counts):
-            # combine the primary config with the templated one 
-            # from perfect_configs to create the given answer sheet.
+           
             info = PRIMARY_CONFIG | perf_configs[str(choice)][index]
             print(json.dumps(info, indent=2))
 
             pictron = Pictron(**info)
-            pictron.generate(course_name="Perf Course", test_name="TEST") #random_filled=True)
+            pictron.generate(course_name="Perf Course", test_name="TEST")
             pictron.saveImage(outPath=perfTest, outName=f"{choice}-{count}")
+
+        
+        break

@@ -68,14 +68,12 @@ def pre_process(image):
     Once we have the edges detected we dilate the image to further bring out the edges into the foreground
     This helps with splotchy background in removing background noise. 
     '''
-    # image = equalize_histogram(image)
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     blur = cv2.GaussianBlur(gray, (5, 5), 0)
     thresh = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
     edges = cv2.Canny(thresh, 50, 150)
     kernel = np.ones((5, 5), np.uint8)
     dilated = cv2.dilate(edges, kernel, iterations=2)
-
     return dilated
 
 
@@ -89,16 +87,16 @@ def equalize_histogram(image):
     Returns:
     numpy.ndarray: Image after applying CLAHE.
     """
-    # Convert the image to grayscale
+    # convert the image to grayscale
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     
-    # Create a CLAHE object with a clip limit of 2.0 and a tile grid size of 8x8
+    # create a CLAHE object with a clip limit of 2.0 and a tile grid size of 8x8
     clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
     
-    # Apply CLAHE to the grayscale image
+    # apply CLAHE to the grayscale image
     equalized = clahe.apply(gray)
     
-    # Convert the equalized grayscale image back to BGR format
+    # convert the equalized grayscale image back to BGR format
     return cv2.cvtColor(equalized, cv2.COLOR_GRAY2BGR)
 
 
@@ -195,9 +193,6 @@ class OMRGrader:
         epsilon = epsilon_factor * cv2.arcLength(contour, True)
         approx = cv2.approxPolyDP(contour, epsilon, True)
 
-        # Debugging: print the number of vertices of the approximated contour
-        print(f"Approximated contour has {len(approx)} vertices")
-
         # Check if the approximated contour has enough vertices to be considered a circle
         if len(approx) < 8:
             return False
@@ -210,9 +205,6 @@ class OMRGrader:
 
         # Circularity ratio
         circularity = area / circle_area
-
-        # Debugging: print the area, circle area, and circularity
-        print(f"Contour area: {area}, Circle area: {circle_area}, Circularity: {circularity}")
 
         # Return if the contour is a circle
         return circularity > threshold
@@ -229,10 +221,13 @@ class OMRGrader:
             print("Image decoded from bytes.")
         else:
             raise DocumentExtractionFailedError("Must provide a valid image")
+        
         self.image = image
         show_image("original", image) if self.show_process else None
+        
         image_proc = pre_process(image)
         show_image("pre_process", image_proc) if self.show_process else None
+        
         contours, _ = cv2.findContours(image_proc, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         contours = sorted(contours, key=cv2.contourArea, reverse=True)[:3]
         print(f"Found {len(contours)} contours.")
@@ -240,11 +235,10 @@ class OMRGrader:
         # cv2.drawContours(image, contours, -1, (0,255,255), 111)
         # show_image("drawContours(image)", image)
 
-        # Loop over the contours
+        # loop over the contours
         for i, c in enumerate(contours):
             peri = cv2.arcLength(c, True)
             approx = cv2.approxPolyDP(c, 0.025 * peri, True)
-            print(f"Contour #{i + 1}: {len(approx)} vertices.")
 
             if len(approx) == 4:
                 print("Document found. Performing transformation.")
@@ -273,7 +267,7 @@ class OMRGrader:
         print("starting bubbles")
         if len(self.image.shape) == 3: # rectangle
             self.image = equalize_histogram(self.image) # levels out inconsistent brightness
-            self.show_image("histogram equalized", self.image)
+            self.show_image("histogram equalized", self.image) if self.show_process else None
             gray = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
             self.show_image("grayed!", gray) if self.show_process else None
             blurred = cv2.GaussianBlur(gray, (5, 5), 0)
@@ -287,16 +281,12 @@ class OMRGrader:
         # print(f"contours: {len(contours)}")
         for contour in contours:
             x, y, w, h = cv2.boundingRect(contour)
-            aspect_ratio = w / float(h)
-            if self.is_circle(contour): # and 0.91 <= aspect_ratio <= 1.09:
+            if self.is_circle(contour):
                 question_contours.append(contour)
-                # cv2.drawContours(self.image, [contour], -1, (0,255,0), 2) # debugging
+                cv2.drawContours(self.image, [contour], -1, (0,255,0), 2)
+        self.show_image("Bubbles identified image", self.image) if self.show_process else None
 
-        # # Perform validation check to make sure you have the right number of questions
-        # if len(question_contours) / self.num_choices < self.num_questions:
-        #     raise AnswerBubbleIdentificationFailedError()
-
-        return question_contours, self.image
+        return question_contours
 
 
     def sort_contours(self, cnts, method="left-to-right"):
@@ -312,7 +302,7 @@ class OMRGrader:
         rows = []
         current_row = []
         row_y = bounding_boxes[0][1]
-        row_threshold = 25  # You may want to adjust this threshold based on your specific requirements
+        row_threshold = 25 
 
         for contour, box in zip(cnts, bounding_boxes):
             if abs(box[1] - row_y) < row_threshold:
@@ -352,8 +342,8 @@ class OMRGrader:
     def sort_rows_to_questions(self, rows):
         questions = {}
         col_num = 0
-        i = 0
-        # print(f"#ROWS: {len(rows)}, type(row): {type(rows[0])}")
+        i = 0 # question number
+
         while i < self.num_questions:
             questions[i + 1] = [
                 rows[i % len(rows)][choice]
@@ -391,23 +381,15 @@ class OMRGrader:
         choices = {}
         for question, contours in questions.items():
             for j, c in enumerate(contours):
-                # print(f"Choice {j + 1} of question {question}: Type: {type(c)}, Shape: {c.shape}")
-
                 mask = np.zeros_like(self.thresh, dtype="uint8")
-                try:
-                    cv2.drawContours(mask, [c], -1, 255, -1) 
-                except cv2.error as e:
-                    print(f"Error drawing contour {j} in question {question}: {e}")
-                    continue 
-
-                # apply the mask to the thresholded image, then count the number of non-zero pixels in the bubble area
+                cv2.drawContours(mask, [c], -1, 255, -1) 
+                
                 mask = cv2.bitwise_and(self.thresh, self.thresh, mask=mask)
                 total = cv2.countNonZero(mask)
-                #print(f"#Non zero pixels: {total}")
 
-                # mark the selected answer
+                # mark the choice with the highest total number of non zero
                 if question not in choices or total > choices[question][0]:
-                    choices[question] = (total, c, chr(j + 65))  # store the choice with the highest total
+                    choices[question] = (total, c, chr(j + 65))
 
         return choices
     
@@ -488,7 +470,6 @@ class OMRGrader:
             -> tuple[float, dict, dict] | tuple[bool, bool, str]:
         '''
         helper function to execute the full functionality of the OMRGrader class in LiveTest
-        uses configurations set in the constructor to grade the answer sheet. 
 
         returns:
             grade: int --> ex: 96 or 73
@@ -497,12 +478,11 @@ class OMRGrader:
         '''
         try:
             # determine if the run is on a mechanical or a real life image of a submission. 
-            if not self.mechanical: # run the pre-processing method
+            if not self.mechanical: # run the document method
                 self.image = self.isolate_document(file_path, bytes_obj)
-                bubbles, image = self.get_answer_bubbles()
+                bubbles = self.get_answer_bubbles()
             else:
-                bubbles, image = self.get_answer_bubbles(file_path, bytes_obj)
-            # print("got bubbles")
+                bubbles = self.get_answer_bubbles(file_path, bytes_obj)     
         except DocumentExtractionFailedError as err:
             return (False, False, err)
         except AnswerBubbleIdentificationFailedError as err:
@@ -512,20 +492,20 @@ class OMRGrader:
         sorted_rows = self.group_bubbles_by_row(bubbles)
         # once you have your rows, organize the rows into questions
         questions = self.sort_rows_to_questions(sorted_rows)
-        # determine which of the answer choices were selected using OMR
+        # determine which of the answ6er choices were selected using OMR
         choices = self.identify_question_choices(questions)
         # using the provided key, grade the selected choices
         # marking wrong choices red and right choices green
         graded, grade = self.grade_choices(choices, key)
 
-        # print(f"GRADE: {grade}\nGRADED: {graded}")
-        # place a grade on the image that will change color based on their performance
-        #grade_color = (255, 0, 0) if grade < 66 \
-                #else (0, 255, 0) if grade >= 85 \
-                #else (0, 255, 255) # yellow 70-84
+        # place a grade on the image that will change 
+        # color based on their performance if show_process is true
+        grade_color = (255, 0, 0) if grade < 66 \
+                else (0, 255, 0) if grade >= 85 \
+                else (0, 255, 255) # yellow 70-84
 
         # add the grade to the image
-        #self.image = self.add_grade(image, grade, color=grade_color)
+        self.image = self.add_grade(self.image, grade, color=grade_color) if self.show_process else self.image
         show_image("graded", self.image) if self.show_process else None
         return grade, graded, choices
 
@@ -535,13 +515,11 @@ if __name__ == "__main__":
     num_questions = 100
 
     grader = OMRGrader(
-        num_choices=num_choices, 
-        num_questions=num_questions, 
-        mechanical=False
+        num_choices=4, 
+        num_questions=100, 
+        mechanical=False, 
+        show_process=True
     )
-    # print(os.getcwd())
-    # f'generatedSheets/fakeTest{num_questions}-{num_choices}/submission-2.png'
-
     grade, graded, choices = grader.run(
         file_path=f"submissionSheets/100-4/IMG_9348.png", 
         key = { 
