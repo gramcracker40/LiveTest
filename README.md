@@ -2,7 +2,7 @@
 
   Create your school's custom answer sheets and grade them in the browser!
 
-  free, easy, consistent process for server based dynamic OMR grading/scanning using highly customizable answer sheets that can be integrated with any school easily. 
+  free, easy, consistent process for server based dynamic OMR grading/scanning using highly customizable answer sheets that can be integrated with any school. 
 
 ![Courses Page](frontend\app\dist\assets\CoursesPage.png)
 
