@@ -8,26 +8,26 @@ __pycache__
 backend/venv
 
 # Logs
-frontend/logs
-frontend/*.log
-frontend/npm-debug.log*
-frontend/yarn-debug.log*
-frontend/yarn-error.log*
-frontend/pnpm-debug.log*
-frontend/lerna-debug.log*
+frontend/app/logs
+frontend/app/*.log
+frontend/app/npm-debug.log*
+frontend/app/yarn-debug.log*
+frontend/app/yarn-error.log*
+frontend/app/pnpm-debug.log*
+frontend/app/lerna-debug.log*
 
-frontend/node_modules
-frontend/dist
-frontend/dist-ssr
-frontend/*.local
+frontend/app/node_modules
+frontend/app/dist
+frontend/app/dist-ssr
+frontend/app/*.local
 
 # Editor directories and files
-frontend/.vscode/*
-frontend/!.vscode/extensions.json
-frontend/.idea
-frontend/.DS_Store
-frontend/*.suo
-frontend/*.ntvs*
-frontend/*.njsproj
-frontend/*.sln
-frontend/*.sw?
+frontend/app/.vscode/*
+frontend/app/!.vscode/extensions.json
+frontend/app/.idea
+frontend/app/.DS_Store
+frontend/app/*.suo
+frontend/app/*.ntvs*
+frontend/app/*.njsproj
+frontend/app/*.sln
+frontend/app/*.sw?

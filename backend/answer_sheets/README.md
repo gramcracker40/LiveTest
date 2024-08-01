@@ -1,9 +1,12 @@
 # answer_sheets
 
-# Pictron
+# Pictron - main.py
 ### customize your own LiveTest answer sheets. 
-  - you can change the logo of your own version in
+  - you can change the logo of your own version
   - check the assets folder, you'll find a ton of fonts you can choose from to customize your answer sheet /assets. 
+
+  pthon
+
 
 # OMRGrader
 ### grade the produced answer sheet 

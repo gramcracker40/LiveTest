@@ -1,7 +1,8 @@
 """
 LiveTest /answer_sheets/main.py
 
-Implements a highly configurable answer sheet creation module 
+Implements a highly configurable answer sheet creation module
+Pictron
 
 Authors:
 Garrett Mathers
@@ -552,6 +553,3 @@ if __name__ == "__main__":
             pictron = Pictron(**info)
             pictron.generate(course_name="Perf Course", test_name="TEST")
             pictron.saveImage(outPath=perfTest, outName=f"{choice}-{count}")
-
-        
-        break

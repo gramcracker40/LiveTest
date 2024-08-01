@@ -1,9 +1,10 @@
 # backend
-
-This directory is the core of my research. 
+ - the core of the research. 
+ - Take a look at answer_sheets. 
 
   - /answer_sheets  highly customizable answer sheets with a dynamic OMR grader
-  - app.py   builds the database and runs the LiveTest server. 
+  - app.py   builds the database and runs the LiveTest fastapi server. 
+
 
 ### get to development / try out the app!
   1. confirm presence of python on system using python --version
@@ -30,7 +31,11 @@ This directory is the core of my research.
     NUM_COURSES = 15
     COURSES_PER_STUDENT = 5
     subjects = ["MATH", "CMPS", "ENGL", "HIST", "CH", "SHOP", "TECH"]
-      
+
+
+### .env configurable constants 
+I left the .env file in here for reference --> changed all my passwords.
+The docker stuff works off of it 
 
 ### documentation
   go to 'http://localhost:8000/docs' once you have the fastapi app running with some fake data for more info on the various functionality that the API implements. Here is a preview
