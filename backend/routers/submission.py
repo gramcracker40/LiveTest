@@ -27,7 +27,7 @@ router = APIRouter(
 @router.post("/")
 async def create_submission_live(
     submission_image: UploadFile,
-    student_id: int = Form(...),
+    student_id: int = Form(None),
     test_id: str = Form(...),
     mechanical: bool = False,
     db: Session = Depends(get_db)
@@ -41,12 +41,12 @@ async def create_submission_live(
     '''
     try:
         # query student and test to make sure they exist
-        student = db.query(Student).get(student_id)
+        student = session.query(Student).get(student_id) if student_id else None
         test = db.query(Test).get(test_id)
+        
         # perform checks on both
-        if student is None:
+        if student_id and student is None:
             raise HTTPException(404, detail="Student not found")
-
         if test is None:
             raise HTTPException(404, detail="Test not found")
 

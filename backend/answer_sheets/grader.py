@@ -39,15 +39,22 @@ on how to properly submit student answer sheets."""):
         super().__init__(self.message)
 
 
-def show_image(title: str, matlike: cv2.Mat_TYPE_MASK, w=600, h=700):
+def show_image(title, temp):
     """
-    given a title and Matlike image, display it given configured width and height
+    Disable cv2.imshow in headless/server environments to prevent crash.
     """
+    # Check if running in FastAPI / headless mode
+    if os.environ.get("DISPLAY") is None or os.environ.get("FASTAPI_ENV") == "prod":
+        # just log instead of displaying
+        print(f"[INFO] show_image skipped for '{title}' (headless mode)")
+        return
+    try:
+        cv2.imshow(title, temp)
+        cv2.waitKey(0)
+        cv2.destroyWindow(title)
+    except cv2.error as e:
+        print(f"[WARN] show_image skipped (no GUI support): {e}")
 
-    temp = cv2.resize(matlike, (w, h))
-    cv2.imshow(title, temp)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
 
 
 def pre_process(image):
