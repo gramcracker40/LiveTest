@@ -1,49 +1,54 @@
-'''
-Sets up the backends database
-also initializes the 'session maker' that allows for 
-sessions to be initiated with the db and query it.
-'''
+"""
+Sets up the backend's database and session factory.
+Also includes image compression helpers.
+"""
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from env import database_url
 from tables import Base
+from env import database_url  # uses the resolved URL from env.py
+
+# --- Engine ---
+connect_args = {}
+if database_url.startswith("sqlite"):
+    # SQLite needs this when used in multi-threaded FastAPI
+    connect_args = {"check_same_thread": False}
+
+engine = create_engine(database_url, connect_args=connect_args, pool_pre_ping=True)
+
+# Create all tables once at import (safe if run multiple times)
+Base.metadata.create_all(bind=engine)
+
+# --- Session factory ---
+SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
+
+# Dependency for FastAPI routes
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+# ----- Optional: image compression helpers -----
 from PIL import Image
 import io
 import zlib
 import cv2
 import numpy as np
 
-engine = create_engine(database_url)
-Base.metadata.create_all(engine)
+def compress_image(image_bytes: bytes, quality: int = 50) -> bytes:
+    image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+    buf = io.BytesIO()
+    image.save(buf, format="JPEG", quality=quality, optimize=True)
+    return buf.getvalue()
 
-Session = sessionmaker(bind=engine)
-session = Session()
+def compress_data(data: bytes) -> bytes:
+    return zlib.compress(data, level=9)
 
-# helper to get a database session
-def get_db():
-    db = session()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
-# helper functions for image compression/decompression in database
-def compress_image(image_bytes, quality=50):
-    image = Image.open(io.BytesIO(image_bytes))
-    compressed_image_io = io.BytesIO()
-    image.save(compressed_image_io, format="JPEG", quality=quality)
-    compressed_image_bytes = compressed_image_io.getvalue()
-    return compressed_image_bytes
-
-def compress_data(data):
-    compressed_data = zlib.compress(data, level=9)
-    return compressed_data
-
-def decompress_data(compressed_data):
+def decompress_data(compressed_data: bytes) -> bytes:
     return zlib.decompress(compressed_data)
 
-def decompress_image(compressed_image_bytes):
-    image = Image.open(io.BytesIO(compressed_image_bytes))
+def decompress_image(compressed_image_bytes: bytes):
+    image = Image.open(io.BytesIO(compressed_image_bytes)).convert("RGB")
     return cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)

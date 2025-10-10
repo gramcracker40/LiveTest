@@ -1,44 +1,34 @@
-'''
-handles loading and abstraction of the .env file for the given instance. 
-'''
+"""
+handles loading and abstraction of the .env file for the given instance.
+"""
 
-import os, re
+import os
+import re
 from dotenv import load_dotenv
 
-def build_db_string(env_file) -> str:
-    '''
-    parse the beginning variables and identify remaining delimiters to fill
-    builds database connection string according to 
-        SQL_PORT
-        SQL_HOST
-        POSTGRES_USER
-        POSTGRES_PASSWORD
-        POSTGRES_DB
-    '''
-    env_file = open(env_file, "r").read()
+load_dotenv()  # load .env into process env
 
-    env_vars = {}
-    for var in env_file.split('\n')[:-2]:
-        key, value = var.split('=')
-        env_vars[key] = value
+def expand_db_template(url_template: str, env: dict | None = None) -> str:
+    """
+    Expands placeholders like postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{SQL_HOST}:{SQL_PORT}/{POSTGRES_DB}
+    using environment variables. Leaves unknown placeholders as-is.
+    """
+    env = env or os.environ
 
-    def replace_placeholder(match):
-        placeholder = match.group(1)
-        return env_vars.get(placeholder, placeholder)
+    def repl(m: re.Match):
+        key = m.group(1)
+        return env.get(key, m.group(0))
 
-    database_url = re.sub(r'\{([^}]+)\}', replace_placeholder, env_vars['DATABASE_URL'])
-    return database_url
+    return re.sub(r"\{([^}]+)\}", repl, url_template or "")
 
+template = os.getenv("DATABASE_URL", "")
+database_url = expand_db_template(template)
 
-# loading instance configuration below, build DATABASE_URL dynamically
-load_dotenv()
-os.environ["DATABASE_URL"] = build_db_string(".env")
-
-# checks to see if the docker is not being used. 
-# will defer to sqlite instead for local dev
-if not int(os.environ["DOCKER"]):
-    os.environ["DATABASE_URL"] = "sqlite:///scantron-hacker.db"
+docker_flag = os.getenv("DOCKER", "0")
+if docker_flag.strip() in ("", "0", "false", "False", "FALSE", "no", "No"):
+    # local dev DB (relative file)
+    database_url = "sqlite:///./scantron-hacker.db"
 
 secret_key = os.getenv("SECRET_KEY")
-database_url = os.getenv("DATABASE_URL")
-
+admin_user = os.getenv("ADMIN_USER", "").strip()
+admin_pass = os.getenv("ADMIN_PASS", "").strip()

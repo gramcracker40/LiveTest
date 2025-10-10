@@ -9,7 +9,7 @@
 ### get to development / try out the app!
   1. confirm presence of python on system using python --version
   ```$ python --version ```
-  ```Python 3.11.4```
+  ```Python 3.12.10```
   if you don't have Python, you're going to need it... Or use Docker found in /deploy
   
   2. Build a virtual environment, source it, install dependencies.

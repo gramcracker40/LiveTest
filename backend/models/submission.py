@@ -5,9 +5,9 @@ from datetime import datetime
 
 class CreateSubmission(BaseModel):
     submission_image: UploadFile
-    student_id: int = Form(...)
+    student_id: Optional[int] = Form(None)
     test_id: str = Form(...)
-    
+
 class UpdateSubmission(BaseModel):
     answers: str
     grade: float
@@ -16,14 +16,14 @@ class UpdateSubmission(BaseModel):
 
 class GetSubmission(BaseModel):
     id: int
-    student_id: int
+    student_id: Optional[int] = None
     student_name: str
     grade: float
     submission_time: Optional[datetime] = None
 
 class GetStudentSubmission(BaseModel):
     id: int
-    student_id: int
+    student_id: Optional[int] = None
     grade: float
     
 class AnswerDetail(BaseModel):

@@ -1,3 +1,4 @@
+# routers/users.py
 """
 # this file implements "/users" and all routes stemming from it
 
@@ -6,6 +7,7 @@ CRUD routes
 Login route
 """
 from fastapi import HTTPException, APIRouter, Depends
+from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from tables import Student, Teacher
 from passlib.hash import pbkdf2_sha256
@@ -19,7 +21,7 @@ from models.users import (
     UpdateStudent,
     UpdateTeacher,
 )
-from db import session
+from db import get_db
 
 router = APIRouter(
     prefix="/users",
@@ -30,15 +32,15 @@ router = APIRouter(
 
 
 # TEACHERS
-@router.post("/teachers/")#dependencies=[Depends(jwt_token_verification)])
-def create_teacher(teacher: CreateTeacher):
+@router.post("/teachers/")  # dependencies=[Depends(jwt_token_verification)])
+def create_teacher(teacher: CreateTeacher, db: Session = Depends(get_db)):
     try:
         new_teacher = Teacher(name=teacher.name, email=teacher.email)
         new_teacher.password = pbkdf2_sha256.hash(teacher.password)
-        session.add(new_teacher)
-        session.commit()
+        db.add(new_teacher)
+        db.commit()
     except IntegrityError as e:
-        session.rollback()
+        db.rollback()
         raise HTTPException(
             status_code=400, detail="Teacher with this email already exists"
         )
@@ -47,14 +49,14 @@ def create_teacher(teacher: CreateTeacher):
 
 
 @router.get("/teachers/", response_model=List[GetTeacher])
-def get_all_teachers():
-    teachers = session.query(Teacher).all()
+def get_all_teachers(db: Session = Depends(get_db)):
+    teachers = db.query(Teacher).all()
     return teachers
 
 
 @router.get("/teachers/{teacher_id}", response_model=GetTeacher)
-def get_teacher_by_id(teacher_id: int):
-    teacher = session.query(Teacher).filter(Teacher.id == teacher_id).first()
+def get_teacher_by_id(teacher_id: int, db: Session = Depends(get_db)):
+    teacher = db.query(Teacher).filter(Teacher.id == teacher_id).first()
     if not teacher:
         raise HTTPException(status_code=404, detail="Teacher not found")
 
@@ -62,8 +64,8 @@ def get_teacher_by_id(teacher_id: int):
 
 
 @router.patch("/teachers/{teacher_id}")
-def update_teacher(teacher_id: int, update_data: UpdateTeacher):
-    teacher = session.query(Teacher).filter(Teacher.id == teacher_id).first()
+def update_teacher(teacher_id: int, update_data: UpdateTeacher, db: Session = Depends(get_db)):
+    teacher = db.query(Teacher).filter(Teacher.id == teacher_id).first()
     if not teacher:
         raise HTTPException(status_code=404, detail="Teacher not found")
 
@@ -77,9 +79,9 @@ def update_teacher(teacher_id: int, update_data: UpdateTeacher):
             if value:
                 setattr(teacher, key, value)
 
-        session.commit()
+        db.commit()
     except IntegrityError:
-        session.rollback()
+        db.rollback()
         raise HTTPException(
             status_code=400, detail="Teacher with this email already exists"
         )
@@ -88,29 +90,29 @@ def update_teacher(teacher_id: int, update_data: UpdateTeacher):
 
 
 @router.delete("/teachers/{teacher_id}")
-def delete_teacher(teacher_id: int):
-    teacher = session.query(Teacher).filter(Teacher.id == teacher_id).first()
+def delete_teacher(teacher_id: int, db: Session = Depends(get_db)):
+    teacher = db.query(Teacher).filter(Teacher.id == teacher_id).first()
     if not teacher:
         raise HTTPException(status_code=404, detail="Teacher not found")
 
-    session.delete(teacher)
-    session.commit()
+    db.delete(teacher)
+    db.commit()
 
     return {"message": "Teacher deleted successfully"}
 
 
 # STUDENTS
 @router.post("/students/")
-def create_student(student: CreateStudent):
+def create_student(student: CreateStudent, db: Session = Depends(get_db)):
     try:
         new_student = Student(
             name=student.name, email=student.email
         )
         new_student.password = pbkdf2_sha256.hash(student.password)
-        session.add(new_student)
-        session.commit()
+        db.add(new_student)
+        db.commit()
     except IntegrityError as e:
-        session.rollback()
+        db.rollback()
         err = str(e)
 
         if "students.email" in err:
@@ -126,14 +128,14 @@ def create_student(student: CreateStudent):
 
 
 @router.get("/students/", response_model=List[GetStudent])
-def get_all_students():
-    students = session.query(Student).all()
+def get_all_students(db: Session = Depends(get_db)):
+    students = db.query(Student).all()
     return students
 
 
 @router.get("/students/{student_id}", response_model=GetStudent)
-def get_student_by_id(student_id: int):
-    student = session.query(Student).filter(Student.id == student_id).first()
+def get_student_by_id(student_id: int, db: Session = Depends(get_db)):
+    student = db.query(Student).filter(Student.id == student_id).first()
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")
 
@@ -141,8 +143,8 @@ def get_student_by_id(student_id: int):
 
 
 @router.patch("/students/{student_id}")
-def update_student(student_id: int, update_data: UpdateStudent):
-    student = session.query(Student).filter(Student.id == student_id).first()
+def update_student(student_id: int, update_data: UpdateStudent, db: Session = Depends(get_db)):
+    student = db.query(Student).filter(Student.id == student_id).first()
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")
 
@@ -156,9 +158,9 @@ def update_student(student_id: int, update_data: UpdateStudent):
             if value:
                 setattr(student, key, value)
 
-        session.commit()
+        db.commit()
     except IntegrityError as e:
-        session.rollback()
+        db.rollback()
         err = str(e)
 
         if "students.email" in err:
@@ -174,12 +176,12 @@ def update_student(student_id: int, update_data: UpdateStudent):
 
 
 @router.delete("/students/{student_id}")
-def delete_student(student_id: int):
-    student = session.query(Student).filter(Student.id == student_id).first()
+def delete_student(student_id: int, db: Session = Depends(get_db)):
+    student = db.query(Student).filter(Student.id == student_id).first()
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")
 
-    session.delete(student)
-    session.commit()
+    db.delete(student)
+    db.commit()
 
     return {"message": "Student deleted successfully"}

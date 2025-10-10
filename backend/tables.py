@@ -106,7 +106,7 @@ class Submission(Base):
     grade = Column(Float, nullable=False)
 
     # correlate the submission to a student
-    student_id = Column(Integer, ForeignKey("students.id"), nullable=False)
+    student_id = Column(Integer, ForeignKey("students.id"), nullable=True)
     student = relationship("Student", back_populates="submissions")
 
     test_id = Column(String, ForeignKey("tests.id"), nullable=False)
