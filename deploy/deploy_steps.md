@@ -2,6 +2,7 @@
 docker-compose --file deploy/docker-compose.yml build
 docker-compose --file deploy/docker-compose.yml up
 
+must use the headless version of opencv for the docker container to run properly. 
 
 ### Docker development for frontend/backend
   docker build -f backend/deploy/Dockerfile -t livetest_api .

@@ -1,4 +1,4 @@
-FROM python:3.11 as base
+FROM python:3.12 as base
 
 # Create a non-root user and build/run the app
 RUN useradd --create-home appuser
