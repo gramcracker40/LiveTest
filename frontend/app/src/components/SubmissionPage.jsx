@@ -1,5 +1,5 @@
 // src/components/SubmissionPage.jsx
-import React, { useEffect, useContext, useState } from 'react';
+import React, { useEffect, useContext, useState, useRef } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { EasyRequest, defHeaders } from '../api/helpers';
 import { AuthContext } from '../context/auth';
@@ -8,6 +8,7 @@ import badAnswersImage from '../assets/bad_answers.png';
 import goodAnswersImage from '../assets/good_answers.png';
 import pako from 'pako';
 import { TakeScantronPicture } from './TakeScantronPicture';
+import LiveVideoGrader from './LiveVideoGrader';
 
 export const SubmissionPage = () => {
   const { testid } = useParams(); // kept for route parity; we use location.state.test
@@ -22,6 +23,17 @@ export const SubmissionPage = () => {
   const navigate = useNavigate();
   const [image, setImage] = useState(null);
 
+  // Choice-first UX
+  // selectedMode: null | 'camera' | 'video'
+  const mediaSupported = !!(navigator.mediaDevices && typeof navigator.mediaDevices.getUserMedia === "function");
+  const [selectedMode, setSelectedMode] = useState(null);
+
+  // Video mode & confirmation flow state
+  const [awaitingConfirm, setAwaitingConfirm] = useState(false);
+  const [lastSubmissionId, setLastSubmissionId] = useState(null);
+  const [videoKey, setVideoKey] = useState(0); // force-remount LiveVideoGrader to restart camera
+
+  const gradedURLRef = useRef(null);
   const instanceURL = `${window.location.protocol}//${window.location.hostname}:8000`;
 
   useEffect(() => {
@@ -51,10 +63,22 @@ export const SubmissionPage = () => {
     await submitTest(file);
   };
 
+  const openCameraPicker = () => {
+    // iPhone hint: capture="environment" opens rear camera in Safari
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.capture = 'environment';
+    input.onchange = (e) => {
+      const file = e.target.files?.[0];
+      if (file) handleImageSubmit(file);
+    };
+    input.click();
+  };
+
   const submitTest = async (file) => {
     const formData = new FormData();
     formData.append('submission_image', file);
-    // student_id is OPTIONAL; only append if teacher provided one or if user is a student
     if (authDetails.type === 'teacher' && selectedStudent) {
       formData.append('student_id', selectedStudent);
     } else if (authDetails.type === 'student' && authDetails.id) {
@@ -74,11 +98,8 @@ export const SubmissionPage = () => {
       if (response.status === 200) {
         const submissionId = req.submission_id;
         await fetchGradedImage(submissionId);
-
-        // Auto-reset after 3s to allow “next one”
-        setTimeout(() => {
-          handleNewSubmission();
-        }, 3000);
+        setLastSubmissionId(submissionId);
+        setAwaitingConfirm(true); // stay until user confirms, like video flow
       } else {
         console.error("Error submitting scantron: ", response.status);
         setErrorMessage(`${req.detail}`);
@@ -110,6 +131,8 @@ export const SubmissionPage = () => {
       const decompressedData = pako.inflate(new Uint8Array(compressedArrayBuffer));
       const blob = new Blob([decompressedData], { type: 'image/jpeg' });
       const imageObjectURL = URL.createObjectURL(blob);
+      if (gradedURLRef.current) URL.revokeObjectURL(gradedURLRef.current);
+      gradedURLRef.current = imageObjectURL;
       setGradedImage(imageObjectURL);
     } catch (error) {
       console.error("Error fetching graded image: ", error);
@@ -117,11 +140,44 @@ export const SubmissionPage = () => {
     }
   };
 
+  // Called by LiveVideoGrader when a submission was graded successfully
+  const handleVideoGraded = async (submissionId) => {
+    setLastSubmissionId(submissionId);
+    await fetchGradedImage(submissionId);
+    setAwaitingConfirm(true);
+  };
+
+  const confirmAndContinue = (confirmed) => {
+    setAwaitingConfirm(false);
+    // Optionally handle "reject" (delete submission) here if you want
+    handleNewSubmission();
+    // If we’re in video mode, remount to resume camera
+    if (selectedMode === 'video') {
+      setVideoKey(k => k + 1);
+    }
+  };
+
   const handleNewSubmission = () => {
     setImage(null);
+    if (gradedURLRef.current) {
+      URL.revokeObjectURL(gradedURLRef.current);
+      gradedURLRef.current = null;
+    }
     setGradedImage(null);
-    // keep selectedStudent as-is to streamline bulk grading; clear if you prefer:
-    // setSelectedStudent('');
+    setLastSubmissionId(null);
+  };
+
+  // Cleanup object URL on unmount
+  useEffect(() => {
+    return () => {
+      if (gradedURLRef.current) URL.revokeObjectURL(gradedURLRef.current);
+    };
+  }, []);
+
+  // Handle LiveVideoGrader calling onNoSupport (e.g., iPhone embedded webview, non-HTTPS)
+  const handleNoVideoSupport = () => {
+    setSelectedMode('camera');
+    setErrorMessage("Live video is not available; switched to Camera mode. You can still take a photo to grade.");
   };
 
   return (
@@ -166,46 +222,118 @@ export const SubmissionPage = () => {
         </div>
       )}
 
-      {/* Live capture with sheet detection */}
-      {!image && !gradedImage && (
-        <div className="w-full max-w-4xl">
-          <TakeScantronPicture onSubmit={handleImageSubmit} />
+      {/* CHOICE-FIRST CARD — show only when no method chosen and not showing a graded result */}
+      {!selectedMode && !gradedImage && (
+        <div className="w-full max-w-3xl bg-white rounded-xl shadow p-6">
+          <h2 className="text-xl font-semibold mb-3">How would you like to submit?</h2>
+          <p className="text-sm text-gray-600 mb-4">
+            On iPhone, “Open Camera” launches the rear camera. “Video Feed” requires Safari/WebKit and HTTPS.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <button
+              onClick={() => {
+                setSelectedMode('camera');
+                // immediately open the picker for convenience
+                openCameraPicker();
+              }}
+              className="w-full px-4 py-3 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
+            >
+              Open Camera (Photo/Upload)
+            </button>
+            <button
+              onClick={() => {
+                if (!mediaSupported) {
+                  setErrorMessage("Live video not supported here. Try Safari on iPhone, or use the Camera option.");
+                  setSelectedMode('camera');
+                  // optionally auto-open camera
+                  openCameraPicker();
+                } else {
+                  setSelectedMode('video');
+                  // LiveVideoGrader will request permission after mount
+                }
+              }}
+              className="w-full px-4 py-3 rounded-lg bg-green-600 text-white hover:bg-green-700"
+            >
+              Use Live Video Feed
+            </button>
+          </div>
         </div>
       )}
 
-      {/* Fallback “Take Photo” button (optional; kept for devices where webcam lib isn’t available) */}
-      {!image && !gradedImage && (
-        <button
-          onClick={async () => {
-            // As a fallback, open the file picker:
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.accept = 'image/*';
-            input.onchange = (e) => {
-              const file = e.target.files?.[0];
-              if (file) handleImageSubmit(file);
-            };
-            input.click();
-          }}
-          className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700 transition duration-300"
-        >
-          Upload Photo Instead
-        </button>
+      {/* VIDEO MODE — only when selected and not currently showing graded output */}
+      {selectedMode === 'video' && !gradedImage && (
+        <div className="w-full max-w-4xl mt-4" key={videoKey}>
+          <LiveVideoGrader
+            instanceURL={instanceURL}
+            test={test}
+            authDetails={authDetails}
+            selectedStudent={selectedStudent}
+            onGraded={handleVideoGraded}
+            onError={(msg) => setErrorMessage(msg)}
+            onNoSupport={handleNoVideoSupport}
+          />
+          <div className="text-center mt-3">
+            <button
+              className="text-sm underline text-gray-700 hover:text-gray-900"
+              onClick={() => setSelectedMode('camera')}
+            >
+              Change method: Use Camera instead
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* CAMERA/UPLOAD MODE — either chosen explicitly, or fallback from video */}
+      {selectedMode === 'camera' && !gradedImage && (
+        <div className="w-full max-w-4xl mt-4">
+          {/* If you prefer your existing component, keep it; otherwise just show a button that opens the picker */}
+          <TakeScantronPicture onSubmit={handleImageSubmit} />
+          <div className="text-center mt-3 flex items-center justify-center gap-3">
+            <button
+              onClick={openCameraPicker}
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            >
+              Open Camera/Upload
+            </button>
+            {mediaSupported && (
+              <button
+                className="text-sm underline text-gray-700 hover:text-gray-900"
+                onClick={() => setSelectedMode('video')}
+              >
+                Change method: Use Video Feed instead
+              </button>
+            )}
+          </div>
+        </div>
       )}
 
       {isSubmitting && <p className="text-center text-blue-500 mt-4">Submitting...</p>}
       {errorMessage && <p className="text-center text-red-500 mt-2">{errorMessage}</p>}
 
+      {/* GRADED RESULT + CONFIRMATION (both modes) */}
       {gradedImage && (
         <div className="text-center mt-8">
           <h2 className="text-2xl font-bold mb-4">Graded Image</h2>
           <img src={gradedImage} alt="Graded" className="max-w-lg rounded-lg shadow-xl mx-auto" />
-          <div className="mt-4">
-            <button onClick={handleNewSubmission} className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 transition">
-              New Submission
+          <div className="mt-4 flex gap-3 justify-center">
+            <button
+              onClick={() => confirmAndContinue(true)}
+              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
+            >
+              Looks Good — Save & Continue
+            </button>
+            <button
+              onClick={() => confirmAndContinue(false)}
+              className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition"
+            >
+              Retake
             </button>
           </div>
-          <p className="text-sm text-gray-600 mt-2">Auto-resetting for next submission…</p>
+          {awaitingConfirm && (
+            <p className="text-sm text-gray-600 mt-2">
+              Confirm the graded result to {selectedMode === 'video' ? 'resume the video feed' : 'submit another photo'}.
+            </p>
+          )}
         </div>
       )}
     </div>

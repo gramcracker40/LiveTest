@@ -90,10 +90,14 @@ export const CreateTestPage = () => {
     createTest();
   };
 
+  // RELAXED bottom detection + single scroll container
   const handleScroll = (e) => {
     const { scrollTop, clientHeight, scrollHeight } = e.currentTarget;
-    if (scrollHeight - scrollTop === clientHeight) {
-      setVisibleQuestions((prevVisibleQuestions) => Math.min(prevVisibleQuestions + 10, parseInt(testDetails.numberOfQuestions)));
+    // near-bottom threshold instead of strict equality
+    if (scrollTop + clientHeight >= scrollHeight - 8) {
+      setVisibleQuestions((prev) =>
+        Math.min(prev + 10, parseInt(testDetails.numberOfQuestions || 0) || 0)
+      );
     }
   };
 
@@ -192,8 +196,11 @@ export const CreateTestPage = () => {
       <div className="absolute top-4 left-4">
         <BackButton className="px-8 py-3 text-sm font-semibold rounded-md shadow-sm bg-cyan-200 text-gray-700 hover:bg-cyan-300" />
       </div>
-      <div className="overflow-y-auto sm:mx-auto sm:w-full sm:max-w-md h-full">
+
+      {/* remove overflow here so the inner questions list owns scrolling */}
+      <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <h1 className="text-center text-6xl font-bold text-cyan-500">Create Test</h1>
+
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div>
             <label htmlFor="name" className="block text-sm font-medium text-gray-700">Test Name</label>
@@ -207,6 +214,7 @@ export const CreateTestPage = () => {
               onChange={handleInputChange}
             />
           </div>
+
           <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-2">
             <div>
               <label htmlFor="startTime" className="block text-sm font-medium text-gray-700">Start Time</label>
@@ -233,6 +241,7 @@ export const CreateTestPage = () => {
               />
             </div>
           </div>
+
           <div>
             <label htmlFor="numberOfQuestions" className="block text-sm font-medium text-gray-700">Number of Questions</label>
             <input
@@ -240,13 +249,14 @@ export const CreateTestPage = () => {
               name="numberOfQuestions"
               type="number"
               required
-              min="0"
+              min="1"            
               max="200"
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-cyan-500 focus:border-cyan-500 sm:text-md"
               value={testDetails.numberOfQuestions}
               onChange={handleInputChange}
             />
           </div>
+
           <div>
             <label htmlFor="numberOfChoices" className="block text-sm font-medium text-gray-700">Number of Choices</label>
             <input
@@ -261,9 +271,12 @@ export const CreateTestPage = () => {
               onChange={handleInputChange}
             />
           </div>
-          <div className="overflow-y-auto max-h-64" onScroll={handleScroll}>
+
+          {/* Single scroll owner for the questions list */}
+          <div className="overflow-y-auto max-h-96 pr-2" onScroll={handleScroll}>
             {generateAnswerInputs()}
           </div>
+
           <div>
             <button
               type="submit"
@@ -273,6 +286,7 @@ export const CreateTestPage = () => {
             </button>
           </div>
         </form>
+
         {templateImage && (
           <div className="mt-6">
             <h2 className="text-xl font-bold mb-4">Test Template Image</h2>
