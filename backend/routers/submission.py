@@ -3,6 +3,7 @@ import json
 import datetime
 import io
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+from sqlalchemy.orm import selectinload, joinedload, Session
 from fastapi import HTTPException, APIRouter, Depends, Form, UploadFile
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
@@ -14,7 +15,7 @@ from models.submission import GetStudentSubmission, \
     GetSubmission, UpdateSubmission, GetSubmissionAnswers
 from answer_sheets.grader import OMRGrader
 from routers.auth import get_current_user
-from sqlalchemy.orm import Session
+import os
 
 router = APIRouter(
     prefix="/submission",
@@ -62,7 +63,7 @@ async def create_submission_live(
             num_questions=test.num_questions, 
             font_path="answer_sheets/assets/fonts/RobotoMono-Regular.ttf",
             mechanical=mechanical, 
-            show_process=True
+            show_process=False if os.environ.get("HEADLESS") == "1" else True
         )
         grade, graded, choices = grader.run(bytes_obj=image_data, key=test_key)
         if not grade: # check to make sure no errors were raised while trying to grade the submission
@@ -138,26 +139,45 @@ def get_submission(submission_id: int, db: Session = Depends(get_db)):
     return sub
 
 
-@router.get("/test/{test_id}", response_model=List[GetSubmission])
+@router.get("/test/{test_id}")   # <-- fixed path
 def get_submissions_for_test(test_id: str, db: Session = Depends(get_db)):
-    test = db.query(Test).get(test_id)
+    subs = (
+        db.query(Submission)
+          .options(selectinload(Submission.student))
+          .filter(Submission.test_id == test_id)
+          .order_by(Submission.submission_time.desc())   # or your timestamp column
+          .all()
+    )
 
-    if test is None:
-        raise HTTPException(status_code=404, detail="Test not found")
+    def student_payload(s):
+        st = s.student
+        if not st:
+            return None
+        # support either name or first/last fields
+        name = getattr(st, "name", None)
+        if not name:
+            name = " ".join(
+                x for x in [getattr(st, "first_name", None), getattr(st, "last_name", None)]
+                if x
+            ) or None
+        return {
+            "id": st.id,
+            "name": name,
+            "first_name": getattr(st, "first_name", None),
+            "last_name": getattr(st, "last_name", None),
+        }
 
-    submissions = [
+    return [
         {
-            'id': sub.id,
-            'student_id': sub.student.id,
-            'student_name': sub.student.name,
-            'grade': sub.grade, 
-            'submission_time': sub.submission_time            
-        } 
-        for sub in test.submissions
+            "id": sub.id,
+            "test_id": sub.test_id,
+            "submission_time": sub.submission_time,  # <-- existing field
+            "grade": sub.grade,                      # <-- existing field
+            "student_id": getattr(sub, "student_id", None),
+            "student": student_payload(sub),
+        }
+        for sub in subs
     ]
-    
-    return submissions
-
 
 @router.get("/image/graded/{submission_id}")
 def get_submission_graded_image(submission_id: int, db: Session = Depends(get_db)):

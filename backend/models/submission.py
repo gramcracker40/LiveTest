@@ -9,15 +9,15 @@ class CreateSubmission(BaseModel):
     test_id: str = Form(...)
 
 class UpdateSubmission(BaseModel):
-    answers: str
-    grade: float
-    student_id: int
-    test_id: int
+    answers: Optional[str] = None
+    grade: Optional[float] = None
+    student_id: Optional[int] = None
+    test_id: Optional[int] = None
 
 class GetSubmission(BaseModel):
     id: int
     student_id: Optional[int] = None
-    student_name: str
+    student_name: Optional[str] = None
     grade: float
     submission_time: Optional[datetime] = None
 

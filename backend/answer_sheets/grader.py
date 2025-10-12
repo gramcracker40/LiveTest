@@ -39,22 +39,34 @@ on how to properly submit student answer sheets."""):
         super().__init__(self.message)
 
 
-def show_image(title, temp):
-    """
-    Disable cv2.imshow in headless/server environments to prevent crash.
-    """
-    # Check if running in FastAPI / headless mode
+# ---- display helpers (fits any image into a bounded window) -----------------
+DISPLAY_MAX_W = 900   # change to your preferred bounds
+DISPLAY_MAX_H = 700
+
+def _resize_to_fit(img, max_w=DISPLAY_MAX_W, max_h=DISPLAY_MAX_H):
+    """Resize img to fit within max_w × max_h (aspect-ratio preserved)."""
+    h, w = img.shape[:2]
+    if w == 0 or h == 0:
+        return img
+    scale = min(max_w / w, max_h / h, 1.0)
+    new_size = (int(w * scale), int(h * scale))
+    return cv2.resize(img, new_size, interpolation=cv2.INTER_AREA)
+
+def show_image(title: str, img, max_w=DISPLAY_MAX_W, max_h=DISPLAY_MAX_H):
+    """Show image in a constrained window; no crash in headless environments."""
     if os.environ.get("DISPLAY") is None or os.environ.get("FASTAPI_ENV") == "prod":
-        # just log instead of displaying
         print(f"[INFO] show_image skipped for '{title}' (headless mode)")
         return
     try:
-        cv2.imshow(title, temp)
+        vis = _resize_to_fit(img, max_w, max_h)
+        cv2.namedWindow(title, cv2.WINDOW_NORMAL)
+        cv2.imshow(title, vis)
+        # (optional) lock the window size so big images can’t expand it:
+        cv2.resizeWindow(title, vis.shape[1], vis.shape[0])
         cv2.waitKey(0)
         cv2.destroyWindow(title)
     except cv2.error as e:
         print(f"[WARN] show_image skipped (no GUI support): {e}")
-
 
 
 def pre_process(image):
@@ -186,11 +198,6 @@ class OMRGrader:
                 return encoded_image.tobytes()
         return None
     
-    def show_image(self, title: str, matlike, w=600, h=700):
-        temp = cv2.resize(matlike, (w, h))
-        cv2.imshow(title, temp)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
 
     def is_circle(self, contour, threshold=0.825, epsilon_factor=0.01):
         '''
@@ -274,14 +281,14 @@ class OMRGrader:
         print("starting bubbles")
         if len(self.image.shape) == 3: # rectangle
             self.image = equalize_histogram(self.image) # levels out inconsistent brightness
-            self.show_image("histogram equalized", self.image) if self.show_process else None
+            show_image("histogram equalized", self.image) if self.show_process else None
             gray = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
-            self.show_image("grayed!", gray) if self.show_process else None
+            show_image("grayed!", gray) if self.show_process else None
             blurred = cv2.GaussianBlur(gray, (5, 5), 0)
-            self.show_image("blurred image", blurred) if self.show_process else None
+            show_image("blurred image", blurred) if self.show_process else None
             self.thresh = cv2.threshold(blurred, 0, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
             print("thresholded image!")
-        self.show_image("Thresholded image", self.thresh) if self.show_process else None
+        show_image("Thresholded image", self.thresh) if self.show_process else None
 
         contours, _ = cv2.findContours(self.thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         question_contours = []
@@ -291,7 +298,7 @@ class OMRGrader:
             if self.is_circle(contour):
                 question_contours.append(contour)
                 cv2.drawContours(self.image, [contour], -1, (0,255,0), 2)
-        self.show_image("Bubbles identified image", self.image) if self.show_process else None
+        show_image("Bubbles identified image", self.image) if self.show_process else None
 
         return question_contours
 
