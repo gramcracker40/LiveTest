@@ -72,6 +72,7 @@ async def create_submission_live(
         
         # if all went well with grading process, gather the submission data
         graded_image_bytes = OMRGrader.convert_image_to_bytes(grader.image)
+        
         new_submission = Submission(
             submission_time=datetime.datetime.now(), 
             submission_image=compress_data(compress_image(image_data, quality=5)),
@@ -99,7 +100,8 @@ async def create_submission_live(
         print(f"Could not grade the answer sheet: {e}")
         raise HTTPException(status_code=409, detail=f"""Error: Unable to extract the 
 answer sheet. Make sure the answer sheet is the focus of the image. Ensure the 
-background is a solid color and there is no irregular brightness across the image.""")
+background is a solid color and there is no irregular brightness across the image. Also ensure 
+it is the correct test for this answer sheet!""")
     except SQLAlchemyError as e:
         print(f"Database error: {e}")
         if "UNIQUE" in str(e):

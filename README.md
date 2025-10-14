@@ -4,11 +4,15 @@
 
   free, easy, consistent process for server based dynamic OMR grading/scanning using highly customizable answer sheets that can be integrated with any school. 
 
-  This repo is the result of the research conducted by Garrett Mathers and Professor Terry Griffin  to deliver a free and highly configurable answer sheet generation tool that could be graded using low quality cameras accurately and consistently.  
+  This repo is the result of the research conducted by Garrett Mathers and Professor Terry Griffin to deliver a free and highly configurable answer sheet generation tool that could be graded using low quality cameras accurately and consistently.  
 
   My research is attached as a .pdf so feel free to read the purpose of LiveTest and the walkthrough of the OMRGrader and answer sheet creation module "Pictron"
 
-# Fair warning: this repo is large! I have a lot of examples.
+# Fair warning: this repo is large! I have a lot of examples and included my whole research. 
+
+# /deploy
+The whole app can be built and run using docker in two commands. see the README.md in deploy for more info. 
+
 
 # /backend
 ### /answer_sheets  - research
@@ -22,8 +26,6 @@
 # /frontend 
   implements the demo app built using Vite React JavaScript to showcase the abilities of the backend. 
 
-# /deploy
-The whole app can be built and run using docker in two commands. see the README.md in deploy for more info. 
 
   Here is some example answer sheets and a showcase of the OMR scanner, as well as examples of the frontend 
 
